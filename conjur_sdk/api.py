@@ -14,7 +14,7 @@ from urllib import parse
 
 # Internals
 from conjur_sdk.endpoints import ConjurEndpoint
-from conjur_sdk.interface.credentials_store_interface import CredentialsStoreInterface
+from conjur_sdk.interface.credentials_store_interface import CredentialsProviderInterface
 from conjur_sdk.wrappers.http_response import HttpResponse
 from conjur_sdk.wrappers.http_wrapper import HttpVerb, invoke_endpoint
 from conjur_sdk.errors import InvalidResourceException, MissingRequiredParameterException
@@ -45,7 +45,7 @@ class Api:
     def __init__(
             self,
             conjurrc_data: ConjurrcData,
-            credentials_provider: CredentialsStoreInterface,
+            credentials_provider: CredentialsProviderInterface,
             ssl_verification_mode: SslVerificationMode = SslVerificationMode.TRUST_STORE,
             debug: bool = False,
             http_debug=False,
@@ -57,7 +57,7 @@ class Api:
         self._account = conjurrc_data.conjur_account
         self._url = conjurrc_data.conjur_url
         self._api_key = None
-        self.credentials_provider: CredentialsStoreInterface = credentials_provider
+        self.credentials_provider: CredentialsProviderInterface = credentials_provider
         self.debug = debug
         self.http_debug = http_debug
         self.api_token_expiration = None
@@ -111,7 +111,7 @@ class Api:
         @return: The login_id (username)
         """
         if not self._login_id:
-            self._login_id = self.credentials_provider.load(self._url).login
+            self._login_id = self.credentials_provider.load(self._url).username
         return self._login_id
 
     def login(self) -> str:

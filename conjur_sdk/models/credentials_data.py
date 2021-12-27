@@ -13,10 +13,9 @@ class CredentialsData:
     Used for setting user input data to login to Conjur
     """
 
-
-    def __init__(self, machine: str = None, login: str = None, password: str = None):
+    def __init__(self, machine: str = None, username: str = None, password: str = None):
         self.machine = machine
-        self.login = login # TODO rename to username
+        self.username = username
         self.password = password
 
     @classmethod
@@ -28,11 +27,11 @@ class CredentialsData:
 
     # pylint: disable=line-too-long
     def __repr__(self):
-        return f"{{'machine': '{self.machine}', 'login': '{self.login}', 'password': '****'}}"
+        return f"{{'machine': '{self.machine}', 'username': '{self.username}', 'password': '****'}}"
 
     def __eq__(self, other) -> bool:
         """
         Method for comparing resources by their values and not by reference
         """
-        return self.machine == other.machine and self.login == other.login and self.password == \
-            other.password
+        return self.machine == other.machine and self.username == other.username and self.password == \
+               other.password
