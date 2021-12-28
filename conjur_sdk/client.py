@@ -71,6 +71,9 @@ class Client:
 
     ### API passthrough
 
+    def login(self) -> str:
+        return self._api.login()
+
     def whoami(self) -> dict:
         """
         Provides dictionary of information about the user making an API request
@@ -215,7 +218,3 @@ class Client:
             credentials_provider=credentials_provider,
             debug=self.debug,
             http_debug=http_debug)
-
-
-if __name__ == '__main__':
-    c = Client(None, SslVerificationMode.TRUST_STORE)
