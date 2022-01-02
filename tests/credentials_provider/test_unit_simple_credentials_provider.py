@@ -16,7 +16,7 @@ class SimpleCredentialsProviderTest(TestCase):
         provider.save(credentials_data)
         self.assertEqual(credentials_data, provider.load(credentials_data.machine))
 
-    def test_two_object_created(self):
+    def test_with_two_credentials(self):
         provider = SimpleCredentialsProvider()
 
         credentials_data1 = create_credentials()
@@ -28,7 +28,7 @@ class SimpleCredentialsProviderTest(TestCase):
         self.assertEqual(credentials_data1, provider.load(credentials_data1.machine))
         self.assertEqual(credentials_data2, provider.load(credentials_data2.machine))
 
-    def test_new_object_created(self):
+    def test_change_doesnt_effect_after_save(self):
         provider = SimpleCredentialsProvider()
         old_username = "old_username"
 
@@ -48,14 +48,14 @@ class SimpleCredentialsProviderTest(TestCase):
         provider.save(credentials_data2)
         self.assertEqual("different_user", provider.load(credentials_data1.machine).username)
 
-    def test_is_exist(self):
+    def test_credentials_are_exist(self):
         provider = SimpleCredentialsProvider()
         credentials_data = create_credentials()
         provider.save(credentials_data)
         self.assertTrue(provider.is_exists(credentials_data.machine))
         self.assertFalse(provider.is_exists("not_exists_machine"))
 
-    def test_cleanup_if_exists(self):
+    def test_cleanup_credentials_if_exist(self):
         provider = SimpleCredentialsProvider()
         credentials_data = create_credentials()
         provider.save(credentials_data)
