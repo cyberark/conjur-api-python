@@ -12,7 +12,7 @@ import abc
 from conjur_sdk.models import CredentialsData, ConjurrcData
 
 
-class CredentialsStoreInterface(metaclass=abc.ABCMeta):  # pragma: no cover
+class CredentialsProviderInterface(metaclass=abc.ABCMeta):  # pragma: no cover
     """
     CredentialsStoreInterface
     This class is an interface that outlines a shared interface for credential stores
@@ -26,7 +26,7 @@ class CredentialsStoreInterface(metaclass=abc.ABCMeta):  # pragma: no cover
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def load(self, conjurrc_conjur_url: str) -> CredentialsData:
+    def load(self, conjur_url: str) -> CredentialsData:
         """
         Method that loads credentials
         """
@@ -41,21 +41,21 @@ class CredentialsStoreInterface(metaclass=abc.ABCMeta):  # pragma: no cover
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def remove_credentials(self, conjurrc: ConjurrcData):
+    def remove_credentials(self, conjur_url: str):
         """
         Method to remove credentials from a store
         """
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def is_exists(self, conjurrc_conjur_url: str) -> bool:
+    def is_exists(self, conjur_url: str) -> bool:
         """
         Method to check if credentials exist in a store
         """
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def cleanup_if_exists(self, conjurrc_conjur_url: str):
+    def cleanup_if_exists(self, conjur_url: str):
         """
         Method to cleanup credential leftovers if exist.
         For example, if a user delete item manually from the local pc keyring,

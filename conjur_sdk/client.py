@@ -16,7 +16,7 @@ from typing import Optional
 from conjur_sdk.models import SslVerificationMode, CreateHostData, CreateTokenData, ListMembersOfData, \
     ListPermittedRolesData, ConjurrcData, Resource
 from conjur_sdk.errors import ResourceNotFoundException, MissingRequiredParameterException
-from conjur_sdk.interface.credentials_store_interface import CredentialsStoreInterface
+from conjur_sdk.interface.credentials_store_interface import CredentialsProviderInterface
 from conjur_sdk.api import Api
 
 LOGGING_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
@@ -40,7 +40,7 @@ class Client:
             ssl_verification_mode: SslVerificationMode = SslVerificationMode.TRUST_STORE,
             debug: bool = False,
             http_debug: bool = False,
-            credentials_provider: CredentialsStoreInterface = None):
+            credentials_provider: CredentialsProviderInterface = None):
 
         self.configure_logger(debug)
 
