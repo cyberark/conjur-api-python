@@ -1,0 +1,1 @@
+from conjur_sdk.credentials_providers.simple_credentials_provider import SimpleCredentialsProvider
