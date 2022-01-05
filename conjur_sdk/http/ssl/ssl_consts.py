@@ -3,7 +3,7 @@
 """
 SSLClient module
 
-This module holds all of ssl_utils consts
+This module holds all of ssl consts
 """
 
 from OpenSSL import SSL

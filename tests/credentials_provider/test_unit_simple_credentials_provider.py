@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from conjur_sdk.credentials_providers import SimpleCredentialsProvider
+from conjur_sdk.providers import SimpleCredentialsProvider
 from conjur_sdk.models import CredentialsData
 
 

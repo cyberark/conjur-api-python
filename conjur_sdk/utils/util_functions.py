@@ -1,6 +1,6 @@
 import platform
 
-from conjur_sdk.errors import MissingRequiredParameterException
+from conjur_sdk.errors.errors import MissingRequiredParameterException
 from conjur_sdk.models.enums.os_types import OSTypes
 
 

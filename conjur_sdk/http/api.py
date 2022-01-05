@@ -13,11 +13,11 @@ from datetime import datetime, timedelta
 from urllib import parse
 
 # Internals
-from conjur_sdk.endpoints import ConjurEndpoint
+from conjur_sdk.http.endpoints import ConjurEndpoint
 from conjur_sdk.interface.credentials_store_interface import CredentialsProviderInterface
 from conjur_sdk.wrappers.http_response import HttpResponse
 from conjur_sdk.wrappers.http_wrapper import HttpVerb, invoke_endpoint
-from conjur_sdk.errors import InvalidResourceException, MissingRequiredParameterException
+from conjur_sdk.errors.errors import InvalidResourceException, MissingRequiredParameterException
 # pylint: disable=too-many-instance-attributes
 from conjur_sdk.models import Resource, ConjurrcData, ListPermittedRolesData, ListMembersOfData, CreateHostData, \
     CreateTokenData, SslVerificationMetadata, SslVerificationMode

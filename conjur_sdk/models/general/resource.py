@@ -6,7 +6,7 @@ Resource module
 
 
 # pylint: disable=too-few-public-methods
-from conjur_sdk.errors import MissingRequiredParameterException
+from conjur_sdk.errors.errors import MissingRequiredParameterException
 
 
 class Resource:
