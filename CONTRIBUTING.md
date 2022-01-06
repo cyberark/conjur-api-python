@@ -22,6 +22,12 @@ TODO:
 TODO:
 [Instructions for running the test suite]
 
+### Consuming the SDK locally
+
+If you want to pip install the SDK without uploading it to pypi you can run the following command
+`pip3 install ../`. NOTE - that the SDK requires python version >= than the one specified in the `setup.cfg` file under 
+`python_requires` field. 
+
 ## Releases
 
 TODO:
