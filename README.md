@@ -20,9 +20,6 @@ This project requires Docker and access to DockerHub.
 
 It officially requires python3.10 and above but can run with lower versions compiled with openssl 1.1.1
 
-TODO - add instructions to know which related to what Each python Client version corresponds to a specific API version
-release,
-
 ## How to use the client
 
 ### Prerequisites
@@ -34,6 +31,25 @@ of [Enterprise](https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/
 
 Once Conjur is running in the background, you are ready to start setting up your python app to work with our Conjur
 python API!
+
+### Installation
+
+The SDK can be installed via PyPI. Note that the SDK is a **Community level** project meaning that the SDK is subject to
+alterations that may result in breaking change.
+
+To avoid unanticipated breaking changes, make sure that you stay up-to-date on our latest releases and review the
+project's [CHANGELOG.md](CHANGELOG.md).
+
+```
+pip3 install conjur
+```
+
+Alternatively, you can install the library from the source. Note that this will install the latest work from the cloned
+source and not necessarily an official release.
+
+Clone the project and run:
+
+`pip3 install .`
 
 ### Configuring the client
 
@@ -67,8 +83,8 @@ allow to keep the credentials in a safe location and provide it to the client on
 We provide the user with `CredentialsProviderInterface` which can be implemented the way the user see as best
 fit (`keyring` usage for example)
 
-We also provide the user with a simple implementation of such provider called `SimpleCredentialsProvider`.
-Example of creating such provider + storing credentials:
+We also provide the user with a simple implementation of such provider called `SimpleCredentialsProvider`. Example of
+creating such provider + storing credentials:
 
 `credentials = CredentialsData(username=username, password=password, machine=conjur_url)`
 
@@ -79,19 +95,117 @@ Example of creating such provider + storing credentials:
 `del credentials`
 
 #### Creating the client and use it
+
 Now that we have created `conjurrc_data` and `credentials_provider`
 We can create our client
 
-`client = Client(conjur_data, credentials_provider=credentials_provider,
-                ssl_verification_mode=ssl_verification_mode)`
+`client = Client(conjur_data, credentials_provider=credentials_provider, ssl_verification_mode=ssl_verification_mode)`
 
-* ssl_verification_mode = `SslVerificationMode` enum that states what is the certificate verification technique we will use when making the api request
+* ssl_verification_mode = `SslVerificationMode` enum that states what is the certificate verification technique we will
+  use when making the api request
 
 After creating the client we can login to conjur and start using it. Example of usage:
 
 `client.login() # login to conjur and return the api_key`
 
 `client.list() # get list of all conjur resources that the user authorize to read`
+
+## Supported Client methods
+
+#### `get(variable_id)`
+
+Gets a variable value based on its ID. Variable is binary data that should be decoded to your system's encoding (e.g.
+`get(variable_id).decode('utf-8')`.
+
+#### `get_many(variable_id[,variable_id...])`
+
+Gets multiple variable values based on their IDs. Variables are returned in a dictionary that maps the variable name to
+its value.
+
+#### `set(variable_id, value)`
+
+Sets a variable to a specific value based on its ID.
+
+Note: Policy to create the variable must have already been loaded otherwise you will get a 404 error during invocation.
+
+#### `load_policy_file(policy_name, policy_file)`
+
+Applies a file-based YAML to a named policy. This method only supports additive changes. Result is a dictionary object
+constructed from the returned JSON data.
+
+#### `replace_policy_file(policy_name, policy_file)`
+
+Replaces a named policy with one from the provided file. This is usually a destructive invocation. Result is a
+dictionary object constructed from the returned JSON data.
+
+#### `update_policy_file(policy_name, policy_file)`
+
+Modifies an existing Conjur policy. Data may be explicitly deleted using the `!delete`, `!revoke`, and `!deny`
+statements. Unlike
+"replace" mode, no data is ever implicitly deleted. Result is a dictionary object constructed from the returned JSON
+data.
+
+#### `list(list_constraints)`
+
+Returns a list of all available resources for the current account.
+
+The 'list constraints' parameter is optional and should be provided as a dictionary.
+
+For example: `client.list({'kind': 'user', 'inspect': True})`
+
+| List constraints | Explanation                                                  |
+| ---------------- | ------------------------------------------------------------ |
+| kind             | Filter resources by specified kind (user, host, layer, group, policy, variable, or webservice) |
+| limit            | Limit list of resources to specified number                  |
+| offset           | Skip specified number of resources                           |
+| role             | Retrieve list of resources that specified role is entitled to see (must specify role's full ID) |
+| search           | Search for resources based on specified query                |
+| inspect          | List the metadata for resources                              |
+
+#### `def list_permitted_roles(list_permitted_roles_data: ListPermittedRolesData)`
+
+Lists the roles which have the named permission on a resource.
+
+#### `def list_members_of_role(data: ListMembersOfData)`
+
+Lists the roles which have the named permission on a resource.
+
+#### `def create_token(create_token_data: CreateTokenData)`
+
+Create token/s for hosts with restrictions
+
+#### `def create_host(create_host_data: CreateHostData)`
+
+Create new host using the hostfactory endpoint
+
+#### `def revoke_token(token: str)`
+
+Revokes the given token
+
+#### `rotate_other_api_key(resource: Resource)`
+
+Rotates another entity's API key and returns it as a string.
+
+Note: resource is of type Resource which should have `type` (user / host) and
+`name` attributes.
+
+#### `rotate_personal_api_key(logged_in_user, current_password)`
+
+Rotates the personal API key of the logged-in user and returns it as a string.
+
+#### `change_personal_password(logged_in_user, current_password, new_password)`
+
+Updates the current, logged-in user's password with the password parameter provided.
+
+Note: the new password must meet the Conjur password complexity constraints. It must contain at least 12 characters: 2
+uppercase, 2 lowercase, 1 digit, 1 special character.
+
+#### `whoami()`
+
+_Note: This method requires Conjur v1.9+_
+
+Returns a Python dictionary of information about the Client making an API request (such as its IP address, user,
+account, token expiration date, etc).
 
 ## Contributing
 
