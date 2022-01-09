@@ -2,7 +2,7 @@
 
 An API client for Conjur written in python.
 
-Find more from CyberArk.
+Find more [from CyberArk](https://github.com/cyberark).
 
 ## Certification level
 
