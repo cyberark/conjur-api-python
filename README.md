@@ -1,4 +1,4 @@
-# {Conjur-Python-SDK}
+# Conjur-Python-SDK
 
 An API client for Conjur written in python.
 
