@@ -13,13 +13,13 @@ from datetime import datetime, timedelta
 from urllib import parse
 
 # Internals
-from conjur_sdk.http.endpoints import ConjurEndpoint
-from conjur_sdk.interface.credentials_store_interface import CredentialsProviderInterface
-from conjur_sdk.wrappers.http_response import HttpResponse
-from conjur_sdk.wrappers.http_wrapper import HttpVerb, invoke_endpoint
-from conjur_sdk.errors.errors import InvalidResourceException, MissingRequiredParameterException
+from conjur_api.http.endpoints import ConjurEndpoint
+from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
+from conjur_api.wrappers.http_response import HttpResponse
+from conjur_api.wrappers.http_wrapper import HttpVerb, invoke_endpoint
+from conjur_api.errors.errors import InvalidResourceException, MissingRequiredParameterException
 # pylint: disable=too-many-instance-attributes
-from conjur_sdk.models import Resource, ConjurrcData, ListPermittedRolesData, ListMembersOfData, CreateHostData, \
+from conjur_api.models import Resource, ConjurrcData, ListPermittedRolesData, ListMembersOfData, CreateHostData, \
     CreateTokenData, SslVerificationMetadata, SslVerificationMode
 
 
@@ -117,8 +117,8 @@ class Api:
     def login(self) -> str:
         """
         This method uses the basic auth login id (username) and password
-        to retrieve an conjur_sdk key from the server that can be later used to
-        retrieve short-lived conjur_sdk tokens.
+        to retrieve an conjur_api key from the server that can be later used to
+        retrieve short-lived conjur_api tokens.
         """
         logging.debug("Logging in to %s...", self._url)
         password = self.password
@@ -132,7 +132,7 @@ class Api:
 
     def authenticate(self) -> str:
         """
-        Authenticate uses the api_key to fetch a short-lived conjur_sdk token that
+        Authenticate uses the api_key to fetch a short-lived conjur_api token that
         for a limited time will allow you to interact fully with the Conjur
         vault.
         """

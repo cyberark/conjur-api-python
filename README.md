@@ -56,19 +56,21 @@ Clone the project and run:
 #### Define connection parameters
 
 In order to login to conjur you need to have 5 parameters known from advance.
-
-`conjur_url = "https://my_conjur.com"`
-`account = "my_account"`
-`username = "user1"`
-`password = "SomeStr@ngPassword!1"`
-`ssl_verification_mode = SslVerificationMode.TRUST_STORE`
-
+```
+conjur_url = "https://my_conjur.com"
+account = "my_account"
+username = "user1"
+password = "SomeStr@ngPassword!1"
+ssl_verification_mode = SslVerificationMode.TRUST_STORE
+```
 #### Define ConjurrcData
 
 ConjurrcData is a data class containing all the non-credentials connection details.
-`conjurrc_data = ConjurrcData(
-conjur_url=conjur_url, account=account, cert_file = None
-)`
+```
+conjurrc_data = ConjurrcData(conjur_url=conjur_url, 
+                             account=account, 
+                             cert_file = None)
+```
 
 * conjur_url - url of conjur server
 * account - the account which we want to connect to
@@ -85,31 +87,33 @@ fit (`keyring` usage for example)
 
 We also provide the user with a simple implementation of such provider called `SimpleCredentialsProvider`. Example of
 creating such provider + storing credentials:
+```
+credentials = CredentialsData(username=username, password=password, machine=conjur_url)
 
-`credentials = CredentialsData(username=username, password=password, machine=conjur_url)`
+credentials_provider = SimpleCredentialsProvider()
 
-`credentials_provider = SimpleCredentialsProvider()`
+credentials_provider.save(credentials)
 
-`credentials_provider.save(credentials)`
-
-`del credentials`
+del credentials
+```
 
 #### Creating the client and use it
 
 Now that we have created `conjurrc_data` and `credentials_provider`
 We can create our client
-
-`client = Client(conjur_data, credentials_provider=credentials_provider, ssl_verification_mode=ssl_verification_mode)`
+```
+client = Client(conjur_data, credentials_provider=credentials_provider, ssl_verification_mode=ssl_verification_mode)
+```
 
 * ssl_verification_mode = `SslVerificationMode` enum that states what is the certificate verification technique we will
   use when making the api request
 
 After creating the client we can login to conjur and start using it. Example of usage:
+```
+client.login() # login to conjur and return the api_key`
 
-`client.login() # login to conjur and return the api_key`
-
-`client.list() # get list of all conjur resources that the user authorize to read`
-
+client.list() # get list of all conjur resources that the user authorize to read`
+```
 ## Supported Client methods
 
 #### `get(variable_id)`

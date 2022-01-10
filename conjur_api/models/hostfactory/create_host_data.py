@@ -8,7 +8,7 @@ We use this DTO to build the hostfactory create host request
 """
 
 # pylint: disable=too-many-arguments,no-self-use,too-few-public-methods
-from conjur_sdk.errors.errors import MissingRequiredParameterException
+from conjur_api.errors.errors import MissingRequiredParameterException
 
 
 class CreateHostData:

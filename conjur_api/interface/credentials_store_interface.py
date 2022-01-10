@@ -9,7 +9,7 @@ This class describes a shared interface for accessing user credentials
 import abc
 
 # Internals
-from conjur_sdk.models import CredentialsData, ConjurrcData
+from conjur_api.models import CredentialsData, ConjurrcData
 
 
 class CredentialsProviderInterface(metaclass=abc.ABCMeta):  # pragma: no cover

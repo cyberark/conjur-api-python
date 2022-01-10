@@ -19,11 +19,11 @@ from  aiohttp import BasicAuth, ClientError, ClientResponseError, ClientSSLError
 import async_timeout
 import urllib3
 
-from conjur_sdk.http.ssl import ssl_context_factory
-from conjur_sdk.models import SslVerificationMetadata, SslVerificationMode
-from conjur_sdk.errors.errors import CertificateHostnameMismatchException, HttpSslError, HttpError, HttpStatusError
-from conjur_sdk.http.endpoints import ConjurEndpoint
-from conjur_sdk.wrappers.http_response import HttpResponse
+from conjur_api.http.ssl import ssl_context_factory
+from conjur_api.models import SslVerificationMetadata, SslVerificationMode
+from conjur_api.errors.errors import CertificateHostnameMismatchException, HttpSslError, HttpError, HttpStatusError
+from conjur_api.http.endpoints import ConjurEndpoint
+from conjur_api.wrappers.http_response import HttpResponse
 
 REQUEST_TIMEOUT_SECONDS = 10
 

@@ -3,8 +3,8 @@ SslVerificationMetaData module
 This module holds the SslVerificationData class
 
 """
-from conjur_sdk.errors.errors import BadInitializationException
-from conjur_sdk.models.ssl.ssl_verification_mode import SslVerificationMode
+from conjur_api.errors.errors import BadInitializationException
+from conjur_api.models.ssl.ssl_verification_mode import SslVerificationMode
 
 
 # pylint: disable=too-few-public-methods

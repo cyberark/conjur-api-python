@@ -1,7 +1,7 @@
 import platform
 
-from conjur_sdk.errors.errors import MissingRequiredParameterException
-from conjur_sdk.models.enums.os_types import OSTypes
+from conjur_api.errors.errors import MissingRequiredParameterException
+from conjur_api.models.enums.os_types import OSTypes
 
 
 def list_dictify(obj):

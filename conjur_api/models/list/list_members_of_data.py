@@ -8,9 +8,9 @@ We use this DTO to build the list members-of request
 """
 
 # pylint: disable=too-few-public-methods
-from conjur_sdk.models.list.list_data import ListData
-from conjur_sdk.utils import util_functions
-from conjur_sdk.utils.util_functions import get_param
+from conjur_api.models.list.list_data import ListData
+from conjur_api.utils import util_functions
+from conjur_api.utils.util_functions import get_param
 
 
 class ListMembersOfData(ListData):

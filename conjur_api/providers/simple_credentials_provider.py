@@ -1,7 +1,7 @@
 from typing import Dict
 from copy import deepcopy
-from conjur_sdk.interface import CredentialsProviderInterface
-from conjur_sdk.models import CredentialsData
+from conjur_api.interface import CredentialsProviderInterface
+from conjur_api.models import CredentialsData
 
 
 class SimpleCredentialsProvider(CredentialsProviderInterface):

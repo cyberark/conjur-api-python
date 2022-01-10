@@ -13,11 +13,11 @@ import logging
 from typing import Optional
 
 # Internals
-from conjur_sdk.models import SslVerificationMode, CreateHostData, CreateTokenData, ListMembersOfData, \
+from conjur_api.models import SslVerificationMode, CreateHostData, CreateTokenData, ListMembersOfData, \
     ListPermittedRolesData, ConjurrcData, Resource
-from conjur_sdk.errors.errors import ResourceNotFoundException, MissingRequiredParameterException
-from conjur_sdk.interface.credentials_store_interface import CredentialsProviderInterface
-from conjur_sdk.http.api import Api
+from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException
+from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
+from conjur_api.http.api import Api
 
 LOGGING_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 LOGGING_FORMAT_WARNING = 'WARNING: %(message)s'

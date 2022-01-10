@@ -13,10 +13,10 @@ import platform
 from functools import lru_cache
 
 # Internals
-from conjur_sdk.models import SslVerificationMetadata, SslVerificationMode
-from conjur_sdk.errors.errors import UnknownOSError, MacCertificatesError
-from conjur_sdk.models.enums.os_types import OSTypes
-from conjur_sdk.utils.util_functions import get_current_os
+from conjur_api.models import SslVerificationMetadata, SslVerificationMode
+from conjur_api.errors.errors import UnknownOSError, MacCertificatesError
+from conjur_api.models.enums.os_types import OSTypes
+from conjur_api.utils.util_functions import get_current_os
 
 
 # pylint: disable=too-few-public-methods
