@@ -183,7 +183,7 @@ class Client:
         Get the info json response from conjur.
         Note: this functionality is part of conjur Enterprise API and not supported in OSS
         """
-        return self._api.get_server_info()
+        return self._api.get_server_info().json
 
     async def change_personal_password(
             self, logged_in_user: str, current_password: str,
