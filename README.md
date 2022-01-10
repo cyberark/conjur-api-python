@@ -1,4 +1,4 @@
-# Conjur-Python-SDK
+# Conjur Python SDK
 
 An API client for Conjur written in python.
 
@@ -18,7 +18,7 @@ see [our community guidelines](https://github.com/cyberark/community/blob/master
 
 This project requires Docker and access to DockerHub.
 
-It officially requires python3.10 and above but can run with lower versions compiled with openssl 1.1.1
+It officially requires python 3.10 and above but can run with lower versions compiled with openssl 1.1.1
 
 ## How to use the client
 

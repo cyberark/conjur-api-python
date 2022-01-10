@@ -1,9 +1,9 @@
 # Contributing
 
-[Are you accepting contributions at this time? If not, please state that here.
-No need to include content from the rest of this document.]
+[Are you accepting contributions at this time? If not, please state that here. No need to include content from the rest of this document.]
 
-For general contribution and community guidelines, please see the [community repo](https://github.com/cyberark/community).
+For general contribution and community guidelines, please see
+the [community repo](https://github.com/cyberark/community).
 
 ## Table of Contents
 
@@ -24,9 +24,13 @@ TODO:
 
 ### Consuming the SDK locally
 
-If you want to pip install the SDK without uploading it to pypi you can run the following command
-`pip3 install ../`. NOTE - that the SDK requires python version >= than the one specified in the `setup.cfg` file under 
-`python_requires` field. 
+If you want to install the SDK using `pip` without uploading it to `pypi` you can run the following command from the
+repo source dir:
+
+`pip3 install .`
+
+Note that the SDK requires python version >= than the one specified in the `setup.cfg` file under the `python_requires`
+field.
 
 ## Releases
 
@@ -42,5 +46,5 @@ TODO:
 4. [Push your local changes to the remote server](https://help.github.com/en/github/using-git/pushing-commits-to-a-remote-repository)
 5. [Create new Pull Request](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork)
 
-From here your pull request will be reviewed and once you've responded to all
-feedback it will be merged into the project. Congratulations, you're a contributor!
+From here your pull request will be reviewed and once you've responded to all feedback it will be merged into the
+project. Congratulations, you're a contributor!
