@@ -7,8 +7,8 @@ def conjur_enterprise_functionality(func):
             return func(*args, **kwargs)
         except HttpStatusError as err:
             if err.status == 404:
-                exception_details = "info is Conjur Enterprise feature only. " \
-                                    "Make sure url is valid and you are working against Conjur Enterprise server"
+                exception_details = "/info is Conjur Enterprise feature only. Make sure ConjurrcData.conjur_url " \
+                                    "is valid and you are working against Conjur Enterprise server"
                 raise ResourceNotFoundException(exception_details) from err
             else:
                 raise
