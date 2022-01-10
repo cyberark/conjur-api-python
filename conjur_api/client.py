@@ -19,6 +19,10 @@ from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredP
 from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
 from conjur_api.http.api import Api
 from conjur_api.utils.decorators import allow_sync_invocation
+from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException
+from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
+from conjur_api.http.api import Api
+from conjur_api.utils.decorators import conjur_enterprise_functionality
 
 LOGGING_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 LOGGING_FORMAT_WARNING = 'WARNING: %(message)s'
@@ -178,10 +182,10 @@ class Client:
         """
         return await self._api.rotate_personal_api_key(logged_in_user, current_password)
 
+    @conjur_enterprise_functionality
     def get_server_info(self):
         """
         Get the info json response from conjur.
-        Note: this functionality is part of conjur Enterprise API and not supported in OSS
         """
         return self._api.get_server_info().json
 

@@ -42,8 +42,10 @@ class HttpSslError(HttpError):
 class ResourceNotFoundException(Exception):
     """ Exception when user inputted an invalid resource type """
 
-    def __init__(self, resource: str):
+    def __init__(self, resource: str, extra_details: str = None):
         self.message = f"Resource not found: {resource}"
+        if extra_details is not None:
+            self.message += f"\n{extra_details}"
         super().__init__(self.message)
 
 
