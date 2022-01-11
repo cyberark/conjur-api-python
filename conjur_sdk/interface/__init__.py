@@ -1,2 +1,0 @@
-
-from conjur_sdk.interface.credentials_store_interface import CredentialsProviderInterface

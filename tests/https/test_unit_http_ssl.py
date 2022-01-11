@@ -1,8 +1,8 @@
 from enum import Enum
 
-from conjur_sdk.models import SslVerificationMetadata, SslVerificationMode
-from conjur_sdk.errors.errors import HttpSslError, CertificateHostnameMismatchException
-from conjur_sdk.wrappers.http_wrapper import HttpVerb, invoke_endpoint
+from conjur_api.models import SslVerificationMetadata, SslVerificationMode
+from conjur_api.errors.errors import HttpSslError, CertificateHostnameMismatchException
+from conjur_api.wrappers.http_wrapper import HttpVerb, invoke_endpoint
 
 from unittest import TestCase
 

@@ -1,59 +1,236 @@
-# {Your project name}
-TODO: Insert brief description of your project
+# Conjur Python SDK
+
+An API client for Conjur written in python.
+
+Find more SDKs [from CyberArk](https://github.com/cyberark).
 
 ## Certification level
-TODO: Select the appropriate certification level section below, and remove all others.
 
-{Community}
 ![](https://img.shields.io/badge/Certification%20Level-Community-28A745?link=https://github.com/cyberark/community/blob/master/Conjur/conventions/certification-levels.md)
 
-This repo is a **Community** level project. It's a community contributed project that **is not reviewed or supported
-by CyberArk**. For more detailed information on our certification levels, see [our community guidelines](https://github.com/cyberark/community/blob/master/Conjur/conventions/certification-levels.md#community).
-
-{Trusted}
-![](https://img.shields.io/badge/Certification%20Level-Trusted-007BFF?link=https://github.com/cyberark/community/blob/master/Conjur/conventions/certification-levels.md)
-
-This repo is a **Trusted** level project. It's been reviewed by CyberArk to verify that it will securely
-work with Conjur Open Source as documented. For more detailed  information on our certification levels, see
-[our community guidelines](https://github.com/cyberark/community/blob/master/Conjur/conventions/certification-levels.md#community).
-
-{Certified}
-![](https://img.shields.io/badge/Certification%20Level-Certified-6C757D?link=https://github.com/cyberark/community/blob/master/Conjur/conventions/certification-levels.md)
-
-This repo is a **Certified** level project. It's been reviewed by CyberArk to verify that it will securely
-work with CyberArk Conjur Enterprise as documented. In addition, CyberArk offers Enterprise-level support for these features. For
-more detailed  information on our certification levels, see [our community guidelines](https://github.com/cyberark/community/blob/master/Conjur/conventions/certification-levels.md#community).
+This repo is a **Community** level project. It's a community contributed project that **is not reviewed or supported by
+CyberArk**. For more detailed information on our certification levels,
+see [our community guidelines](https://github.com/cyberark/community/blob/master/Conjur/conventions/certification-levels.md#community)
+.
 
 ## Requirements
 
-TODO: Add any requirements that apply to your project here. Which Conjur Open Source / Enterprise versions is it
-compatible with? Does it integrate with other tools / projects - and if so, what versions of those
-does it require?
+This project requires a working Conjur server
 
-## Usage instructions
+It officially requires python 3.10 and above but can run with lower versions compiled with openssl 1.1.1
 
-TODO: add details for how to use your project. Examples can be quite nice here. You should have
-a high level overview of the benefit of your project and its main use cases.
+## How to use the client
+
+### Prerequisites
+
+It is assumed that Conjur (OSS or Enterprise) have already been installed in the environment and running in the
+background. If you haven't done so, follow these instructions for installation of
+the [OSS](https://docs.conjur.org/Latest/en/Content/OSS/Installation/Install_methods.htm) and these for installation
+of [Enterprise](https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/HomeTilesLPs/LP-Tile2.htm).
+
+Once Conjur is running in the background, you are ready to start setting up your python app to work with our Conjur
+python API!
+
+### Installation
+
+The SDK can be installed via PyPI. Note that the SDK is a **Community level** project meaning that the SDK is subject to
+alterations that may result in breaking change.
+
+```
+pip3 install conjur
+```
+
+To avoid unanticipated breaking changes, make sure that you stay up-to-date on our latest releases and review the
+project's [CHANGELOG.md](CHANGELOG.md).
+
+Alternatively, you can install the library from the source. Note that this will install the latest work from the cloned
+source and not necessarily an official release.
+
+If you wish to install the library from the source clone the [project](https://github.com/cyberark/conjur-cli-python) and run:
+
+```
+pip3 install .
+```
+
+### Configuring the client
+
+#### Define connection parameters
+
+In order to login to conjur you need to have 5 parameters known from advance.
+
+```
+conjur_url = "https://my_conjur.com"
+account = "my_account"
+username = "user1"
+password = "SomeStr@ngPassword!1"
+ssl_verification_mode = SslVerificationMode.TRUST_STORE
+```
+
+#### Define ConjurrcData
+
+ConjurrcData is a data class containing all the non-credentials connection details.
+
+`conjurrc_data = ConjurrcData(conjur_url=conjur_url,account=account,cert_file = None)`
+
+* conjur_url - url of conjur server
+* account - the account which we want to connect to
+* cert_file - a path to conjur rootCA file. we need it if we initialize the client in `SslVerificationMode.SELF_SIGN`
+  or `SslVerificationMode.CA_BUNDLE` mode
+
+#### Create credentials provider
+
+The client uses credentials provider in order to get the connection credentials before making api command. This approach
+allow to keep the credentials in a safe location and provide it to the client on demand.
+
+We provide the user with `CredentialsProviderInterface` which can be implemented the way the user see as best
+fit (`keyring` usage for example)
+
+We also provide the user with a simple implementation of such provider called `SimpleCredentialsProvider`. Example of
+creating such provider + storing credentials:
+
+```
+credentials = CredentialsData(username=username, password=password, machine=conjur_url)
+
+credentials_provider = SimpleCredentialsProvider()
+
+credentials_provider.save(credentials)
+
+del credentials
+```
+
+#### Creating the client and use it
+
+Now that we have created `conjurrc_data` and `credentials_provider`
+We can create our client
+
+```
+client = Client(conjur_data, credentials_provider=credentials_provider, ssl_verification_mode=ssl_verification_mode)
+```
+
+* ssl_verification_mode = `SslVerificationMode` enum that states what is the certificate verification technique we will
+  use when making the api request
+
+After creating the client we can login to conjur and start using it. Example of usage:
+
+```
+client.login() # login to conjur and return the api_key`
+
+client.list() # get list of all conjur resources that the user authorize to read`
+```
+
+## Supported Client methods
+
+#### `get(variable_id)`
+
+Gets a variable value based on its ID. Variable is binary data that should be decoded to your system's encoding. For example: 
+`get(variable_id).decode('utf-8')`.
+
+#### `get_many(variable_id[,variable_id...])`
+
+Gets multiple variable values based on their IDs. Variables are returned in a dictionary that maps the variable name to
+its value.
+
+#### `set(variable_id, value)`
+
+Sets a variable to a specific value based on its ID.
+
+Note: Policy to create the variable must have already been loaded, otherwise you will get a 404 error during invocation.
+
+#### `load_policy_file(policy_name, policy_file)`
+
+Applies a file-based YAML to a named policy. This method only supports additive changes. Result is a dictionary object
+constructed from the returned JSON data.
+
+#### `replace_policy_file(policy_name, policy_file)`
+
+Replaces a named policy with one from the provided file. This is usually a destructive invocation. Result is a
+dictionary object constructed from the returned JSON data.
+
+#### `update_policy_file(policy_name, policy_file)`
+
+Modifies an existing Conjur policy. Data may be explicitly deleted using the `!delete`, `!revoke`, and `!deny`
+statements. Unlike
+"replace" mode, no data is ever implicitly deleted. Result is a dictionary object constructed from the returned JSON
+data.
+
+#### `list(list_constraints)`
+
+Returns a list of all available resources for the current account.
+
+The 'list constraints' parameter is optional and should be provided as a dictionary.
+
+For example: `client.list({'kind': 'user', 'inspect': True})`
+
+| List constraints | Explanation                                                  |
+| ---------------- | ------------------------------------------------------------ |
+| kind             | Filter resources by specified kind (user, host, layer, group, policy, variable, or webservice) |
+| limit            | Limit list of resources to specified number                  |
+| offset           | Skip specified number of resources                           |
+| role             | Retrieve list of resources that specified role is entitled to see (must specify role's full ID) |
+| search           | Search for resources based on specified query                |
+| inspect          | List the metadata for resources                              |
+
+#### `def list_permitted_roles(list_permitted_roles_data: ListPermittedRolesData)`
+
+Lists the roles which have the named permission on a resource.
+
+#### `def list_members_of_role(data: ListMembersOfData)`
+
+Lists the resources which are members of the given resource.
+
+#### `def create_token(create_token_data: CreateTokenData)`
+
+Creates Host Factory tokens for creating hosts
+
+#### `def create_host(create_host_data: CreateHostData)`
+
+Uses Host Factory token to create host
+
+#### `def revoke_token(token: str)`
+
+Revokes the given Host Factory token
+
+#### `rotate_other_api_key(resource: Resource)`
+
+Rotates another entity's API key and returns it as a string.
+
+Note: resource is of type Resource which should have `type` (user / host) and
+`name` attributes.
+
+#### `rotate_personal_api_key(logged_in_user, current_password)`
+
+Rotates the personal API key of the logged-in user and returns it as a string.
+
+#### `change_personal_password(logged_in_user, current_password, new_password)`
+
+Updates the current, logged-in user's password with the password parameter provided.
+
+Note: the new password must meet the Conjur password complexity constraints. It must contain at least 12 characters: 2
+uppercase, 2 lowercase, 1 digit, 1 special character.
+
+#### `whoami()`
+
+_Note: This method requires Conjur v1.9+_
+
+Returns a Python dictionary of information about the client making an API request (such as its IP address, user,
+account, token expiration date, etc).
 
 ## Contributing
 
-We welcome contributions of all kinds to this repository. For instructions on how to get started and descriptions
-of our development workflows, please see our [contributing guide](CONTRIBUTING.md).
+We welcome contributions of all kinds to this repository. For instructions on how to get started and descriptions of our
+development workflows, please see our [contributing guide](CONTRIBUTING.md).
 
 ## License
 
 Copyright (c) 2020 CyberArk Software Ltd. All rights reserved.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the
+License. You may obtain a copy of the License at
 
-   http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "
+AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific
+language governing permissions and limitations under the License.
 
 For the full license text see [`LICENSE`](LICENSE).

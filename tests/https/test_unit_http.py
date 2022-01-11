@@ -10,9 +10,9 @@ from asynctest import patch
 
 from aiohttp import BasicAuth
 
-from conjur_sdk.models import SslVerificationMode, SslVerificationMetadata
-from conjur_sdk.errors.errors import HttpSslError
-from conjur_sdk.wrappers.http_wrapper import HttpVerb, invoke_endpoint
+from conjur_api.models import SslVerificationMode, SslVerificationMetadata
+from conjur_api.errors.errors import HttpSslError
+from conjur_api.wrappers.http_wrapper import HttpVerb, invoke_endpoint
 
 
 class MockResponse:

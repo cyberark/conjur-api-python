@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from conjur_sdk.providers import SimpleCredentialsProvider
-from conjur_sdk.models import CredentialsData
+from conjur_api.providers import SimpleCredentialsProvider
+from conjur_api.models import CredentialsData
 
 
 def create_credentials(machine: str = "machine", username: str = "some_username", password: str = "some_password"):
