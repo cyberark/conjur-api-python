@@ -48,7 +48,9 @@ source and not necessarily an official release.
 
 If you wish to install the library from the source clone the [project](https://github.com/cyberark/conjur-cli-python) and run:
 
-`pip3 install .`
+```
+pip3 install .
+```
 
 ### Configuring the client
 
