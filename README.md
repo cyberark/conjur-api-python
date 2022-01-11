@@ -2,11 +2,10 @@
 
 An API client for Conjur written in python.
 
-Find more [from CyberArk](https://github.com/cyberark).
+Find more SDKs [from CyberArk](https://github.com/cyberark).
 
 ## Certification level
 
-{Community}
 ![](https://img.shields.io/badge/Certification%20Level-Community-28A745?link=https://github.com/cyberark/community/blob/master/Conjur/conventions/certification-levels.md)
 
 This repo is a **Community** level project. It's a community contributed project that **is not reviewed or supported by
@@ -16,7 +15,7 @@ see [our community guidelines](https://github.com/cyberark/community/blob/master
 
 ## Requirements
 
-This project requires Docker and access to DockerHub.
+This project requires a working Conjur server
 
 It officially requires python 3.10 and above but can run with lower versions compiled with openssl 1.1.1
 
@@ -37,17 +36,17 @@ python API!
 The SDK can be installed via PyPI. Note that the SDK is a **Community level** project meaning that the SDK is subject to
 alterations that may result in breaking change.
 
-To avoid unanticipated breaking changes, make sure that you stay up-to-date on our latest releases and review the
-project's [CHANGELOG.md](CHANGELOG.md).
-
 ```
 pip3 install conjur
 ```
 
+To avoid unanticipated breaking changes, make sure that you stay up-to-date on our latest releases and review the
+project's [CHANGELOG.md](CHANGELOG.md).
+
 Alternatively, you can install the library from the source. Note that this will install the latest work from the cloned
 source and not necessarily an official release.
 
-Clone the project and run:
+If you wish to install the library from the source clone the [project](https://github.com/cyberark/conjur-cli-python) and run:
 
 `pip3 install .`
 
@@ -56,6 +55,7 @@ Clone the project and run:
 #### Define connection parameters
 
 In order to login to conjur you need to have 5 parameters known from advance.
+
 ```
 conjur_url = "https://my_conjur.com"
 account = "my_account"
@@ -63,21 +63,19 @@ username = "user1"
 password = "SomeStr@ngPassword!1"
 ssl_verification_mode = SslVerificationMode.TRUST_STORE
 ```
+
 #### Define ConjurrcData
 
 ConjurrcData is a data class containing all the non-credentials connection details.
-```
-conjurrc_data = ConjurrcData(conjur_url=conjur_url, 
-                             account=account, 
-                             cert_file = None)
-```
+
+`conjurrc_data = ConjurrcData(conjur_url=conjur_url,account=account,cert_file = None)`
 
 * conjur_url - url of conjur server
 * account - the account which we want to connect to
 * cert_file - a path to conjur rootCA file. we need it if we initialize the client in `SslVerificationMode.SELF_SIGN`
   or `SslVerificationMode.CA_BUNDLE` mode
 
-#### Load credentials provider
+#### Create credentials provider
 
 The client uses credentials provider in order to get the connection credentials before making api command. This approach
 allow to keep the credentials in a safe location and provide it to the client on demand.
@@ -87,6 +85,7 @@ fit (`keyring` usage for example)
 
 We also provide the user with a simple implementation of such provider called `SimpleCredentialsProvider`. Example of
 creating such provider + storing credentials:
+
 ```
 credentials = CredentialsData(username=username, password=password, machine=conjur_url)
 
@@ -101,6 +100,7 @@ del credentials
 
 Now that we have created `conjurrc_data` and `credentials_provider`
 We can create our client
+
 ```
 client = Client(conjur_data, credentials_provider=credentials_provider, ssl_verification_mode=ssl_verification_mode)
 ```
@@ -109,16 +109,18 @@ client = Client(conjur_data, credentials_provider=credentials_provider, ssl_veri
   use when making the api request
 
 After creating the client we can login to conjur and start using it. Example of usage:
+
 ```
 client.login() # login to conjur and return the api_key`
 
 client.list() # get list of all conjur resources that the user authorize to read`
 ```
+
 ## Supported Client methods
 
 #### `get(variable_id)`
 
-Gets a variable value based on its ID. Variable is binary data that should be decoded to your system's encoding (e.g.
+Gets a variable value based on its ID. Variable is binary data that should be decoded to your system's encoding. For example: 
 `get(variable_id).decode('utf-8')`.
 
 #### `get_many(variable_id[,variable_id...])`
@@ -130,7 +132,7 @@ its value.
 
 Sets a variable to a specific value based on its ID.
 
-Note: Policy to create the variable must have already been loaded otherwise you will get a 404 error during invocation.
+Note: Policy to create the variable must have already been loaded, otherwise you will get a 404 error during invocation.
 
 #### `load_policy_file(policy_name, policy_file)`
 
@@ -172,19 +174,19 @@ Lists the roles which have the named permission on a resource.
 
 #### `def list_members_of_role(data: ListMembersOfData)`
 
-Lists the roles which have the named permission on a resource.
+Lists the resources which are members of the given resource.
 
 #### `def create_token(create_token_data: CreateTokenData)`
 
-Create token/s for hosts with restrictions
+Creates Host Factory tokens for creating hosts
 
 #### `def create_host(create_host_data: CreateHostData)`
 
-Create new host using the hostfactory endpoint
+Uses Host Factory token to create host
 
 #### `def revoke_token(token: str)`
 
-Revokes the given token
+Revokes the given Host Factory token
 
 #### `rotate_other_api_key(resource: Resource)`
 
@@ -208,7 +210,7 @@ uppercase, 2 lowercase, 1 digit, 1 special character.
 
 _Note: This method requires Conjur v1.9+_
 
-Returns a Python dictionary of information about the Client making an API request (such as its IP address, user,
+Returns a Python dictionary of information about the client making an API request (such as its IP address, user,
 account, token expiration date, etc).
 
 ## Contributing
