@@ -10,6 +10,7 @@ the Conjur server
 # Builtins
 import asyncio
 import functools
+import inspect
 import json
 import logging
 from typing import Optional
@@ -25,7 +26,26 @@ LOGGING_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 LOGGING_FORMAT_WARNING = 'WARNING: %(message)s'
 
 
+def allow_sync_mode(f):
+    def wrapper(self, *args):
+        if not getattr(self, "async_mode") and asyncio.iscoroutinefunction(f):
+            return asyncio.run(f(self, *args))
+        return f(self, *args)
+
+    return wrapper
+
+
+def for_all_methods(decorator):
+    def decorate(cls):
+        for name, fn in inspect.getmembers(cls, inspect.ismethod):
+            setattr(cls, name, decorator(fn))
+        return cls
+
+    return decorate
+
+
 # pylint: disable=logging-fstring-interpolation,line-too-long
+@for_all_methods(allow_sync_mode)
 class Client:
     """
     Client
@@ -40,12 +60,13 @@ class Client:
             self,
             conjurrc_data: ConjurrcData,
             ssl_verification_mode: SslVerificationMode = SslVerificationMode.TRUST_STORE,
+            credentials_provider: CredentialsProviderInterface = None,
             debug: bool = False,
             http_debug: bool = False,
-            credentials_provider: CredentialsProviderInterface = None):
+            async_mode: bool = True):
 
         self.configure_logger(debug)
-
+        self.async_mode = async_mode
         if ssl_verification_mode == SslVerificationMode.INSECURE:
             # TODO remove this is a cli user facing
             logging.debug("Warning: Running the command with '--insecure' "
@@ -72,6 +93,7 @@ class Client:
             logging.basicConfig(level=logging.WARN, format=LOGGING_FORMAT_WARNING)
 
     ### API passthrough
+    @allow_sync_mode
     async def login(self) -> str:
         return await self._api.login()
 
