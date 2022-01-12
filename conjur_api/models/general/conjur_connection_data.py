@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
 """
-ConjurrcData module
+ConjurConnectionData module
 
-This module represents an object that holds conjurrc data
+This module represents an object that holds the connection data
 """
 
 
 # pylint: disable=too-few-public-methods
 
 
-class ConjurrcData:
+class ConjurConnectionData:
     """
     Used for setting user input data
     """

@@ -19,7 +19,7 @@ from conjur_api.wrappers.http_response import HttpResponse
 from conjur_api.wrappers.http_wrapper import HttpVerb, invoke_endpoint
 from conjur_api.errors.errors import InvalidResourceException, MissingRequiredParameterException
 # pylint: disable=too-many-instance-attributes
-from conjur_api.models import Resource, ConjurrcData, ListPermittedRolesData, ListMembersOfData, CreateHostData, \
+from conjur_api.models import Resource, ConjurConnectionData, ListPermittedRolesData, ListMembersOfData, CreateHostData, \
     CreateTokenData, SslVerificationMetadata, SslVerificationMode
 
 
@@ -44,7 +44,7 @@ class Api:
     # pylint: disable=unused-argument,too-many-arguments
     def __init__(
             self,
-            conjurrc_data: ConjurrcData,
+            connection_data: ConjurConnectionData,
             credentials_provider: CredentialsProviderInterface,
             ssl_verification_mode: SslVerificationMode = SslVerificationMode.TRUST_STORE,
             debug: bool = False,
@@ -52,10 +52,10 @@ class Api:
     ):
         # Sanity checks
         self.ssl_verification_data = SslVerificationMetadata(ssl_verification_mode,
-                                                             conjurrc_data.cert_file)
+                                                             connection_data.cert_file)
 
-        self._account = conjurrc_data.conjur_account
-        self._url = conjurrc_data.conjur_url
+        self._account = connection_data.conjur_account
+        self._url = connection_data.conjur_url
         self._api_key = None
         self.credentials_provider: CredentialsProviderInterface = credentials_provider
         self.debug = debug
@@ -63,7 +63,7 @@ class Api:
         self.api_token_expiration = None
         self._login_id = None
 
-        self._default_params = {  # TODO remove, pass to invoke enpoint conjurrcData
+        self._default_params = {  # TODO remove, pass to invoke enpoint ConjurConnectionData
             'url': self._url,
             'account': self._account
         }
