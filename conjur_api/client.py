@@ -21,31 +21,13 @@ from conjur_api.models import SslVerificationMode, CreateHostData, CreateTokenDa
 from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException
 from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
 from conjur_api.http.api import Api
+from conjur_api.utils.decorators import decorate_class_async_methods, allow_sync_mode
 
 LOGGING_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 LOGGING_FORMAT_WARNING = 'WARNING: %(message)s'
 
 
-def allow_sync_mode(f):
-    def wrapper(self, *args):
-        if not getattr(self, "async_mode") and asyncio.iscoroutinefunction(f):
-            return asyncio.run(f(self, *args))
-        return f(self, *args)
-
-    return wrapper
-
-
-def for_all_methods(decorator):
-    def decorate(cls):
-        for name, fn in inspect.getmembers(cls, inspect.ismethod):
-            setattr(cls, name, decorator(fn))
-        return cls
-
-    return decorate
-
-
-# pylint: disable=logging-fstring-interpolation,line-too-long
-@for_all_methods(allow_sync_mode)
+@decorate_class_async_methods(allow_sync_mode)
 class Client:
     """
     Client
@@ -93,7 +75,6 @@ class Client:
             logging.basicConfig(level=logging.WARN, format=LOGGING_FORMAT_WARNING)
 
     ### API passthrough
-    @allow_sync_mode
     async def login(self) -> str:
         return await self._api.login()
 
