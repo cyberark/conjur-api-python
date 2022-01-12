@@ -21,13 +21,13 @@ from conjur_api.models import SslVerificationMode, CreateHostData, CreateTokenDa
 from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException
 from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
 from conjur_api.http.api import Api
-from conjur_api.utils.decorators import decorate_class_async_methods, allow_sync_mode
+from conjur_api.utils.decorators import allow_sync_invocation, allow_sync_mode
 
 LOGGING_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 LOGGING_FORMAT_WARNING = 'WARNING: %(message)s'
 
 
-@decorate_class_async_methods(allow_sync_mode)
+@allow_sync_invocation()
 class Client:
     """
     Client
