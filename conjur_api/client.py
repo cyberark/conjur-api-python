@@ -8,9 +8,6 @@ the Conjur server
 """
 
 # Builtins
-import asyncio
-import functools
-import inspect
 import json
 import logging
 from typing import Optional
