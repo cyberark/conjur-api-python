@@ -1,13 +1,21 @@
-import asyncio
+import logging
 import inspect
+import asyncio
+from conjur_api.errors.errors import SyncInvocationInsideEventLoopError
 
 
 def allow_sync_invocation():
     def allow_sync_mode(f):
         def wrapper(self, *args):
-            if not getattr(self, "async_mode"):
-                return asyncio.run(f(self, *args))
-            return f(self, *args)
+            should_run_async = getattr(self, "async_mode")
+            if should_run_async:  # Function should remain async
+                return f(self, *args)
+            if asyncio.get_event_loop() is not None:
+                logging.error(
+                    f"Attempting running conjur_api {f.__name__} function in sync mode "
+                    f"when running inside event loop")
+                raise SyncInvocationInsideEventLoopError()
+            return asyncio.run(f(self, *args))
 
         return wrapper
 

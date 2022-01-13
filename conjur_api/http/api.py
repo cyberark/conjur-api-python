@@ -90,12 +90,12 @@ class Api:
         if not self._api_token or datetime.now() > self.api_token_expiration:
             logging.debug("API token missing or expired. Fetching new one...")
             self.api_token_expiration = datetime.now() + timedelta(minutes=self.API_TOKEN_DURATION)
-            self._api_token = self.authenticate()
+            self._api_token = await self.authenticate()
 
-            return await self._api_token
+            return self._api_token
 
         logging.debug("Using cached API token...")
-        return await self._api_token
+        return self._api_token
 
     @property
     def password(self) -> str:
@@ -173,18 +173,18 @@ class Api:
         inspect = list_constraints.pop('inspect', None) if list_constraints else None
 
         if list_constraints is not None:
-            json_response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.RESOURCES,
-                                                  params,
-                                                  query=list_constraints,
-                                                  api_token=await self.api_token,
-                                                  ssl_verification_metadata=self.ssl_verification_data)
+            response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.RESOURCES,
+                                             params,
+                                             query=list_constraints,
+                                             api_token=await self.api_token,
+                                             ssl_verification_metadata=self.ssl_verification_data)
         else:
-            json_response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.RESOURCES,
-                                                  params,
-                                                  api_token=await self.api_token,
-                                                  ssl_verification_metadata=self.ssl_verification_data)
+            response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.RESOURCES,
+                                             params,
+                                             api_token=await self.api_token,
+                                             ssl_verification_metadata=self.ssl_verification_data)
 
-        resources = json.loads(json_response.text)
+        resources = response.json
         # Returns the result as a list of resource ids instead of the raw JSON only
         # when the user does not provide `inspect` as one of their filters
         if not inspect:
@@ -249,7 +249,7 @@ class Api:
                                          query=query_params,
                                          )
 
-        variable_map = json.loads(response.content.decode('utf-8'))
+        variable_map = response.json
 
         # Remove the 'account:variable:' prefix from result's variable names
         remapped_keys_dict = {}
@@ -336,10 +336,10 @@ class Api:
             'identifier': variable_id,
         }
         params.update(self._default_params)
-        res = await invoke_endpoint(HttpVerb.POST, ConjurEndpoint.SECRETS, params,
-                                    value, api_token=await self.api_token,
-                                    ssl_verification_metadata=self.ssl_verification_data)
-        return res.text
+        response = await invoke_endpoint(HttpVerb.POST, ConjurEndpoint.SECRETS, params,
+                                         value, api_token=await self.api_token,
+                                         ssl_verification_metadata=self.ssl_verification_data)
+        return response.text
 
     async def _load_policy_file(
             self, policy_id: str, policy_file: str,
@@ -355,13 +355,11 @@ class Api:
 
         with open(policy_file, 'r') as content_file:
             policy_data = content_file.read()
-        res = await invoke_endpoint(http_verb, ConjurEndpoint.POLICIES, params,
-                                    policy_data, api_token=await self.api_token,
-                                    ssl_verification_metadata=self.ssl_verification_data)
-        json_response = res.text
 
-        policy_changes = json.loads(json_response)
-        return policy_changes
+        response = await invoke_endpoint(http_verb, ConjurEndpoint.POLICIES, params,
+                                         policy_data, api_token=await self.api_token,
+                                         ssl_verification_metadata=self.ssl_verification_data)
+        return response.json
 
     async def load_policy_file(self, policy_id: str, policy_file: str) -> dict:
         """
@@ -438,7 +436,7 @@ class Api:
                                          api_token=await self.api_token,
                                          ssl_verification_metadata=self.ssl_verification_data)
 
-        return json.loads(response.content.decode('utf-8'))
+        return response.json
 
     async def list_members_of_role(self, parameters: ListMembersOfData = None) -> list:
         """
@@ -471,7 +469,7 @@ class Api:
                                          api_token=await self.api_token,
                                          ssl_verification_metadata=self.ssl_verification_data)
 
-        resources = json.loads(response.content.decode('utf-8'))
+        resources = response.json
 
         if not inspect:
             # For each element (resource) in the resources sequence, we extract the resource id
@@ -506,4 +504,4 @@ class Api:
                                          api_token=await self.api_token,
                                          ssl_verification_metadata=self.ssl_verification_data)
 
-        return json.loads(response.content.decode('utf-8'))
+        return response.json

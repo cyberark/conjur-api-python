@@ -18,7 +18,7 @@ from conjur_api.models import SslVerificationMode, CreateHostData, CreateTokenDa
 from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException
 from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
 from conjur_api.http.api import Api
-from conjur_api.utils.decorators import allow_sync_invocation, allow_sync_mode
+from conjur_api.utils.decorators import allow_sync_invocation
 
 LOGGING_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 LOGGING_FORMAT_WARNING = 'WARNING: %(message)s'
@@ -43,7 +43,17 @@ class Client:
             debug: bool = False,
             http_debug: bool = False,
             async_mode: bool = True):
+        """
 
+        @param conjurrc_data: Connection metadata for conjur server
+        @param ssl_verification_mode: Certificate validation stratagy
+        @param credentials_provider:
+        @param debug:
+        @param http_debug:
+        @param async_mode: This will make all of the class async functions run in sync mode (without need of await)
+        Note that this functionality wraps the async function with 'asyncio.run'. setting this value to False
+        is not allowed inside running event loop.s
+        """
         self.configure_logger(debug)
         self.async_mode = async_mode
         if ssl_verification_mode == SslVerificationMode.INSECURE:
