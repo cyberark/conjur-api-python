@@ -220,29 +220,3 @@ class Client:
             credentials_provider=credentials_provider,
             debug=self.debug,
             http_debug=http_debug)
-
-# def allow_sync_mode(func):
-#     @functools.wraps(func)
-#     def wrapper(*args, **kwargs):
-#         if asyncio.iscoroutinefunction(func):
-#             with wrapping_logic():
-#                 return func(*args, **kwargs)
-#         else:
-#             async def tmp():
-#                 with wrapping_logic():
-#                     return (await func(*args, **kwargs))
-#
-#             return tmp()
-#
-#     return wrapper
-#
-#
-# def for_all_methods(decorator):
-#     def decorate(cls):
-#         for attr in cls.__dict__:  # there's propably a better way to do this
-#             if callable(getattr(cls, attr)):
-#                 if asyncio.iscoroutinefunction(getattr(cls, attr)):
-#                     setattr(cls, attr, decorator(getattr(cls, attr)))
-#         return cls
-#
-#     return decorate
