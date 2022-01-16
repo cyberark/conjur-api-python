@@ -17,4 +17,4 @@ docker run --rm \
            -t \
            -e TEST_ENV=true \
            -v "$(pwd):/opt/conjur-cli-python" \
-           conjur-cli-python-test nose2 --config ../test/unit_test.cfg --with-coverage $@
+           conjur-cli-python-test nose2 --with-coverage $@
