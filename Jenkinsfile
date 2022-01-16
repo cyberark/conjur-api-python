@@ -12,7 +12,7 @@ pipeline {
   stages {
     stage('Unit tests') {
       steps {
-        sh './ci/testing/test_unit'
+        sh './ci/testing/test_unit.sh'
       }
       post {
         always {
