@@ -12,8 +12,8 @@ def allow_sync_invocation():
                 return f(self, *args)
             if asyncio.get_event_loop() is not None:
                 logging.error(
-                    f"Attempting running conjur_api {f.__name__} function in sync mode "
-                    f"when running inside event loop")
+                    f"Failed to run conjur_api {f.__name__} function in sync mode "
+                    f"because code is running inside event loop")
                 raise SyncInvocationInsideEventLoopError()
             return asyncio.run(f(self, *args))
 
