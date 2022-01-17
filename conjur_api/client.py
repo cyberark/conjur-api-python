@@ -15,15 +15,11 @@ from typing import Optional
 # Internals
 from conjur_api.models import SslVerificationMode, CreateHostData, CreateTokenData, ListMembersOfData, \
     ListPermittedRolesData, ConjurConnectionInfo, Resource
-from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException
+
+from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException, HttpStatusError
 from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
 from conjur_api.http.api import Api
 from conjur_api.utils.decorators import allow_sync_invocation
-    ListPermittedRolesData, ConjurrcData, Resource
-from conjur_api.errors.errors import HttpStatusError, ResourceNotFoundException
-from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException
-from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
-from conjur_api.http.api import Api
 
 LOGGING_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 LOGGING_FORMAT_WARNING = 'WARNING: %(message)s'
