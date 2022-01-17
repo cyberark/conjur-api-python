@@ -427,6 +427,14 @@ class Api:
                                          )
         return response.text
 
+    async def get_server_info(self):
+        params = {
+            'url': self._url
+        }
+        return await invoke_endpoint(HttpVerb.GET,
+                                     ConjurEndpoint.INFO,
+                                     params,
+                                     ssl_verification_metadata=self.ssl_verification_data)
     async def whoami(self) -> dict:
         """
         This method provides dictionary of information about the user making an API request.

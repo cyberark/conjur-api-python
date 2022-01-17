@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
+- The `get_server_info` method is now available in SDK. It is only supported against Conjur enterprise server 
 ### Changed
 ### Deprecated
 ### Removed
