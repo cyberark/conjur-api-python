@@ -37,7 +37,7 @@ class Client:
     # pylint: disable=try-except-raise,too-many-statements
     def __init__(
             self,
-            connection_data: ConjurConnectionInfo,
+            connection_info: ConjurConnectionInfo,
             ssl_verification_mode: SslVerificationMode = SslVerificationMode.TRUST_STORE,
             credentials_provider: CredentialsProviderInterface = None,
             debug: bool = False,
@@ -64,7 +64,7 @@ class Client:
         logging.debug("Initializing configuration...")
 
         self.ssl_verification_mode = ssl_verification_mode
-        self.connection_data = connection_data
+        self.connection_info = connection_info
         self.debug = debug
         self._api = self._create_api(http_debug, credentials_provider)
 
@@ -225,7 +225,7 @@ class Client:
         logging.debug(f"Successfully retrieved credentials from the '{credential_location}'")
 
         return Api(
-            connection_data=self.connection_data,
+            connection_info=self.connection_info,
             ssl_verification_mode=self.ssl_verification_mode,
             credentials_provider=credentials_provider,
             debug=self.debug,

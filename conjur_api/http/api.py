@@ -44,7 +44,7 @@ class Api:
     # pylint: disable=unused-argument,too-many-arguments
     def __init__(
             self,
-            connection_data: ConjurConnectionInfo,
+            connection_info: ConjurConnectionInfo,
             credentials_provider: CredentialsProviderInterface,
             ssl_verification_mode: SslVerificationMode = SslVerificationMode.TRUST_STORE,
             debug: bool = False,
@@ -52,10 +52,10 @@ class Api:
     ):
         # Sanity checks
         self.ssl_verification_data = SslVerificationMetadata(ssl_verification_mode,
-                                                             connection_data.cert_file)
+                                                             connection_info.cert_file)
 
-        self._account = connection_data.conjur_account
-        self._url = connection_data.conjur_url
+        self._account = connection_info.conjur_account
+        self._url = connection_info.conjur_url
         self._api_key = None
         self.credentials_provider: CredentialsProviderInterface = credentials_provider
         self.debug = debug
