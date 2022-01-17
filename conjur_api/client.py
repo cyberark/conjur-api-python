@@ -128,13 +128,15 @@ class Client:
         """
         Create token/s for hosts with restrictions
         """
-        return await self._api.create_token(create_token_data).json
+        response = await self._api.create_token(create_token_data)
+        return response.json
 
     async def create_host(self, create_host_data: CreateHostData) -> json:
         """
         Create host using the hostfactory
         """
-        return await self._api.create_host(create_host_data).json
+        response = await self._api.create_host(create_host_data)
+        return response.json
 
     async def revoke_token(self, token: str) -> int:
         """
