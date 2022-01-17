@@ -14,7 +14,7 @@ from typing import Optional
 
 # Internals
 from conjur_api.models import SslVerificationMode, CreateHostData, CreateTokenData, ListMembersOfData, \
-    ListPermittedRolesData, ConjurConnectionData, Resource
+    ListPermittedRolesData, ConjurConnectionInfo, Resource
 from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException
 from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
 from conjur_api.http.api import Api
@@ -37,7 +37,7 @@ class Client:
     # pylint: disable=try-except-raise,too-many-statements
     def __init__(
             self,
-            connection_data: ConjurConnectionData,
+            connection_data: ConjurConnectionInfo,
             ssl_verification_mode: SslVerificationMode = SslVerificationMode.TRUST_STORE,
             credentials_provider: CredentialsProviderInterface = None,
             debug: bool = False,

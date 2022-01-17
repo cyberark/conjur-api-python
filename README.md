@@ -66,11 +66,11 @@ password = "SomeStr@ngPassword!1"
 ssl_verification_mode = SslVerificationMode.TRUST_STORE
 ```
 
-#### Define ConjurConnectionData
+#### Define ConjurConnectionInfo
 
-ConjurConnectionData is a data class containing all the non-credentials connection details.
+ConjurConnectionInfo is a data class containing all the non-credentials connection details.
 
-`connection_data = ConjurConnectionData(conjur_url=conjur_url,account=account,cert_file = None)`
+`connection_data = ConjurConnectionInfo(conjur_url=conjur_url,account=account,cert_file = None)`
 
 * conjur_url - url of conjur server
 * account - the account which we want to connect to

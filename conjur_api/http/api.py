@@ -19,7 +19,7 @@ from conjur_api.wrappers.http_response import HttpResponse
 from conjur_api.wrappers.http_wrapper import HttpVerb, invoke_endpoint
 from conjur_api.errors.errors import InvalidResourceException, MissingRequiredParameterException
 # pylint: disable=too-many-instance-attributes
-from conjur_api.models import Resource, ConjurConnectionData, ListPermittedRolesData, ListMembersOfData, CreateHostData, \
+from conjur_api.models import Resource, ConjurConnectionInfo, ListPermittedRolesData, ListMembersOfData, CreateHostData, \
     CreateTokenData, SslVerificationMetadata, SslVerificationMode
 
 
@@ -44,7 +44,7 @@ class Api:
     # pylint: disable=unused-argument,too-many-arguments
     def __init__(
             self,
-            connection_data: ConjurConnectionData,
+            connection_data: ConjurConnectionInfo,
             credentials_provider: CredentialsProviderInterface,
             ssl_verification_mode: SslVerificationMode = SslVerificationMode.TRUST_STORE,
             debug: bool = False,
@@ -63,7 +63,7 @@ class Api:
         self.api_token_expiration = None
         self._login_id = None
 
-        self._default_params = {  # TODO remove, pass to invoke enpoint ConjurConnectionData
+        self._default_params = {  # TODO remove, pass to invoke endpoint ConjurConnectionInfo
             'url': self._url,
             'account': self._account
         }

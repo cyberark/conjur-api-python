@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-ConjurConnectionData module
+ConjurConnectionInfo module
 
 This module represents an object that holds the connection data
 """
@@ -10,7 +10,7 @@ This module represents an object that holds the connection data
 # pylint: disable=too-few-public-methods
 
 
-class ConjurConnectionData:
+class ConjurConnectionInfo:
     """
     Used for setting user input data
     """
