@@ -52,7 +52,7 @@ class Client:
         @param http_debug:
         @param async_mode: This will make all of the class async functions run in sync mode (without need of await)
         Note that this functionality wraps the async function with 'asyncio.run'. setting this value to False
-        is not allowed inside running event loop.s
+        is not allowed inside running event loop. For example, async_mode cannot be False if running inside 'asyncio.run()'
         """
         self.configure_logger(debug)
         self.async_mode = async_mode
