@@ -12,8 +12,8 @@ class SimpleCredentialsProvider(CredentialsProviderInterface):
     def save(self, credential_data: CredentialsData):
         self._credentials[credential_data.machine] = deepcopy(credential_data)
 
-    def load(self, conjurrc_conjur_url: str) -> CredentialsData:
-        return self._credentials[conjurrc_conjur_url]
+    def load(self, conjur_url: str) -> CredentialsData:
+        return self._credentials[conjur_url]
 
     def update_api_key_entry(self, user_to_update: str, credential_data: CredentialsData, new_api_key: str):
         pass
@@ -21,8 +21,8 @@ class SimpleCredentialsProvider(CredentialsProviderInterface):
     def remove_credentials(self, conjur_url: str):
         del self._credentials[conjur_url]
 
-    def is_exists(self, conjurrc_conjur_url: str) -> bool:
-        return conjurrc_conjur_url in self._credentials
+    def is_exists(self, conjur_url: str) -> bool:
+        return conjur_url in self._credentials
 
     def cleanup_if_exists(self, conjur_url: str):
         if self.is_exists(conjur_url):
