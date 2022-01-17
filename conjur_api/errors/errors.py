@@ -88,3 +88,11 @@ class MacCertificatesError(Exception):
     def __init__(self, message: str = "Failed to get root CA certificates from keychain"):
         self.message = message
         super().__init__(self.message)
+
+
+class SyncInvocationInsideEventLoopError(Exception):
+    """ Exception when user is trying to run un-allowed operation """
+
+    def __init__(self, message: str = "Client cannot be used inside event loop when initialized in sync mode"):
+        self.message = message
+        super().__init__(self.message)

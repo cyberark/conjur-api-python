@@ -15,7 +15,7 @@ from enum import Enum
 from typing import Union
 from urllib.parse import quote
 import asyncio
-from  aiohttp import BasicAuth, ClientError, ClientResponseError, ClientSSLError, ClientSession
+from aiohttp import BasicAuth, ClientError, ClientResponseError, ClientSSLError, ClientSession
 import async_timeout
 import urllib3
 
@@ -41,17 +41,17 @@ class HttpVerb(Enum):
 
 
 # pylint: disable=too-many-locals,consider-using-f-string,too-many-arguments
-def invoke_endpoint(http_verb: HttpVerb,
-                    endpoint: ConjurEndpoint,
-                    params: dict,
-                    data: str = "",
-                    check_errors: bool = True,
-                    ssl_verification_metadata: SslVerificationMetadata = None,
-                    auth: tuple = None,
-                    api_token: str = None,
-                    query: dict = None,
-                    headers=None,
-                    decode_token=True) -> HttpResponse:
+async def invoke_endpoint(http_verb: HttpVerb,
+                          endpoint: ConjurEndpoint,
+                          params: dict,
+                          data: str = "",
+                          check_errors: bool = True,
+                          ssl_verification_metadata: SslVerificationMetadata = None,
+                          auth: tuple = None,
+                          api_token: str = None,
+                          query: dict = None,
+                          headers=None,
+                          decode_token=True) -> HttpResponse:
     """
     This method flexibly invokes HTTP calls from 'aiohttp' module
     """
@@ -86,13 +86,13 @@ def invoke_endpoint(http_verb: HttpVerb,
 
         headers['Authorization'] = f'Token token="{api_token}"'
 
-    response = asyncio.run(invoke_request(http_verb,
-                                          url,
-                                          data,
-                                          query=query,
-                                          ssl_verification_metadata=ssl_verification_metadata,
-                                          auth=auth,
-                                          headers=headers))
+    response = await invoke_request(http_verb,
+                                    url,
+                                    data,
+                                    query=query,
+                                    ssl_verification_metadata=ssl_verification_metadata,
+                                    auth=auth,
+                                    headers=headers)
 
     if check_errors:
         # takes the response object and expands the raise_for_status method

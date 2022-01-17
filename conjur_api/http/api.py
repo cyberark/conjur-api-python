@@ -83,14 +83,14 @@ class Api:
 
     @property
     # pylint: disable=missing-docstring
-    def api_token(self) -> str:
+    async def api_token(self) -> str:
         """
         @return: Conjur api_token
         """
         if not self._api_token or datetime.now() > self.api_token_expiration:
             logging.debug("API token missing or expired. Fetching new one...")
             self.api_token_expiration = datetime.now() + timedelta(minutes=self.API_TOKEN_DURATION)
-            self._api_token = self.authenticate()
+            self._api_token = await self.authenticate()
 
             return self._api_token
 
@@ -114,7 +114,7 @@ class Api:
             self._login_id = self.credentials_provider.load(self._url).username
         return self._login_id
 
-    def login(self) -> str:
+    async def login(self) -> str:
         """
         This method uses the basic auth login id (username) and password
         to retrieve an conjur_api key from the server that can be later used to
@@ -124,13 +124,13 @@ class Api:
         password = self.password
         if not password:
             raise MissingRequiredParameterException("password requires when login")
-
-        self._api_key = invoke_endpoint(HttpVerb.GET, ConjurEndpoint.LOGIN,
-                                        self._default_params, auth=(self.login_id, password),
-                                        ssl_verification_metadata=self.ssl_verification_data).text
+        response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.LOGIN,
+                                         self._default_params, auth=(self.login_id, password),
+                                         ssl_verification_metadata=self.ssl_verification_data)
+        self._api_key = response.text
         return self.api_key
 
-    def authenticate(self) -> str:
+    async def authenticate(self) -> str:
         """
         Authenticate uses the api_key to fetch a short-lived conjur_api token that
         for a limited time will allow you to interact fully with the Conjur
@@ -139,7 +139,7 @@ class Api:
         if not self.api_key and self.login_id and self.password:
             # TODO we do this since api_key is not provided. it should be stored like username,
             # password inside credentials_data
-            self.login()
+            await self.login()
 
         if not self.login_id or not self.api_key:
             raise MissingRequiredParameterException("Missing parameters in "
@@ -151,14 +151,15 @@ class Api:
         params.update(self._default_params)
 
         logging.debug("Authenticating to %s...", self._url)
-        return invoke_endpoint(
+        response = await invoke_endpoint(
             HttpVerb.POST,
             ConjurEndpoint.AUTHENTICATE,
             params,
             self.api_key,
-            ssl_verification_metadata=self.ssl_verification_data).text
+            ssl_verification_metadata=self.ssl_verification_data)
+        return response.text
 
-    def resources_list(self, list_constraints: dict = None) -> dict:
+    async def resources_list(self, list_constraints: dict = None) -> dict:
         """
         This method is used to fetch all available resources for the current
         account. Results are returned as an array of identifiers.
@@ -172,18 +173,18 @@ class Api:
         inspect = list_constraints.pop('inspect', None) if list_constraints else None
 
         if list_constraints is not None:
-            json_response = invoke_endpoint(HttpVerb.GET, ConjurEndpoint.RESOURCES,
-                                            params,
-                                            query=list_constraints,
-                                            api_token=self.api_token,
-                                            ssl_verification_metadata=self.ssl_verification_data).text
+            response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.RESOURCES,
+                                             params,
+                                             query=list_constraints,
+                                             api_token=await self.api_token,
+                                             ssl_verification_metadata=self.ssl_verification_data)
         else:
-            json_response = invoke_endpoint(HttpVerb.GET, ConjurEndpoint.RESOURCES,
-                                            params,
-                                            api_token=self.api_token,
-                                            ssl_verification_metadata=self.ssl_verification_data).text
+            response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.RESOURCES,
+                                             params,
+                                             api_token=await self.api_token,
+                                             ssl_verification_metadata=self.ssl_verification_data)
 
-        resources = json.loads(json_response)
+        resources = response.json
         # Returns the result as a list of resource ids instead of the raw JSON only
         # when the user does not provide `inspect` as one of their filters
         if not inspect:
@@ -197,7 +198,7 @@ class Api:
         # ?tocpath=Developer%7CREST%C2%A0APIs%7C_____17
         return resources
 
-    def get_variable(self, variable_id: str, version: str = None) -> Optional[bytes]:
+    async def get_variable(self, variable_id: str, version: str = None) -> Optional[bytes]:
         """
         This method is used to fetch a secret's (aka "variable") value from
         Conjur vault.
@@ -216,15 +217,16 @@ class Api:
 
         # pylint: disable=no-else-return
         if version is not None:
-            return invoke_endpoint(HttpVerb.GET, ConjurEndpoint.SECRETS, params,
-                                   api_token=self.api_token, query=query_params,
-                                   ssl_verification_metadata=self.ssl_verification_data).content
+            response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.SECRETS, params,
+                                             api_token=await self.api_token, query=query_params,
+                                             ssl_verification_metadata=self.ssl_verification_data)
         else:
-            return invoke_endpoint(HttpVerb.GET, ConjurEndpoint.SECRETS, params,
-                                   api_token=self.api_token,
-                                   ssl_verification_metadata=self.ssl_verification_data).content
+            response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.SECRETS, params,
+                                             api_token=await self.api_token,
+                                             ssl_verification_metadata=self.ssl_verification_data)
+        return response.content
 
-    def get_variables(self, *variable_ids) -> dict:
+    async def get_variables(self, *variable_ids) -> dict:
         """
         This method is used to fetch multiple secret's (aka "variable") values from
         Conjur vault.
@@ -240,14 +242,14 @@ class Api:
             'variable_ids': ','.join(full_variable_ids),
         }
 
-        json_response = invoke_endpoint(HttpVerb.GET, ConjurEndpoint.BATCH_SECRETS,
-                                        self._default_params,
-                                        api_token=self.api_token,
-                                        ssl_verification_metadata=self.ssl_verification_data,
-                                        query=query_params,
-                                        ).content
+        response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.BATCH_SECRETS,
+                                         self._default_params,
+                                         api_token=await self.api_token,
+                                         ssl_verification_metadata=self.ssl_verification_data,
+                                         query=query_params,
+                                         )
 
-        variable_map = json.loads(json_response.decode('utf-8'))
+        variable_map = response.json
 
         # Remove the 'account:variable:' prefix from result's variable names
         remapped_keys_dict = {}
@@ -259,7 +261,7 @@ class Api:
 
         return remapped_keys_dict
 
-    def create_token(self, create_token_data: CreateTokenData) -> HttpResponse:
+    async def create_token(self, create_token_data: CreateTokenData) -> HttpResponse:
         """
         This method is used to create token/s for hosts with restrictions.
         """
@@ -278,15 +280,15 @@ class Api:
 
         params = {}
         params.update(self._default_params)
-        return invoke_endpoint(HttpVerb.POST,
-                               ConjurEndpoint.HOST_FACTORY_TOKENS,
-                               params,
-                               create_token_data,
-                               api_token=self.api_token,
-                               ssl_verification_metadata=self.ssl_verification_data,
-                               headers={'Content-Type': 'application/x-www-form-urlencoded'})
+        return await invoke_endpoint(HttpVerb.POST,
+                                     ConjurEndpoint.HOST_FACTORY_TOKENS,
+                                     params,
+                                     create_token_data,
+                                     api_token=await self.api_token,
+                                     ssl_verification_metadata=self.ssl_verification_data,
+                                     headers={'Content-Type': 'application/x-www-form-urlencoded'})
 
-    def create_host(self, create_host_data: CreateHostData) -> HttpResponse:
+    async def create_host(self, create_host_data: CreateHostData) -> HttpResponse:
         """
         This method is used to create host using the hostfactory.
         """
@@ -295,16 +297,16 @@ class Api:
         request_body_parameters = parse.urlencode(create_host_data.get_host_id())
         params = {}
         params.update(self._default_params)
-        return invoke_endpoint(HttpVerb.POST,
-                               ConjurEndpoint.HOST_FACTORY_HOSTS,
-                               params,
-                               request_body_parameters,
-                               api_token=create_host_data.token,
-                               ssl_verification_metadata=self.ssl_verification_data,
-                               decode_token=False,
-                               headers={'Content-Type': 'application/x-www-form-urlencoded'})
+        return await invoke_endpoint(HttpVerb.POST,
+                                     ConjurEndpoint.HOST_FACTORY_HOSTS,
+                                     params,
+                                     request_body_parameters,
+                                     api_token=create_host_data.token,
+                                     ssl_verification_metadata=self.ssl_verification_data,
+                                     decode_token=False,
+                                     headers={'Content-Type': 'application/x-www-form-urlencoded'})
 
-    def revoke_token(self, token: str) -> HttpResponse:
+    async def revoke_token(self, token: str) -> HttpResponse:
         """
         This method is used to revoke a hostfactory token.
         """
@@ -318,13 +320,13 @@ class Api:
         # get formatted in the url in invoke_endpoint
         params['token'] = token
 
-        return invoke_endpoint(HttpVerb.DELETE,
-                               ConjurEndpoint.HOST_FACTORY_REVOKE_TOKEN,
-                               params,
-                               api_token=self.api_token,
-                               ssl_verification_metadata=self.ssl_verification_data)
+        return await invoke_endpoint(HttpVerb.DELETE,
+                                     ConjurEndpoint.HOST_FACTORY_REVOKE_TOKEN,
+                                     params,
+                                     api_token=await self.api_token,
+                                     ssl_verification_metadata=self.ssl_verification_data)
 
-    def set_variable(self, variable_id: str, value: str) -> str:
+    async def set_variable(self, variable_id: str, value: str) -> str:
         """
         This method is used to set a secret (aka "variable") to a value of
         your choosing.
@@ -334,12 +336,12 @@ class Api:
             'identifier': variable_id,
         }
         params.update(self._default_params)
+        response = await invoke_endpoint(HttpVerb.POST, ConjurEndpoint.SECRETS, params,
+                                         value, api_token=await self.api_token,
+                                         ssl_verification_metadata=self.ssl_verification_data)
+        return response.text
 
-        return invoke_endpoint(HttpVerb.POST, ConjurEndpoint.SECRETS, params,
-                               value, api_token=self.api_token,
-                               ssl_verification_metadata=self.ssl_verification_data).text
-
-    def _load_policy_file(
+    async def _load_policy_file(
             self, policy_id: str, policy_file: str,
             http_verb: HttpVerb) -> dict:
         """
@@ -354,35 +356,33 @@ class Api:
         with open(policy_file, 'r') as content_file:
             policy_data = content_file.read()
 
-        json_response = invoke_endpoint(http_verb, ConjurEndpoint.POLICIES, params,
-                                        policy_data, api_token=self.api_token,
-                                        ssl_verification_metadata=self.ssl_verification_data).text
+        response = await invoke_endpoint(http_verb, ConjurEndpoint.POLICIES, params,
+                                         policy_data, api_token=await self.api_token,
+                                         ssl_verification_metadata=self.ssl_verification_data)
+        return response.json
 
-        policy_changes = json.loads(json_response)
-        return policy_changes
-
-    def load_policy_file(self, policy_id: str, policy_file: str) -> dict:
+    async def load_policy_file(self, policy_id: str, policy_file: str) -> dict:
         """
         This method is used to load a file-based policy into the desired
         name.
         """
-        return self._load_policy_file(policy_id, policy_file, HttpVerb.POST)
+        return await self._load_policy_file(policy_id, policy_file, HttpVerb.POST)
 
-    def replace_policy_file(self, policy_id: str, policy_file: str) -> dict:
+    async def replace_policy_file(self, policy_id: str, policy_file: str) -> dict:
         """
         This method is used to replace a file-based policy into the desired
         policy ID.
         """
-        return self._load_policy_file(policy_id, policy_file, HttpVerb.PUT)
+        return await self._load_policy_file(policy_id, policy_file, HttpVerb.PUT)
 
-    def update_policy_file(self, policy_id: str, policy_file: str) -> dict:
+    async def update_policy_file(self, policy_id: str, policy_file: str) -> dict:
         """
         This method is used to update a file-based policy into the desired
         policy ID.
         """
-        return self._load_policy_file(policy_id, policy_file, HttpVerb.PATCH)
+        return await self._load_policy_file(policy_id, policy_file, HttpVerb.PATCH)
 
-    def rotate_other_api_key(self, resource: Resource) -> str:
+    async def rotate_other_api_key(self, resource: Resource) -> str:
         """
         This method is used to rotate a user/host's API key that is not the current user.
         To rotate API key of the current user use rotate_personal_api_key
@@ -394,51 +394,51 @@ class Api:
         query_params = {
             'role': resource.full_id()
         }
-        response = invoke_endpoint(HttpVerb.PUT, ConjurEndpoint.ROTATE_API_KEY,
-                                   self._default_params,
-                                   api_token=self.api_token,
-                                   ssl_verification_metadata=self.ssl_verification_data,
-                                   query=query_params).text
-        return response
+        response = await invoke_endpoint(HttpVerb.PUT, ConjurEndpoint.ROTATE_API_KEY,
+                                         self._default_params,
+                                         api_token=await self.api_token,
+                                         ssl_verification_metadata=self.ssl_verification_data,
+                                         query=query_params)
+        return response.text
 
-    def rotate_personal_api_key(
+    async def rotate_personal_api_key(
             self, logged_in_user: str,
             current_password: str) -> str:
         """
         This method is used to rotate a personal API key
         """
-        response = invoke_endpoint(HttpVerb.PUT, ConjurEndpoint.ROTATE_API_KEY,
-                                   self._default_params,
-                                   auth=(logged_in_user, current_password),
-                                   ssl_verification_metadata=self.ssl_verification_data).text
-        return response
+        response = await invoke_endpoint(HttpVerb.PUT, ConjurEndpoint.ROTATE_API_KEY,
+                                         self._default_params,
+                                         auth=(logged_in_user, current_password),
+                                         ssl_verification_metadata=self.ssl_verification_data)
+        return response.text
 
-    def change_personal_password(
+    async def change_personal_password(
             self, logged_in_user: str, current_password: str,
             new_password: str) -> str:
         """
         This method is used to change own password
         """
-        response = invoke_endpoint(HttpVerb.PUT, ConjurEndpoint.CHANGE_PASSWORD,
-                                   self._default_params,
-                                   new_password,
-                                   auth=(logged_in_user, current_password),
-                                   ssl_verification_metadata=self.ssl_verification_data
-                                   ).text
-        return response
+        response = await invoke_endpoint(HttpVerb.PUT, ConjurEndpoint.CHANGE_PASSWORD,
+                                         self._default_params,
+                                         new_password,
+                                         auth=(logged_in_user, current_password),
+                                         ssl_verification_metadata=self.ssl_verification_data
+                                         )
+        return response.text
 
-    def whoami(self) -> dict:
+    async def whoami(self) -> dict:
         """
         This method provides dictionary of information about the user making an API request.
         """
-        json_response = invoke_endpoint(HttpVerb.GET, ConjurEndpoint.WHOAMI,
-                                        self._default_params,
-                                        api_token=self.api_token,
-                                        ssl_verification_metadata=self.ssl_verification_data).content
+        response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.WHOAMI,
+                                         self._default_params,
+                                         api_token=await self.api_token,
+                                         ssl_verification_metadata=self.ssl_verification_data)
 
-        return json.loads(json_response.decode('utf-8'))
+        return response.json
 
-    def list_members_of_role(self, parameters: ListMembersOfData = None) -> list:
+    async def list_members_of_role(self, parameters: ListMembersOfData = None) -> list:
         """
         List all members of a role, both direct and indirect
         """
@@ -462,14 +462,14 @@ class Api:
         # Remove 'inspect' from query as it is client-side param that shouldn't get to the server.
         inspect = request_parameters.pop('inspect', None) if request_parameters else None
 
-        json_response = invoke_endpoint(HttpVerb.GET,
-                                        ConjurEndpoint.ROLES_MEMBERS_OF,
-                                        params,
-                                        query=request_parameters,
-                                        api_token=self.api_token,
-                                        ssl_verification_metadata=self.ssl_verification_data).content
+        response = await invoke_endpoint(HttpVerb.GET,
+                                         ConjurEndpoint.ROLES_MEMBERS_OF,
+                                         params,
+                                         query=request_parameters,
+                                         api_token=await self.api_token,
+                                         ssl_verification_metadata=self.ssl_verification_data)
 
-        resources = json.loads(json_response.decode('utf-8'))
+        resources = response.json
 
         if not inspect:
             # For each element (resource) in the resources sequence, we extract the resource id
@@ -478,7 +478,7 @@ class Api:
 
         return resources
 
-    def list_permitted_roles(self, data: ListPermittedRolesData) -> dict:
+    async def list_permitted_roles(self, data: ListPermittedRolesData) -> dict:
         """
         Lists the roles which have the named permission on a resource.
         """
@@ -498,10 +498,10 @@ class Api:
         }
         params.update(self._default_params)
 
-        json_response = invoke_endpoint(HttpVerb.GET,
-                                        ConjurEndpoint.RESOURCES_PERMITTED_ROLES,
-                                        params,
-                                        api_token=self.api_token,
-                                        ssl_verification_metadata=self.ssl_verification_data).content
+        response = await invoke_endpoint(HttpVerb.GET,
+                                         ConjurEndpoint.RESOURCES_PERMITTED_ROLES,
+                                         params,
+                                         api_token=await self.api_token,
+                                         ssl_verification_metadata=self.ssl_verification_data)
 
-        return json.loads(json_response.decode('utf-8'))
+        return response.json

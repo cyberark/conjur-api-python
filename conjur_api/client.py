@@ -18,12 +18,13 @@ from conjur_api.models import SslVerificationMode, CreateHostData, CreateTokenDa
 from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException
 from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
 from conjur_api.http.api import Api
+from conjur_api.utils.decorators import allow_sync_invocation
 
 LOGGING_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 LOGGING_FORMAT_WARNING = 'WARNING: %(message)s'
 
 
-# pylint: disable=logging-fstring-interpolation,line-too-long
+@allow_sync_invocation()
 class Client:
     """
     Client
@@ -38,12 +39,23 @@ class Client:
             self,
             conjurrc_data: ConjurrcData,
             ssl_verification_mode: SslVerificationMode = SslVerificationMode.TRUST_STORE,
+            credentials_provider: CredentialsProviderInterface = None,
             debug: bool = False,
             http_debug: bool = False,
-            credentials_provider: CredentialsProviderInterface = None):
+            async_mode: bool = True):
+        """
 
+        @param conjurrc_data: Connection metadata for conjur server
+        @param ssl_verification_mode: Certificate validation stratagy
+        @param credentials_provider:
+        @param debug:
+        @param http_debug:
+        @param async_mode: This will make all of the class async functions run in sync mode (without need of await)
+        Note that this functionality wraps the async function with 'asyncio.run'. setting this value to False
+        is not allowed inside running event loop. For example, async_mode cannot be False if running inside 'asyncio.run()'
+        """
         self.configure_logger(debug)
-
+        self.async_mode = async_mode
         if ssl_verification_mode == SslVerificationMode.INSECURE:
             # TODO remove this is a cli user facing
             logging.debug("Warning: Running the command with '--insecure' "
@@ -70,117 +82,117 @@ class Client:
             logging.basicConfig(level=logging.WARN, format=LOGGING_FORMAT_WARNING)
 
     ### API passthrough
+    async def login(self) -> str:
+        return await self._api.login()
 
-    def login(self) -> str:
-        return self._api.login()
-
-    def whoami(self) -> dict:
+    async def whoami(self) -> dict:
         """
         Provides dictionary of information about the user making an API request
         """
-        return self._api.whoami()
+        return await self._api.whoami()
 
     # Constraints remain an optional parameter for backwards compatibility in the SDK
-    def list(self, list_constraints: dict = None) -> dict:
+    async def list(self, list_constraints: dict = None) -> dict:
         """
         Lists all available resources
         """
-        return self._api.resources_list(list_constraints)
+        return await self._api.resources_list(list_constraints)
 
-    def list_permitted_roles(self, list_permitted_roles_data: ListPermittedRolesData) -> dict:
+    async def list_permitted_roles(self, list_permitted_roles_data: ListPermittedRolesData) -> dict:
         """
         Lists the roles which have the named permission on a resource.
         """
-        return self._api.list_permitted_roles(list_permitted_roles_data)
+        return await self._api.list_permitted_roles(list_permitted_roles_data)
 
-    def list_members_of_role(self, data: ListMembersOfData) -> dict:
+    async def list_members_of_role(self, data: ListMembersOfData) -> dict:
         """
         Lists the roles which have the named permission on a resource.
         """
-        return self._api.list_members_of_role(data)
+        return await self._api.list_members_of_role(data)
 
-    def get(self, variable_id: str, version: str = None) -> Optional[bytes]:
+    async def get(self, variable_id: str, version: str = None) -> Optional[bytes]:
         """
         Gets a variable value based on its ID
         """
-        return self._api.get_variable(variable_id, version)
+        return await self._api.get_variable(variable_id, version)
 
-    def get_many(self, *variable_ids) -> Optional[bytes]:
+    async def get_many(self, *variable_ids) -> Optional[bytes]:
         """
         Gets multiple variable values based on their IDs. Returns a
         dictionary of mapped values.
         """
-        return self._api.get_variables(*variable_ids)
+        return await self._api.get_variables(*variable_ids)
 
-    def create_token(self, create_token_data: CreateTokenData) -> json:
+    async def create_token(self, create_token_data: CreateTokenData) -> json:
         """
         Create token/s for hosts with restrictions
         """
-        return self._api.create_token(create_token_data).json
+        return await self._api.create_token(create_token_data).json
 
-    def create_host(self, create_host_data: CreateHostData) -> json:
+    async def create_host(self, create_host_data: CreateHostData) -> json:
         """
         Create host using the hostfactory
         """
-        return self._api.create_host(create_host_data).json
+        return await self._api.create_host(create_host_data).json
 
-    def revoke_token(self, token: str) -> int:
+    async def revoke_token(self, token: str) -> int:
         """
         Revokes the given token
         """
-        return self._api.revoke_token(token).status
+        res = await self._api.revoke_token(token)
+        return res.status
 
-    def set(self, variable_id: str, value: str) -> str:
+    async def set(self, variable_id: str, value: str) -> str:
         """
         Sets a variable to a specific value based on its ID
         """
-        self._api.set_variable(variable_id, value)
+        await self._api.set_variable(variable_id, value)
 
-    def load_policy_file(self, policy_name: str, policy_file: str) -> dict:
+    async def load_policy_file(self, policy_name: str, policy_file: str) -> dict:
         """
         Applies a file-based policy to the Conjur instance
         """
-        return self._api.load_policy_file(policy_name, policy_file)
+        return await self._api.load_policy_file(policy_name, policy_file)
 
-    def replace_policy_file(self, policy_name: str, policy_file: str) -> dict:
+    async def replace_policy_file(self, policy_name: str, policy_file: str) -> dict:
         """
         Replaces a file-based policy defined in the Conjur instance
         """
-        return self._api.replace_policy_file(policy_name, policy_file)
+        return await self._api.replace_policy_file(policy_name, policy_file)
 
-    def update_policy_file(self, policy_name: str, policy_file: str) -> dict:
+    async def update_policy_file(self, policy_name: str, policy_file: str) -> dict:
         """
         Replaces a file-based policy defined in the Conjur instance
         """
-        return self._api.update_policy_file(policy_name, policy_file)
+        return await self._api.update_policy_file(policy_name, policy_file)
 
-    def rotate_other_api_key(self, resource: Resource) -> str:
+    async def rotate_other_api_key(self, resource: Resource) -> str:
         """
         Rotates a API keys and returns new API key
         """
-        return self._api.rotate_other_api_key(resource)
+        return await self._api.rotate_other_api_key(resource)
 
-    def rotate_personal_api_key(self, logged_in_user: str, current_password: str) -> str:
+    async def rotate_personal_api_key(self, logged_in_user: str, current_password: str) -> str:
         """
         Rotates personal API keys and returns new API key
         """
-        return self._api.rotate_personal_api_key(logged_in_user, current_password)
+        return await self._api.rotate_personal_api_key(logged_in_user, current_password)
 
-    def change_personal_password(
+    async def change_personal_password(
             self, logged_in_user: str, current_password: str,
             new_password: str) -> str:
         """
         Change personal password of logged-in user
         """
         # pylint: disable=line-too-long
-        return self._api.change_personal_password(logged_in_user, current_password, new_password)
+        return await self._api.change_personal_password(logged_in_user, current_password, new_password)
 
-    def find_resources_by_identifier(self, resource_identifier: str) -> list:
+    async def find_resources_by_identifier(self, resource_identifier: str) -> list:
         """
         Get all the resources with the given identifier.
         """
         list_constraints = {"search": resource_identifier}
-        returned_resources_ids = self.list(list_constraints)
+        returned_resources_ids = await self.list(list_constraints)
 
         def get_resource_kind_if_matches(returned_resource_id):
             resource = Resource.from_full_id(returned_resource_id)
@@ -190,12 +202,12 @@ class Client:
         resources = [res for res in resources if res]  # Remove None elements
         return resources
 
-    def find_resource_by_identifier(self, resource_identifier: str) -> list:
+    async def find_resource_by_identifier(self, resource_identifier: str) -> list:
         """
         Look for a resource with the given identifier, and return its kind.
         Fail if there isn't exactly one such resource.
         """
-        resources = self.find_resources_by_identifier(resource_identifier)
+        resources = await self.find_resources_by_identifier(resource_identifier)
         if not resources:
             raise ResourceNotFoundException(resource_identifier)
         if len(resources) > 1:
