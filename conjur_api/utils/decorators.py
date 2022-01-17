@@ -8,6 +8,7 @@ def allow_sync_invocation():
     def allow_sync_mode(f):
         def wrapper(self, *args):
             should_run_async = getattr(self, "async_mode")
+            should_run_async |= f.__name__.startswith("_")  # omit private functions
             if should_run_async:  # Function should remain async
                 return f(self, *args)
             loop = _get_event_loop()

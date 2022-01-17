@@ -179,13 +179,14 @@ class Client:
         """
         return await self._api.rotate_personal_api_key(logged_in_user, current_password)
 
-    def get_server_info(self):
+    async def get_server_info(self):
         """
         Get the info json response from conjur.
         @note: This is a Conjur Enterprise feature only
         """
         try:
-            return self._api.get_server_info().json
+            response = await self._api.get_server_info()
+            return response.json
         except HttpStatusError as err:
             if err.status == 404:
                 exception_details = "get_server_info is a Conjur Enterprise feature only. Make sure " \
@@ -205,26 +206,14 @@ class Client:
         return await self._api.change_personal_password(logged_in_user, current_password, new_password)
 
     async def find_resources_by_identifier(self, resource_identifier: str) -> list:
-        """
-        Get all the resources with the given identifier.
-        """
-        list_constraints = {"search": resource_identifier}
-        returned_resources_ids = await self.list(list_constraints)
-
-        def get_resource_kind_if_matches(returned_resource_id):
-            resource = Resource.from_full_id(returned_resource_id)
-            return resource if resource.identifier == resource_identifier else None
-
-        resources = map(get_resource_kind_if_matches, returned_resources_ids)
-        resources = [res for res in resources if res]  # Remove None elements
-        return resources
+        return await self._find_resources_by_identifier(resource_identifier)
 
     async def find_resource_by_identifier(self, resource_identifier: str) -> list:
         """
         Look for a resource with the given identifier, and return its kind.
         Fail if there isn't exactly one such resource.
         """
-        resources = await self.find_resources_by_identifier(resource_identifier)
+        resources = await self._find_resources_by_identifier(resource_identifier)
         if not resources:
             raise ResourceNotFoundException(resource_identifier)
         if len(resources) > 1:
@@ -247,3 +236,18 @@ class Client:
             credentials_provider=credentials_provider,
             debug=self.debug,
             http_debug=http_debug)
+
+    async def _find_resources_by_identifier(self, resource_identifier: str) -> list:
+        """
+        Get all the resources with the given identifier.
+        """
+        list_constraints = {"search": resource_identifier}
+        returned_resources_ids = await self._api.resources_list(list_constraints)
+
+        def get_resource_kind_if_matches(returned_resource_id):
+            resource = Resource.from_full_id(returned_resource_id)
+            return resource if resource.identifier == resource_identifier else None
+
+        resources = map(get_resource_kind_if_matches, returned_resources_ids)
+        resources = [res for res in resources if res]  # Remove None elements
+        return resources
