@@ -19,10 +19,11 @@ from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredP
 from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
 from conjur_api.http.api import Api
 from conjur_api.utils.decorators import allow_sync_invocation
+    ListPermittedRolesData, ConjurrcData, Resource
+from conjur_api.errors.errors import HttpStatusError, ResourceNotFoundException
 from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException
 from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
 from conjur_api.http.api import Api
-from conjur_api.utils.decorators import conjur_enterprise_functionality
 
 LOGGING_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 LOGGING_FORMAT_WARNING = 'WARNING: %(message)s'
@@ -182,12 +183,21 @@ class Client:
         """
         return await self._api.rotate_personal_api_key(logged_in_user, current_password)
 
-    @conjur_enterprise_functionality
     def get_server_info(self):
         """
         Get the info json response from conjur.
+        @note: This is a Conjur Enterprise feature only
         """
-        return self._api.get_server_info().json
+        try:
+            return self._api.get_server_info().json
+        except HttpStatusError as err:
+            if err.status == 404:
+                exception_details = "get_server_info is a Conjur Enterprise feature only. Make sure " \
+                                    "ConjurrcData.conjur_url is valid and you are working against " \
+                                    "Conjur Enterprise server"
+                raise ResourceNotFoundException(exception_details) from err
+            else:
+                raise
 
     async def change_personal_password(
             self, logged_in_user: str, current_password: str,
