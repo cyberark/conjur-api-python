@@ -23,11 +23,7 @@ pipeline {
     }
     unsuccessful {
       script {
-        if (env.BRANCH_NAME == 'main') {
           cleanupAndNotify(currentBuild.currentResult, notify_team_teams = 'Secrets Manager HQ')
-        } else {
-          cleanupAndNotify(currentBuild.currentResult, notify_team_teams = 'Secrets Manager HQ')
-        }
       }
     }
   }
