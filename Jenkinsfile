@@ -21,7 +21,7 @@ pipeline {
             coberturaReportFile: "coverage.xml",
             onlyStable: false,
             failNoReports: true,
-            failUnhealthy: false,
+            failUnhealthy: true,
             failUnstable: false,
             autoUpdateHealth: true,
             autoUpdateStability: true,
