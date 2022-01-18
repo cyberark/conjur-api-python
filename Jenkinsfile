@@ -17,7 +17,21 @@ pipeline {
       post {
         always {
           junit 'ci/testing/output/**/*.xml'
-          cobertura autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: 'coverage.xml', conditionalCoverageTargets: '100, 0, 100', failUnhealthy: true, failUnstable: false, lineCoverageTargets: '100, 0, 100', maxNumberOfBuilds: 0, methodCoverageTargets: '50, 0, 50', onlyStable: false, sourceEncoding: 'ASCII', zoomCoverageChart: false
+          cobertura(
+            coberturaReportFile: "coverage.xml",
+            onlyStable: false,
+            failNoReports: true,
+            failUnhealthy: false,
+            failUnstable: false,
+            autoUpdateHealth: true,
+            autoUpdateStability: true,
+            zoomCoverageChart: true,
+            maxNumberOfBuilds: 0,
+            lineCoverageTargets: '80, 80, 80',
+            conditionalCoverageTargets: '80, 80, 80',
+            classCoverageTargets: '80, 80, 80',
+            fileCoverageTargets: '80, 80, 80',
+        )
         }
       }
     }
