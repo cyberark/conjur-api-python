@@ -27,7 +27,7 @@ pipeline {
             autoUpdateStability: true,
             zoomCoverageChart: true,
             maxNumberOfBuilds: 0,
-            lineCoverageTargets: '70, 70, 70',
+            lineCoverageTargets: '70, 0, 70',
             conditionalCoverageTargets: '50, 0, 50',
             classCoverageTargets: '50, 0, 50',
             fileCoverageTargets: '50, 0, 50',
