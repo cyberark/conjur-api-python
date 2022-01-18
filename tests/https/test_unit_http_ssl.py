@@ -1,4 +1,7 @@
+import asyncio
 from enum import Enum
+
+from aiounittest import AsyncTestCase
 
 from conjur_api.models import SslVerificationMetadata, SslVerificationMode
 from conjur_api.errors.errors import HttpSslError, CertificateHostnameMismatchException
@@ -50,27 +53,28 @@ valid_badssl_endpoints = [
 ]
 
 
-class TestDemonstrateSubtest(TestCase):
+class TestDemonstrateSubtest(AsyncTestCase):
     class MockEndpoint(Enum):
         BADSSL_URL = "{url}"
 
-    def test_http_wrapper_get_invalid_badssl_endpoints_throws_ssl_exception(self):
+    async def test_http_wrapper_get_invalid_badssl_endpoints_throws_ssl_exception(self):
         for badssl_url in invalid_badssl_endpoints:
             with self.subTest(msg=f"Validate SSL cert of '{badssl_url}' is not valid"):
                 expected_exceptions = (HttpSslError, CertificateHostnameMismatchException)
                 with self.assertRaises(expected_exceptions):
-                    invoke_endpoint(HttpVerb.GET,
-                                    endpoint=self.MockEndpoint.BADSSL_URL,
-                                    params={'url': badssl_url},
-                                    ssl_verification_metadata=SslVerificationMetadata(
-                                        SslVerificationMode.TRUST_STORE),
-                                    check_errors=False)
+                    await invoke_endpoint(HttpVerb.GET,
+                                                endpoint=self.MockEndpoint.BADSSL_URL,
+                                                params={'url': badssl_url},
+                                                ssl_verification_metadata=SslVerificationMetadata(
+                                                    SslVerificationMode.TRUST_STORE),
+                                                check_errors=False)
 
-    def test_http_wrapper_get_valid_badssl_endpoints_successfully(self):
+    async def test_http_wrapper_get_valid_badssl_endpoints_successfully(self):
         for badssl_url in valid_badssl_endpoints:
             with self.subTest(msg=f"Validate SSL cert of '{badssl_url}' is valid"):
-                invoke_endpoint(HttpVerb.GET,
-                                endpoint=self.MockEndpoint.BADSSL_URL,
-                                params={'url': badssl_url},
-                                ssl_verification_metadata=SslVerificationMetadata(SslVerificationMode.TRUST_STORE),
-                                check_errors=False)
+                await invoke_endpoint(HttpVerb.GET,
+                                            endpoint=self.MockEndpoint.BADSSL_URL,
+                                            params={'url': badssl_url},
+                                            ssl_verification_metadata=SslVerificationMetadata(
+                                                SslVerificationMode.TRUST_STORE),
+                                            check_errors=False)

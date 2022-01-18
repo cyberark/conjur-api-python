@@ -16,5 +16,5 @@ rm -rf $CURRENT_DIR/output/*
 docker run --rm \
            -t \
            -e TEST_ENV=true \
-           -v "$(pwd):/opt/conjur-cli-python" \
+           -v "$(pwd):/opt/conjur-api-python" \
            conjur-cli-python-test nose2 -v --config tests/unit_test.cfg --with-coverage $@
