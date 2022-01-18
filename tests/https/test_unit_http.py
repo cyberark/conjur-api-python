@@ -1,3 +1,4 @@
+import asyncio
 import ssl
 import unittest
 
@@ -72,7 +73,7 @@ class HttpInvokeEndpointTest(unittest.TestCase):
         ssl_context = ssl.create_default_context()
         with patch.object(ssl, 'create_default_context', return_value=ssl_context) as mock_create_ssl_context:
             mock_request.return_value = MockResponse('', 200)
-            invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, {})
+            asyncio.run(invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, {}))
 
             mock_create_ssl_context.assert_called_once_with()
             mock_request.assert_called_once_with('GET', 'no/params', auth=None, headers={}, data='', ssl=ssl_context,
@@ -83,7 +84,7 @@ class HttpInvokeEndpointTest(unittest.TestCase):
         ssl_context = ssl.create_default_context()
         with patch.object(ssl, 'create_default_context', return_value=ssl_context) as mock_create_ssl_context:
             mock_request.return_value = MockResponse('', 200)
-            invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None)
+            asyncio.run(invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None))
 
             mock_create_ssl_context.assert_called_once_with()
             mock_request.assert_called_once_with('GET', 'no/params', auth=None, headers={}, data='', ssl=ssl_context,
@@ -94,16 +95,16 @@ class HttpInvokeEndpointTest(unittest.TestCase):
         ssl_context = ssl.create_default_context()
         with patch.object(ssl, 'create_default_context', return_value=ssl_context) as mock_create_ssl_context:
             mock_request.return_value = MockResponse('', 200)
-            invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, {})
+            asyncio.run(invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, {}))
             mock_create_ssl_context.assert_called_with()
             mock_request.assert_called_with('GET', 'no/params', auth=None, headers={}, data='', ssl=ssl_context,
                                             params=None)
 
-            invoke_endpoint(HttpVerb.POST, self.MockEndpoint.NO_PARAMS, {})
+            asyncio.run(invoke_endpoint(HttpVerb.POST, self.MockEndpoint.NO_PARAMS, {}))
             mock_request.assert_called_with('POST', 'no/params', auth=None, headers={}, data='', ssl=ssl_context,
                                             params=None)
 
-            invoke_endpoint(HttpVerb.DELETE, self.MockEndpoint.NO_PARAMS, {})
+            asyncio.run(invoke_endpoint(HttpVerb.DELETE, self.MockEndpoint.NO_PARAMS, {}))
             mock_request.assert_called_with('DELETE', 'no/params', auth=None, headers={}, data='', ssl=ssl_context,
                                             params=None)
 
@@ -112,7 +113,7 @@ class HttpInvokeEndpointTest(unittest.TestCase):
         ssl_context = ssl.create_default_context()
         with patch.object(ssl, 'create_default_context', return_value=ssl_context) as mock_create_ssl_context:
             mock_request.return_value = MockResponse('', 200)
-            invoke_endpoint(HttpVerb.GET, self.MockEndpoint.WITH_URL, {'url': 'http://host'})
+            asyncio.run(invoke_endpoint(HttpVerb.GET, self.MockEndpoint.WITH_URL, {'url': 'http://host'}))
 
             mock_create_ssl_context.assert_called_once_with()
             mock_request.assert_called_once_with('GET', 'http://host/no/params', auth=None, headers={}, data='',
@@ -123,7 +124,7 @@ class HttpInvokeEndpointTest(unittest.TestCase):
         ssl_context = ssl.create_default_context()
         with patch.object(ssl, 'create_default_context', return_value=ssl_context) as mock_create_ssl_context:
             mock_request.return_value = MockResponse('', 200)
-            invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None, api_token='token')
+            asyncio.run(invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None, api_token='token'))
 
             mock_create_ssl_context.assert_called_once_with()
             mock_request.assert_called_once_with('GET', 'no/params', auth=None, data='', ssl=ssl_context,
@@ -134,7 +135,7 @@ class HttpInvokeEndpointTest(unittest.TestCase):
         ssl_context = ssl.create_default_context()
         with patch.object(ssl, 'create_default_context', return_value=ssl_context) as mock_create_ssl_context:
             mock_request.return_value = MockResponse('', 200)
-            invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None)
+            asyncio.run(invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None))
 
             mock_create_ssl_context.assert_called_once_with()
             mock_request.assert_called_once_with('GET', 'no/params', auth=None, data='', ssl=ssl_context, headers={},
@@ -145,8 +146,8 @@ class HttpInvokeEndpointTest(unittest.TestCase):
         ssl_context = ssl.create_default_context()
         with patch.object(ssl, 'create_default_context', return_value=ssl_context) as mock_create_ssl_context:
             mock_request.return_value = MockResponse('', 200)
-            invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None,
-                            ssl_verification_metadata=create_ssl_verification_metadata())
+            asyncio.run(invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None,
+                                        ssl_verification_metadata=create_ssl_verification_metadata()))
 
             mock_create_ssl_context.assert_called_once_with()
             mock_request.assert_called_once_with('GET', 'no/params', auth=None, data='', ssl=ssl_context, headers={},
@@ -159,10 +160,10 @@ class HttpInvokeEndpointTest(unittest.TestCase):
         ssl_context = ssl.create_default_context()
         with patch.object(ssl, 'create_default_context', return_value=ssl_context) as mock_create_ssl_context:
             with self.assertRaises(HttpSslError):
-                invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None,
-                                ssl_verification_metadata=create_ssl_verification_metadata(
-                                    SslVerificationMode.SELF_SIGN, 'foo'),
-                                check_errors=False)
+                asyncio.run(invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None,
+                                            ssl_verification_metadata=create_ssl_verification_metadata(
+                                                SslVerificationMode.SELF_SIGN, 'foo'),
+                                            check_errors=False))
 
             ssl_context_calls = [call(cafile='foo')]
             mock_create_ssl_context.assert_has_calls(ssl_context_calls)
@@ -174,7 +175,7 @@ class HttpInvokeEndpointTest(unittest.TestCase):
         ssl_context = ssl.create_default_context()
         with patch.object(ssl, 'create_default_context', return_value=ssl_context) as mock_create_ssl_context:
             mock_request.return_value = MockResponse('', 200)
-            invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None, auth=('foo', 'bar'))
+            asyncio.run(invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None, auth=('foo', 'bar')))
 
             mock_create_ssl_context.assert_called_once_with()
             mock_request.assert_called_once_with('GET', 'no/params', auth=BasicAuth('foo', 'bar'), data='',
@@ -185,7 +186,7 @@ class HttpInvokeEndpointTest(unittest.TestCase):
         ssl_context = ssl.create_default_context()
         with patch.object(ssl, 'create_default_context', return_value=ssl_context) as mock_create_ssl_context:
             mock_request.return_value = MockResponse('', 200)
-            invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None, 'ab')
+            asyncio.run(invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None, 'ab'))
 
             mock_create_ssl_context.assert_called_once_with()
             mock_request.assert_called_once_with('GET', 'no/params', auth=None, data='ab', ssl=ssl_context,
@@ -200,7 +201,7 @@ class HttpInvokeEndpointTest(unittest.TestCase):
                 'bar)(*&^%': 'b',
             }
             mock_request.return_value = MockResponse('', 200)
-            invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None, 'ab', query=query)
+            asyncio.run(invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None, 'ab', query=query))
 
             mock_create_ssl_context.assert_called_once_with()
             mock_request.assert_called_once_with('GET', 'no/params', auth=None, data='ab', ssl=ssl_context,
@@ -211,8 +212,8 @@ class HttpInvokeEndpointTest(unittest.TestCase):
         ssl_context = ssl.create_default_context()
         with patch.object(ssl, 'create_default_context', return_value=ssl_context) as mock_create_ssl_context:
             mock_request.return_value = MockResponse('', 200)
-            invoke_endpoint(HttpVerb.GET, self.MockEndpoint.PARAMETER_ESCAPING,
-                            self.UNESCAPED_PARAMS, '$#\\% ^%')
+            asyncio.run(invoke_endpoint(HttpVerb.GET, self.MockEndpoint.PARAMETER_ESCAPING,
+                                        self.UNESCAPED_PARAMS, '$#\\% ^%'))
 
             quoted_endpoint = '/'.join([self.UNESCAPED_PARAMS['url']] + self.ESCAPED_PARAMS)
             mock_create_ssl_context.assert_called_once_with()
@@ -228,18 +229,18 @@ class HttpInvokeEndpointTest(unittest.TestCase):
         mock_request.return_value = MockResponse()
 
         with self.assertRaises(Exception) as context:
-            invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None)
+            asyncio.run(invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None))
 
     @patch('aiohttp.ClientSession.request')
     def test_invoke_endpoint_does_not_raise_error_if_bad_status_but_check_errors_is_false(self, mock_request):
         mock_request.return_value = MockResponse('', 400)
 
-        invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None, check_errors=False)
+        asyncio.run(invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None, check_errors=False))
 
     @patch('aiohttp.ClientSession.request')
     def test_invoke_endpoint_returns_http_client_response(self, mock_request):
         mock_request.return_value = MockResponse('{"a": 123}', 200)
 
-        response = invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None)
+        response = asyncio.run(invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None))
 
         self.assertEqual(response.json, {'a': 123})
