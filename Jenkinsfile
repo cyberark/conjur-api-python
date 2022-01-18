@@ -24,9 +24,9 @@ pipeline {
     unsuccessful {
       script {
         if (env.BRANCH_NAME == 'main') {
-          cleanupAndNotify(currentBuild.currentResult, "#development", "@PalmTree")
+          cleanupAndNotify(currentBuild.currentResult, notify_team_teams = 'Secrets Manager HQ')
         } else {
-          cleanupAndNotify(currentBuild.currentResult, "#development")
+          cleanupAndNotify(currentBuild.currentResult, notify_team_teams = 'Secrets Manager HQ')
         }
       }
     }
