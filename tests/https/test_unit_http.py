@@ -5,7 +5,7 @@ import unittest
 from enum import Enum
 from unittest.mock import patch, call
 
-import aiounittest
+from aiounittest import AsyncTestCase
 from aiohttp import ClientSSLError
 from aiohttp.client_reqrep import ConnectionKey
 from asynctest import patch
@@ -39,7 +39,7 @@ class MockResponse:
         return self
 
 
-class HttpVerbTest(aiounittest.AsyncTestCase):
+class HttpVerbTest(unittest.TestCase):
     def test_http_verb_has_all_the_verbs_expected(self):
         self.assertTrue(HttpVerb.GET)
         self.assertTrue(HttpVerb.PUT)
@@ -52,7 +52,7 @@ def create_ssl_verification_metadata(mode=SslVerificationMode.TRUST_STORE, cert_
     return SslVerificationMetadata(mode, cert_path)
 
 
-class HttpInvokeEndpointTest(aiounittest.AsyncTestCase):
+class HttpInvokeEndpointTest(AsyncTestCase):
     UNESCAPED_PARAMS = {
         'url': 'https://foo.bar',
         'one': 'abc/$!@#$%^&*() \\[]{}',

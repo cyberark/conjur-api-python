@@ -1,7 +1,7 @@
 import asyncio
 from enum import Enum
 
-import aiounittest
+from aiounittest import AsyncTestCase
 
 from conjur_api.models import SslVerificationMetadata, SslVerificationMode
 from conjur_api.errors.errors import HttpSslError, CertificateHostnameMismatchException
@@ -53,7 +53,7 @@ valid_badssl_endpoints = [
 ]
 
 
-class TestDemonstrateSubtest(aiounittest.AsyncTestCase):
+class TestDemonstrateSubtest(AsyncTestCase):
     class MockEndpoint(Enum):
         BADSSL_URL = "{url}"
 
