@@ -17,6 +17,7 @@ pipeline {
       post {
         always {
           junit 'ci/testing/output/**/*.xml'
+          ccCoverage("coverage.py")
         }
       }
     }
