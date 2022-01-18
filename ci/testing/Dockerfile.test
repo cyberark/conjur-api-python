@@ -34,6 +34,4 @@ RUN curl -L -s https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-ins
 
 COPY . $INSTALL_DIR
 
-COPY ./ci/testing/configure_test_executor.sh /configure_test_executor.sh
-
-ENTRYPOINT ["./ci/testing/configure_test_executor.sh"]
+ENTRYPOINT ["/bin/bash"]
