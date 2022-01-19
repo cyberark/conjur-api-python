@@ -1,0 +1,27 @@
+#!/bin/bash -e
+
+CURRENT_DIR=$(pwd)
+
+$CURRENT_DIR/ci/publish/build_publish_container
+
+REQUIRED_VARS=( "TWINE_REPOSITORY_URL" )
+
+if [[ -z "${TWINE_REPOSITORY_URL}" ]]; then
+  echo "ERROR: '$TWINE_REPOSITORY_URL' not set!"
+  exit 1
+fi
+
+echo "Check if Publishing to PyPI is needed..."
+docker run --rm \
+           -t \
+           -e TWINE_REPOSITORY_URL \
+           -v "$(pwd):/opt/conjur-api-python3" \
+           conjur-api-python3-publish bash -exc "
+               echo 'Installing new versions of pip and wheel...'
+               /usr/bin/env pip3 install --upgrade pip wheel
+
+               if ! ./ci/publish/is_publish_required \$TWINE_REPOSITORY_URL; then
+                 echo 'WARN: Publishing skipped!'
+                 exit 1
+               fi
+           "

@@ -1,3 +1,5 @@
+#!/usr/bin/env groovy
+
 pipeline {
   agent { label 'executor-v2' }
 
@@ -15,6 +17,17 @@ pipeline {
       }
 
     stage('Unit tests') {
+     steps {
+       sh './ci/testing/test_unit.sh'
+     }
+    }
+
+    stage('Publish to PyPI') {
+      steps {
+        echo 'Check if publish is required'
+        sh 'summon -e production ./ci/publish/run_is_publish_required'
+
+        sh 'summon -e production ./ci/publish/publish_package'
       steps {
         sh './ci/test/test_unit.sh'
       }
@@ -50,9 +63,11 @@ pipeline {
           junit 'ci/test/output/**/*.xml'
         }
       }
+      when {
+        tag "v*"
+      }
     }
   }
-
   post {
     always {
       cleanupAndNotify(currentBuild.currentResult)
