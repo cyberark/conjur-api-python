@@ -8,9 +8,11 @@ DISABLED_ERRORS="fixme"
 
 echo "Checking linting..."
 set -x
-docker-compose run --rm \
-  --no-deps \
-  test \
-  pylint -r n -f parseable --disable="$DISABLED_ERRORS" "./conjur_api"
+docker run \
+  --rm \
+  -t \
+  -e TEST_ENV=true \
+  -v "$(pwd):/opt/conjur-api-python" \
+  conjur-cli-python-test pylint -r n -f parseable --rcfile "./ci/testing/.pylintrc" --disable="$DISABLED_ERRORS" "./conjur_api"
 
 echo "Linting completed!"
