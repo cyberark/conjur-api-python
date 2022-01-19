@@ -1,3 +1,5 @@
+#!/usr/bin/env groovy
+
 pipeline {
   agent { label 'executor-v2' }
 
@@ -13,6 +15,20 @@ pipeline {
     stage('Unit tests') {
       steps {
         sh './ci/testing/test_unit.sh'
+      }
+    }
+
+    // Only publish if the HEAD is tagged with the same version as in __version__.py
+    stage('Publish') {
+      parallel {
+        stage('Publish to PyPI') {
+          steps {
+            sh 'summon -e testing ./bin/publish_package'
+          }
+//          when {
+//            tag "v*"
+//          }
+        }
       }
     }
   }
