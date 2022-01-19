@@ -10,6 +10,14 @@ pipeline {
     cron(getDailyCronString())
   }
   stages {
+      stage('Linting') {
+          parallel {
+            stage('Code') {
+              steps { sh './ci/testing/test_linting.sh' }
+            }
+         }
+      }
+
     stage('Unit tests') {
       steps {
         sh './ci/testing/test_unit.sh'
