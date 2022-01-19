@@ -2,11 +2,9 @@
 
 """
 ListData module
-
 This module represents the DTO that holds the params the user passes in.
 We use this DTO to build the list request
 """
-
 
 # pylint: disable=too-few-public-methods
 from conjur_api.utils import util_functions
