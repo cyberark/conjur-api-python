@@ -14,7 +14,6 @@ import time
 from enum import Enum
 from typing import Union
 from urllib.parse import quote
-import asyncio
 from aiohttp import BasicAuth, ClientError, ClientResponseError, ClientSSLError, ClientSession
 import async_timeout
 import urllib3

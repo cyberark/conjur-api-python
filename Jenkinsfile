@@ -11,11 +11,7 @@ pipeline {
   }
   stages {
       stage('Linting') {
-          parallel {
-            stage('Code') {
-              steps { sh './ci/testing/test_linting.sh' }
-            }
-         }
+        steps { sh './ci/testing/test_linting.sh' }
       }
 
     stage('Unit tests') {

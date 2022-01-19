@@ -1,3 +1,8 @@
+"""
+SimpleCredentialsProvider module
+
+This module holds the SimpleCredentialsProvider class
+"""
 from typing import Dict
 from copy import deepcopy
 from conjur_api.interface import CredentialsProviderInterface
@@ -5,7 +10,11 @@ from conjur_api.models import CredentialsData
 
 
 class SimpleCredentialsProvider(CredentialsProviderInterface):
+    """
+    SimpleCredentialsProvider class
 
+    This class implement a naive, in-memory implementation of the CredentialsProvider Interface
+    """
     def __init__(self):
         self._credentials: Dict[str, CredentialsData] = {}
 

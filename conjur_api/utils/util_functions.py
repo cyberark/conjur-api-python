@@ -1,3 +1,8 @@
+"""
+Utils module
+
+This module holds common logic across the codebase
+"""
 import platform
 
 from conjur_api.errors.errors import MissingRequiredParameterException

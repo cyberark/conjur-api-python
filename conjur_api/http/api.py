@@ -6,7 +6,6 @@ API module
 Provides high-level interface for programmatic API interactions
 """
 # Builtins
-import json
 import logging
 from typing import Optional
 from datetime import datetime, timedelta
@@ -19,8 +18,8 @@ from conjur_api.wrappers.http_response import HttpResponse
 from conjur_api.wrappers.http_wrapper import HttpVerb, invoke_endpoint
 from conjur_api.errors.errors import InvalidResourceException, MissingRequiredParameterException
 # pylint: disable=too-many-instance-attributes
-from conjur_api.models import Resource, ConjurConnectionInfo, ListPermittedRolesData, ListMembersOfData, CreateHostData, \
-    CreateTokenData, SslVerificationMetadata, SslVerificationMode
+from conjur_api.models import Resource, ConjurConnectionInfo, ListPermittedRolesData, \
+    ListMembersOfData, CreateHostData, CreateTokenData, SslVerificationMetadata, SslVerificationMode
 
 
 # pylint: disable=unspecified-encoding,too-many-public-methods
@@ -428,6 +427,10 @@ class Api:
         return response.text
 
     async def get_server_info(self):
+        """
+        Provides information about a particular Conjur node
+        @return: Server info in json form
+        """
         params = {
             'url': self._url
         }
@@ -435,6 +438,7 @@ class Api:
                                      ConjurEndpoint.INFO,
                                      params,
                                      ssl_verification_metadata=self.ssl_verification_data)
+
     async def whoami(self) -> dict:
         """
         This method provides dictionary of information about the user making an API request.

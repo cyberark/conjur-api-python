@@ -26,6 +26,7 @@ LOGGING_FORMAT_WARNING = 'WARNING: %(message)s'
 
 
 @allow_sync_invocation()
+# pylint: disable=too-many-public-methods
 class Client:
     """
     Client
@@ -35,7 +36,7 @@ class Client:
 
     # The method signature is long but we want to explicitly control
     # what parameters are allowed
-    # pylint: disable=try-except-raise,too-many-statements
+    # pylint: disable=try-except-raise,too-many-statements,too-many-arguments
     def __init__(
             self,
             connection_info: ConjurConnectionInfo,
@@ -53,7 +54,8 @@ class Client:
         @param http_debug:
         @param async_mode: This will make all of the class async functions run in sync mode (without need of await)
         Note that this functionality wraps the async function with 'asyncio.run'. setting this value to False
-        is not allowed inside running event loop. For example, async_mode cannot be False if running inside 'asyncio.run()'
+        is not allowed inside running event loop. For example, async_mode cannot be False if running inside
+        'asyncio.run()'
         """
         self.configure_logger(debug)
         self.async_mode = async_mode
@@ -84,6 +86,10 @@ class Client:
 
     ### API passthrough
     async def login(self) -> str:
+        """
+        Login to conjur using credentials provided to credentials provider
+        @return: API key
+        """
         return await self._api.login()
 
     async def whoami(self) -> dict:
@@ -186,6 +192,7 @@ class Client:
         Get the info json response from conjur.
         @note: This is a Conjur Enterprise feature only
         """
+        # pylint: disable=no-else-raise
         try:
             response = await self._api.get_server_info()
             return response.json
@@ -208,6 +215,9 @@ class Client:
         return await self._api.change_personal_password(logged_in_user, current_password, new_password)
 
     async def find_resources_by_identifier(self, resource_identifier: str) -> list:
+        """
+        Get all the resources with the given identifier.
+        """
         return await self._find_resources_by_identifier(resource_identifier)
 
     async def find_resource_by_identifier(self, resource_identifier: str) -> list:
@@ -229,8 +239,8 @@ class Client:
     def _create_api(self, http_debug, credentials_provider):
 
         credential_location = credentials_provider.get_store_location()
-        logging.debug(f"Attempting to retrieve credentials from the '{credential_location}'...")
-        logging.debug(f"Successfully retrieved credentials from the '{credential_location}'")
+        logging.debug("Attempting to retrieve credentials from the '%s'...", credential_location)
+        logging.debug("Successfully retrieved credentials from the '%s'", credential_location)
 
         return Api(
             connection_info=self.connection_info,
@@ -240,9 +250,6 @@ class Client:
             http_debug=http_debug)
 
     async def _find_resources_by_identifier(self, resource_identifier: str) -> list:
-        """
-        Get all the resources with the given identifier.
-        """
         list_constraints = {"search": resource_identifier}
         returned_resources_ids = await self._api.resources_list(list_constraints)
 
