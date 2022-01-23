@@ -38,7 +38,7 @@ pipeline {
 
     stage('Integration tests') {
       steps {
-        sh './ci/testing/test_integration'
+        sh './ci/testing/test_integration --environment ubuntu'
       }
 
       post {
