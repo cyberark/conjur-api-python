@@ -35,6 +35,18 @@ pipeline {
         }
       }
     }
+
+    stage('Integration tests') {
+      steps {
+        sh './bin/test_integration'
+      }
+
+      post {
+        always {
+          junit 'ci/testing/output/**/*.xml'
+        }
+      }
+    }
   }
 
   post {

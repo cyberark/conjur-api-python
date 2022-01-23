@@ -1,0 +1,53 @@
+#!/bin/bash -ex
+
+cleanup() {
+  echo "Cleaning up..."
+  echo "Cleaning up... logs in cleanup.log"
+  docker-compose --file "$CONPOSE_FILE_PATH" --project-directory "${PWD}" rm --stop --force
+}
+
+DEBUG="false"
+SDK_REPO_PATH=""
+function get_parameters() {
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+    -d | --debug)
+      DEBUG="true"
+      shift # past argument
+      ;;
+    -s | --sdk-repo-path)
+      SDK_REPO_PATH="$2"
+      shift # past argument
+      shift # past value
+      ;;
+    -e | --environment)
+      CONPOSE_FILE_PATH="ci/testing/conjur-deployment/$2_compose.yml"
+      shift
+      shift
+      ;;
+    *)
+      echo "Unknown option $1"
+      exit 1
+      ;;
+    esac
+  done
+}
+get_parameters $@
+
+echo "Starting test env..."
+docker-compose --file "$CONPOSE_FILE_PATH" --project-directory "${PWD}" up -d test
+
+rm -rf $CURRENT_DIR/output/*
+
+# Hint: '--privileged' is added here otherwise we will get operation
+# not permitted when attempting to do anything related to dbus
+if [[ "$DEBUG" == "true" ]]; then
+  docker-compose --file "$CONPOSE_FILE_PATH" --project-directory "${PWD}" exec --privileged test /bin/sh -c " /tests_executor.sh" $@
+  exit
+fi
+
+docker-compose --file "$CONPOSE_FILE_PATH" --project-directory "${PWD}" run \
+  --rm \
+  --no-deps \
+  test \
+  nose2 -v -X --config ./tests/integration_test.cfg  -A '!integration'
