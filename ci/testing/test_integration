@@ -1,13 +1,19 @@
 #!/bin/bash -ex
 
+docker_compose_command(){
+  docker-compose --file "$COMPOSE_FILE_PATH" --project-directory "${PWD}" $@
+}
 cleanup() {
   echo "Cleaning up..."
   echo "Cleaning up... logs in cleanup.log"
-  docker-compose --file "$CONPOSE_FILE_PATH" --project-directory "${PWD}" rm --stop --force
+  docker_compose_command rm --stop --force
 }
 
+trap 'echo "ERROR: Test script encountered an error!"; docker-compose logs &> cleanup.log; cleanup' ERR
+trap 'cleanup' EXIT
+
+
 DEBUG="false"
-SDK_REPO_PATH=""
 function get_parameters() {
   while [[ $# -gt 0 ]]; do
     case $1 in
@@ -15,13 +21,8 @@ function get_parameters() {
       DEBUG="true"
       shift # past argument
       ;;
-    -s | --sdk-repo-path)
-      SDK_REPO_PATH="$2"
-      shift # past argument
-      shift # past value
-      ;;
     -e | --environment)
-      CONPOSE_FILE_PATH="ci/testing/conjur-deployment/$2_compose.yml"
+      COMPOSE_FILE_PATH="ci/testing/conjur-deployment/$2_compose.yml"
       shift
       shift
       ;;
@@ -33,20 +34,46 @@ function get_parameters() {
   done
 }
 get_parameters $@
+cleanup
+
+echo "Building API container..."
+docker_compose_command build test
+
+echo "Generating certificate..."
+docker_compose_command up openssl
+
+echo "Starting Conjur..."
+docker_compose_command up -d conjur
+docker_compose_command exec -T conjur conjurctl wait
+
+echo "Configuring Conjur..."
+admin_api_key=$(docker_compose_command exec -T conjur conjurctl role retrieve-key dev:user:admin | tr -d '\r')
+export CONJUR_AUTHN_API_KEY=$admin_api_key
+export DEBUG=$DEBUG
+conjur_host_port=$(docker_compose_command port conjur 80)
+conjur_port="${conjur_host_port##*:}"
+export TEST_HOSTNAME=conjur-https
+
+# Docker-compose will pick this file up when starting containers
+# so we will have these variables in the container
+cat <<ENV >.env
+CONJUR_AUTHN_API_KEY=$admin_api_key
+DEBUG=$DEBUG
+ENV
 
 echo "Starting test env..."
-docker-compose --file "$CONPOSE_FILE_PATH" --project-directory "${PWD}" up -d test
+docker_compose_command up -d test
 
 rm -rf $CURRENT_DIR/output/*
 
 # Hint: '--privileged' is added here otherwise we will get operation
 # not permitted when attempting to do anything related to dbus
 if [[ "$DEBUG" == "true" ]]; then
-  docker-compose --file "$CONPOSE_FILE_PATH" --project-directory "${PWD}" exec --privileged test /bin/sh -c " /tests_executor.sh" $@
+  docker_compose_command exec test bash
   exit
 fi
 
-docker-compose --file "$CONPOSE_FILE_PATH" --project-directory "${PWD}" run \
+docker_compose_command run \
   --rm \
   --no-deps \
   test \
