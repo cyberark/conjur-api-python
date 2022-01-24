@@ -9,7 +9,7 @@ services:
       - -newkey
       - rsa:2048
       - -days
-      - "365"
+      - "1"
       - -nodes
       - -x509
       - -config
