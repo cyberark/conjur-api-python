@@ -2,5 +2,5 @@
 
 docker build \
     --file ci/testing/Dockerfile.test \
-    --tag conjur-cli-python-test \
+    --tag conjur-api-python-test \
     .
