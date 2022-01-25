@@ -13,7 +13,7 @@ pipeline {
   }
   stages {
       stage('Linting') {
-        steps { sh './ci/testing/test_linting.sh' }
+        steps { sh './ci/test/test_linting.sh' }
       }
 
     stage('Unit tests') {
