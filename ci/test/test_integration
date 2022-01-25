@@ -22,7 +22,7 @@ function get_parameters() {
       shift # past argument
       ;;
     -e | --environment)
-      COMPOSE_FILE_PATH="ci/testing/conjur-deployment/$2_compose.yml"
+      COMPOSE_FILE_PATH="ci/test/conjur-deployment/$2_compose.yml"
       shift
       shift
       ;;

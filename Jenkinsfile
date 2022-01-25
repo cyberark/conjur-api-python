@@ -12,11 +12,11 @@ pipeline {
   stages {
     stage('Unit tests') {
       steps {
-        sh './ci/testing/test_unit.sh'
+        sh './ci/test/test_unit.sh'
       }
       post {
         always {
-          junit 'ci/testing/output/**/*.xml'
+          junit 'ci/test/output/**/*.xml'
           cobertura(
             coberturaReportFile: "coverage.xml",
             onlyStable: false,
@@ -38,12 +38,12 @@ pipeline {
 
     stage('Integration tests') {
       steps {
-        sh './ci/testing/test_integration --environment ubuntu'
+        sh './ci/test/test_integration --environment ubuntu'
       }
 
       post {
         always {
-          junit 'ci/testing/output/**/*.xml'
+          junit 'ci/test/output/**/*.xml'
         }
       }
     }
