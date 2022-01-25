@@ -1,7 +1,6 @@
 #!/bin/bash -e
 
-#PYPI_URL="${1-https://pypi.org}"
-PYPI_URL="https://pypi.org"
+PYPI_URL="${1-https://pypi.org}"
 echo "Using ${PYPI_URL} as the publish endpoint"
 
 PACKAGE_NAME=conjur-api

@@ -60,11 +60,11 @@ pipeline {
         sh 'summon -e production ./ci/publish/run_is_publish_required'
 
         echo 'Publish to PyPi'
-        sh 'summon -e production ./ci/publish/publish_package'
+//         sh 'summon -e testing ./ci/publish/publish_package'
       }
-      when {
-        tag "v*"
-      }
+//       when {
+//         tag "v*"
+//       }
     }
   }
   post {
