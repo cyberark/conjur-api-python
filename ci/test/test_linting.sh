@@ -13,6 +13,6 @@ docker run \
   -t \
   -e TEST_ENV=true \
   -v "$(pwd):/opt/conjur-api-python" \
-  conjur-cli-python-test pylint -r n -f parseable --rcfile "./ci/test/.pylintrc" --disable="$DISABLED_ERRORS" "./conjur_api"
+  conjur-api-python-test pylint -r n -f parseable --rcfile "./ci/test/.pylintrc" --disable="$DISABLED_ERRORS" "./conjur_api"
 
 echo "Linting completed!"
