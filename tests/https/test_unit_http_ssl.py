@@ -7,7 +7,6 @@ from conjur_api.models import SslVerificationMetadata, SslVerificationMode
 from conjur_api.errors.errors import HttpSslError, CertificateHostnameMismatchException
 from conjur_api.wrappers.http_wrapper import HttpVerb, invoke_endpoint
 
-from unittest import TestCase
 
 invalid_badssl_endpoints = [
     "https://expired.badssl.com",

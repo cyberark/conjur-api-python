@@ -46,7 +46,7 @@ project's [CHANGELOG.md](CHANGELOG.md).
 Alternatively, you can install the library from the source. Note that this will install the latest work from the cloned
 source and not necessarily an official release.
 
-If you wish to install the library from the source clone the [project](https://github.com/cyberark/conjur-cli-python) and run:
+If you wish to install the library from the source clone the [project](https://github.com/cyberark/conjur-api-python) and run:
 
 ```
 pip3 install .

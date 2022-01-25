@@ -1,0 +1,80 @@
+#!/bin/bash -ex
+
+docker_compose_command(){
+  docker-compose --file "$COMPOSE_FILE_PATH" --project-directory "${PWD}" $@
+}
+cleanup() {
+  echo "Cleaning up..."
+  echo "Cleaning up... logs in cleanup.log"
+  docker_compose_command rm --stop --force
+}
+
+trap 'echo "ERROR: Test script encountered an error!"; docker-compose logs &> cleanup.log; cleanup' ERR
+#trap 'cleanup' EXIT
+
+
+DEBUG="false"
+function get_parameters() {
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+    -d | --debug)
+      DEBUG="true"
+      shift # past argument
+      ;;
+    -e | --environment)
+      COMPOSE_FILE_PATH="ci/test/conjur-deployment/$2_compose.yml"
+      shift
+      shift
+      ;;
+    *)
+      echo "Unknown option $1"
+      exit 1
+      ;;
+    esac
+  done
+}
+get_parameters $@
+cleanup
+
+echo "Building API container..."
+docker_compose_command build test
+
+echo "Generating certificate..."
+docker_compose_command up openssl
+
+echo "Starting Conjur..."
+docker_compose_command up -d conjur
+docker_compose_command exec -T conjur conjurctl wait
+
+echo "Configuring Conjur..."
+admin_api_key=$(docker_compose_command exec -T conjur conjurctl role retrieve-key dev:user:admin | tr -d '\r')
+export CONJUR_AUTHN_API_KEY=$admin_api_key
+export DEBUG=$DEBUG
+conjur_host_port=$(docker_compose_command port conjur 80)
+conjur_port="${conjur_host_port##*:}"
+export TEST_HOSTNAME=conjur-https
+
+# Docker-compose will pick this file up when starting containers
+# so we will have these variables in the container
+cat <<ENV >.env
+CONJUR_AUTHN_API_KEY=$admin_api_key
+DEBUG=$DEBUG
+ENV
+
+echo "Starting test env..."
+docker_compose_command up -d test
+
+rm -rf $CURRENT_DIR/output/*
+
+# Hint: '--privileged' is added here otherwise we will get operation
+# not permitted when attempting to do anything related to dbus
+if [[ "$DEBUG" == "true" ]]; then
+  docker_compose_command exec test bash
+  exit
+fi
+
+docker_compose_command run \
+  --rm \
+  --no-deps \
+  test \
+  nose2 -v -X --config ./tests/integration_test.cfg  -A '!integration'

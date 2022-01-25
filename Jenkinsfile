@@ -16,11 +16,11 @@ pipeline {
 
     stage('Unit tests') {
       steps {
-        sh './ci/testing/test_unit.sh'
+        sh './ci/test/test_unit.sh'
       }
       post {
         always {
-          junit 'ci/testing/output/**/*.xml'
+          junit 'ci/test/output/**/*.xml'
           cobertura(
             coberturaReportFile: "coverage.xml",
             onlyStable: false,
@@ -36,6 +36,18 @@ pipeline {
             classCoverageTargets: '80, 80, 80',
             fileCoverageTargets: '80, 80, 80',
         )
+        }
+      }
+    }
+
+    stage('Integration tests') {
+      steps {
+        sh './ci/test/test_integration --environment ubuntu'
+      }
+
+      post {
+        always {
+          junit 'ci/test/output/**/*.xml'
         }
       }
     }
