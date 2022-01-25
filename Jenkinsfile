@@ -17,17 +17,6 @@ pipeline {
       }
 
     stage('Unit tests') {
-     steps {
-       sh './ci/testing/test_unit.sh'
-     }
-    }
-
-    stage('Publish to PyPI') {
-      steps {
-        echo 'Check if publish is required'
-        sh 'summon -e production ./ci/publish/run_is_publish_required'
-
-        sh 'summon -e production ./ci/publish/publish_package'
       steps {
         sh './ci/test/test_unit.sh'
       }
@@ -62,6 +51,16 @@ pipeline {
         always {
           junit 'ci/test/output/**/*.xml'
         }
+      }
+    }
+
+    stage('Publish to PyPI') {
+      steps {
+        echo 'Check if publish is required'
+        sh 'summon -e production ./ci/publish/run_is_publish_required'
+
+        echo 'Publish to PyPi'
+        sh 'summon -e production ./ci/publish/publish_package'
       }
       when {
         tag "v*"
