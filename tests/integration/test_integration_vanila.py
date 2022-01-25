@@ -30,4 +30,4 @@ class TestIntegrationVanila(AsyncTestCase):
         c = Client(conjur_data, credentials_provider=credentials_provider,
                    ssl_verification_mode=SslVerificationMode.INSECURE)
         resources = await c.list()
-        self.assertEqual(len(resources), 1)
+        self.assertEqual(len(resources), 2)

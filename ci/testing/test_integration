@@ -10,7 +10,7 @@ cleanup() {
 }
 
 trap 'echo "ERROR: Test script encountered an error!"; docker-compose logs &> cleanup.log; cleanup' ERR
-trap 'cleanup' EXIT
+#trap 'cleanup' EXIT
 
 
 DEBUG="false"
