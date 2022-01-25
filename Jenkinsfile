@@ -1,3 +1,5 @@
+#!/usr/bin/env groovy
+
 pipeline {
   agent { label 'executor-v2' }
 
@@ -11,7 +13,7 @@ pipeline {
   }
   stages {
       stage('Linting') {
-        steps { sh './ci/testing/test_linting.sh' }
+        steps { sh './ci/test/test_linting.sh' }
       }
 
     stage('Unit tests') {
@@ -51,8 +53,20 @@ pipeline {
         }
       }
     }
-  }
 
+    stage('Publish to PyPI') {
+      steps {
+        echo 'Check if publish is required'
+        sh 'summon -e production ./ci/publish/run_is_publish_required'
+
+        echo 'Publish to PyPi'
+        sh 'summon -e production ./ci/publish/publish_package'
+      }
+      when {
+        tag "v*"
+      }
+    }
+  }
   post {
     always {
       cleanupAndNotify(currentBuild.currentResult)
