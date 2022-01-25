@@ -77,4 +77,4 @@ docker_compose_command run \
   --rm \
   --no-deps \
   test \
-  nose2 -v -X --config ./tests/integration_test.cfg  -A '!integration'
+  bash -c "nose2 -v -X --config ./tests/integration_test.cfg  -A '!integration'"
