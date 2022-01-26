@@ -125,7 +125,7 @@ The following section provides instructions on what is needed to perform a Conju
 1. Create a release branch from main
 2. Verify that all changes related to this version are applied to `README`,`CHANGELOG` and `NOTICES` files
 3. Verify that jenkins pipeline is green
-4. Bump the version in conjur_api.__init__.py file
+4. Bump the version in `conjur_api.__init__.py` file
 5. Merge the branch into main
 6. Create and push a tag with the name of v<version_number> for example `v8.1.0`
 7. Follow the jenkins pipeline and verify it is green, and `Publish to PyPI` step ended successfully
