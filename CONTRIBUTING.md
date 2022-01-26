@@ -124,7 +124,7 @@ This section describes the requirements for releasing a Conjur python SDK.
 6. Create and push a tag using the following naming convention: v<version_number>, for example `v8.1.0`
 7. Follow the Jenkins Pipeline and verify that it's green and that `Publish to PyPI` step ended successfully
 8. Log into https://pypi.org and verify that the package uploaded successfully
-9. Import the package locally by running 'pip install conjur-api==<version_number>', for example 
+9. Import the package locally by running `pip install conjur-api==<version_number>`, for example 
    `pip install conjur-api==8.1.0`
 10. Create a release page from the tag.
     [Click here for assistance](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)
