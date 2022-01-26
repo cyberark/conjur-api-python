@@ -14,11 +14,11 @@ to ensure your contribution is compliant with our contributor license agreements
 
 ## Development
 
-o setup a development environment follow the instructions in this section. Once you have done so, you will
+To set up a development environment follow the instructions in this section. Once you have set up the environment, you will
         be able to see live changes made to the SDK.
 
-1. Create a directory that will hold all the `virtualenv` packages and files. Note that you will only need to
-        run this command once.
+1. Create a directory that will hold all the `virtualenv` packages and files. 
+        Note: You need to run this command once only.
 
 macOS:
 
@@ -32,8 +32,8 @@ Windows:
 py -m venv venv
 ```
 
-2. Enable your terminal to use those files with this command. Note that this command will need to run each
-time you want to return to your virtual environment.
+2. Enable your terminal to use the files in this directory using this command. Note: This command needs to run each
+time you return to your virtual environment.
 
 macOS:
 
@@ -47,15 +47,15 @@ Windows:
 venv\Scripts\activate.bat
 ```
 
-3. Install requirements
+3. Install the requirements
 
 ```
 pip3 install -r requirements.txt
 ```
 
-4. You can now run the tests and the SDK with modifiable files.
+You can now run tests and the SDK with modifiable files.
 
-For testing the sdk against a local running conjur, see [Manual testing](#manual-testing)
+To test the SDK against a locally running Conjur Server, see [Manual testing](#manual-testing)
 
 ### Consuming the SDK locally
 
@@ -64,14 +64,14 @@ repo source dir:
 
 `pip3 install .`
 
-Note that the SDK requires python version >= than the one specified in the `setup.cfg` file under the `python_requires`
+Note that the SDK requires Python version >= than the one specified in the `setup.cfg` file under the `python_requires`
 field.
 
 ## Testing
 
 ### Linting
 
-In the project a linter is used to help enforce coding standards and provides refactoring suggestions.
+In the project, a linter is used to help enforce coding standards and provides refactoring suggestions.
 
 ```
 ./ci/test/test_linting.sh
@@ -79,16 +79,10 @@ In the project a linter is used to help enforce coding standards and provides re
 
 ### Unit tests
 
-To run unit tests run:
+To run the unit test isolated inside a container, run:
 
 ```
-nose2 -v -X -A '!integration' --config ./tests/unit_test.cfg
-```
-
-Or, for running it isolate inside a container:
-
-```
-./ci/test/test_unit
+./ci/test/test_unit.sh
 ```
 
 ### Integration tests
@@ -98,44 +92,44 @@ To run integration tests run:
 ```
 ./ci/test/test_integration -e ubuntu
 ```
-This will create a Conjur environment with an ubuntu container running the SDK's integration tests
+This creates a Conjur environment with an Ubuntu container running the SDK's integration tests.
 
 ### Manual testing
 
-If you want preform some manual tests, run:
+To perform manual tests, run:
 ```
 ./ci/test/test_integration -e ubuntu -d
 ```
-This will create a Conjur environment with an ubuntu container running in an interactive mode.
-Now you can run python and manually test the SDK.
+This create sa Conjur environment with an Ubuntu container running in interactive mode.
+You can now run Python and manually test the SDK.
 
-The connection parameters to conjur server are:
+The connection parameters to Conjur are:
 - conjur_url = `https://conjur-https`
 - username = `admin`
 - account = `dev`
-- api_key = stored inside environment variable called `CONJUR_AUTHN_API_KEY` you can fetch the value by running 
+- api_key = stored inside the `CONJUR_AUTHN_API_KEY` environment variable. You can fetch the value by running 
   `echo $CONJUR_AUTHN_API_KEY`
 
 ## Releases
 
-The following section provides instructions on what is needed to perform a Conjur CLI release.
+This section describes the requirements for releasing a Conjur python SDK.
 
 ### Checklist
 
 1. Create a release branch from main
-2. Verify that all changes related to this version are applied to `README`,`CHANGELOG` and `NOTICES` files
-3. Verify that jenkins pipeline is green
+2. Verify that all changes related to the version are applied to `README`,`CHANGELOG` and `NOTICES` files
+3. Verify that Jenkins Pipeline is green
 4. Bump the version in `conjur_api.__init__.py` file
 5. Merge the branch into main
-6. Create and push a tag with the name of v<version_number> for example `v8.1.0`
-7. Follow the jenkins pipeline and verify it is green, and `Publish to PyPI` step ended successfully
+6. Create and push a tag using the following naming convention: v<version_number>, for example `v8.1.0`
+7. Follow the Jenkins Pipeline and verify that it's green and that `Publish to PyPI` step ended successfully
 8. Log into https://pypi.org and verify that the package uploaded successfully
-9. Import the package locally by running pip install conjur-api==<version_number> for example 
+9. Import the package locally by running 'pip install conjur-api==<version_number>', for example 
    `pip install conjur-api==8.1.0`
 10. Create a release page from the tag.
-    [You can assist github walkthrough](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)
-11. Write to the release page all the changes affecting this version (This can be taken from the changelog)
-12. Update all stakeholders that the release ended successfully
+    [Click here for assistance](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)
+11. On the releases page, write all the changes affecting this version (This can be taken from the changelog)
+12. Update all stakeholders that the release was completed successfully
 
 ## Contributing workflow
 
