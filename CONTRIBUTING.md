@@ -14,11 +14,10 @@ to ensure your contribution is compliant with our contributor license agreements
 
 ## Development
 
-To set up a development environment follow the instructions in this section. Once you have set up the environment, you will
-        be able to see live changes made to the SDK.
+To set up a development environment follow the instructions in this section.
 
 1. Create a directory that will hold all the `virtualenv` packages and files. 
-        Note: You need to run this command once only.
+   Note: You need to run this command once only.
 
 macOS:
 
