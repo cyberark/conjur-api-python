@@ -18,6 +18,7 @@ class ConjurEndpoint(Enum):
     """
     AUTHENTICATE = "{url}/authn/{account}/{login}/authenticate"
     AUTHENTICATE_LDAP = "{url}/authn-ldap/{service_id}/{account}/{login}/authenticate"
+    AUTHENTICATE_WITH_OIDC = "{url}/authn-oidc/{serviceId}/{account}/authenticate"
     LOGIN = "{url}/authn/{account}/login"
     LOGIN_LDAP = "{url}/authn-ldap/{service_id}/{account}/login"
     INFO = "{url}/info"

@@ -10,10 +10,14 @@ the Conjur server
 # Builtins
 import json
 import logging
+from datetime import datetime
 from typing import Optional
 from conjur_api.interface.authentication_strategy_interface import AuthenticationStrategyInterface
 
 # Internals
+from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException, HttpStatusError
+from conjur_api.http.api import Api
+from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
 from conjur_api.models import SslVerificationMode, CreateHostData, CreateTokenData, ListMembersOfData, \
     ListPermittedRolesData, ConjurConnectionInfo, Resource
 
@@ -91,6 +95,21 @@ class Client:
         @return: API key
         """
         return await self._api.login()
+
+    def set_api_token(self, api_token: str, api_token_expiration: datetime, decode_token=False):
+        """
+        Set the api token and its expiration manually - this way you can use any supported authentication
+        method you'd like.
+        @:param decode_token: set True if the token you supplied needs to get base64 decoded
+        """
+        self._api.set_api_token(api_token, api_token_expiration, decode_token)
+
+    async def oidc_authentication(self, jwt: str) -> (str, datetime):
+        """
+        Authenticate to conjur using OIDC
+        @return: API token and its expiration
+        """
+        return await self._api.oidc_authentication(jwt)
 
     async def whoami(self) -> dict:
         """
