@@ -161,7 +161,7 @@ class Api:
 
     async def authenticate_with_oidc(self, token: str) -> str:
         """
-        Authenticate uses JWT to fetch a short-lived conjur_api token that
+        Authenticate with oidc uses JWT to fetch a short-lived conjur_api token that
         for a limited time will allow you to interact fully with the Conjur
         vault.
         """
