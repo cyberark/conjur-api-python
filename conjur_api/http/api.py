@@ -6,20 +6,21 @@ API module
 Provides high-level interface for programmatic API interactions
 """
 # Builtins
+import base64
 import logging
-from typing import Optional
 from datetime import datetime, timedelta
+from typing import Optional
 from urllib import parse
 
+from conjur_api.errors.errors import InvalidResourceException, MissingRequiredParameterException
 # Internals
 from conjur_api.http.endpoints import ConjurEndpoint
 from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
-from conjur_api.wrappers.http_response import HttpResponse
-from conjur_api.wrappers.http_wrapper import HttpVerb, invoke_endpoint
-from conjur_api.errors.errors import InvalidResourceException, MissingRequiredParameterException
 # pylint: disable=too-many-instance-attributes
 from conjur_api.models import Resource, ConjurConnectionInfo, ListPermittedRolesData, \
     ListMembersOfData, CreateHostData, CreateTokenData, SslVerificationMetadata, SslVerificationMode
+from conjur_api.wrappers.http_response import HttpResponse
+from conjur_api.wrappers.http_wrapper import HttpVerb, invoke_endpoint
 
 
 # pylint: disable=unspecified-encoding,too-many-public-methods
@@ -157,6 +158,35 @@ class Api:
             self.api_key,
             ssl_verification_metadata=self.ssl_verification_data)
         return response.text
+
+    async def authenticate_with_oidc(self, token: str) -> str:
+        """
+        Authenticate uses JWT to fetch a short-lived conjur_api token that
+        for a limited time will allow you to interact fully with the Conjur
+        vault.
+        """
+
+        params = {
+            'serviceId': 'cyberark',
+            'account': 'conjur',
+            'url': self._url
+        }
+
+        data = f"id_token={token}"
+
+        logging.debug("Authenticating using OIDC to %s...", self._url)
+        response = await invoke_endpoint(
+            HttpVerb.POST,
+            ConjurEndpoint.AUTHENTICATE_WITH_OIDC,
+            params,
+            data,
+            ssl_verification_metadata=self.ssl_verification_data)
+
+        api_key_bytes = response.text.encode("ascii")
+        base64_bytes = base64.b64encode(api_key_bytes)
+        api_key = base64_bytes.decode("ascii")
+
+        return api_key
 
     async def resources_list(self, list_constraints: dict = None) -> dict:
         """

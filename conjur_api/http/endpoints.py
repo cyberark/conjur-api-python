@@ -17,6 +17,7 @@ class ConjurEndpoint(Enum):
     required parameters for the paths
     """
     AUTHENTICATE = "{url}/authn/{account}/{login}/authenticate"
+    AUTHENTICATE_WITH_OIDC = "{url}/authn-oidc/{serviceId}/{account}/authenticate"
     LOGIN = "{url}/authn/{account}/login"
     INFO = "{url}/info"
     POLICIES = "{url}/policies/{account}/policy/{identifier}"
