@@ -12,13 +12,12 @@ import json
 import logging
 from typing import Optional
 
+from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException, HttpStatusError
+from conjur_api.http.api import Api
+from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
 # Internals
 from conjur_api.models import SslVerificationMode, CreateHostData, CreateTokenData, ListMembersOfData, \
     ListPermittedRolesData, ConjurConnectionInfo, Resource
-
-from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException, HttpStatusError
-from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
-from conjur_api.http.api import Api
 from conjur_api.utils.decorators import allow_sync_invocation
 
 LOGGING_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
@@ -91,6 +90,13 @@ class Client:
         @return: API key
         """
         return await self._api.login()
+
+    async def oidc_authentication(self, jwt: str) -> str:
+        """
+        Authenticate to conjur using JWT
+        @return: API token
+        """
+        return await self._api.oidc_authentication(jwt)
 
     async def whoami(self) -> dict:
         """

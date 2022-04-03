@@ -159,7 +159,7 @@ class Api:
             ssl_verification_metadata=self.ssl_verification_data)
         return response.text
 
-    async def authenticate_with_oidc(self, token: str) -> str:
+    async def oidc_authentication(self, jwt: str) -> str:
         """
         Authenticate with oidc uses JWT to fetch a short-lived conjur_api token that
         for a limited time will allow you to interact fully with the Conjur
@@ -172,7 +172,7 @@ class Api:
             'url': self._url
         }
 
-        data = f"id_token={token}"
+        data = f"id_token={jwt}"
 
         logging.debug("Authenticating using OIDC to %s...", self._url)
         response = await invoke_endpoint(
@@ -182,11 +182,11 @@ class Api:
             data,
             ssl_verification_metadata=self.ssl_verification_data)
 
-        api_key_bytes = response.text.encode("ascii")
-        base64_bytes = base64.b64encode(api_key_bytes)
-        api_key = base64_bytes.decode("ascii")
+        api_token_bytes = response.text.encode("ascii")
+        base64_bytes = base64.b64encode(api_token_bytes)
+        api_token = base64_bytes.decode("ascii")
 
-        return api_key
+        return api_token
 
     async def resources_list(self, list_constraints: dict = None) -> dict:
         """
