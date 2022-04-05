@@ -12,7 +12,8 @@ from typing import Optional
 from urllib import parse
 
 # Internals
-from conjur_api.errors.errors import InvalidResourceException, MissingRequiredParameterException
+from conjur_api.errors.errors import InvalidResourceException, MissingRequiredParameterException, \
+    MissingApiTokenException
 from conjur_api.http.endpoints import ConjurEndpoint
 from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
 # pylint: disable=too-many-instance-attributes
@@ -92,11 +93,12 @@ class Api:
             logging.debug("Using cached API token...")
             return self._api_token
 
-        if self._authentication_type == AuthnTypes.UsernamePassword:
+        if self._authentication_type == AuthnTypes.Authn:
             logging.debug("API token missing or expired. Fetching new one...")
-            self.api_token_expiration = datetime.now() + timedelta(minutes=self.API_TOKEN_DURATION)
-            self._api_token = await self.authenticate()
-            return self._api_token
+            api_token = await self.authenticate()
+            api_token_expiration = datetime.now() + timedelta(minutes=self.API_TOKEN_DURATION)
+            self.update_api_token(api_token, api_token_expiration)
+            return api_token
 
         elif self._authentication_type == AuthnTypes.OIDC:
             logging.debug("API token missing or expired. Please provide a valid one.")
@@ -121,6 +123,10 @@ class Api:
             self._login_id = self.credentials_provider.load(self._url).username
         return self._login_id
 
+    def update_api_token(self, api_token, api_token_expiration):
+        self._api_token = api_token
+        self.api_token_expiration = api_token_expiration
+
     async def login(self) -> str:
         """
         This method uses the basic auth login id (username) and password
@@ -128,7 +134,7 @@ class Api:
         retrieve short-lived conjur_api tokens.
         """
         logging.debug("Logging in to %s...", self._url)
-        self._authentication_type = AuthnTypes.UsernamePassword
+        self._authentication_type = AuthnTypes.Authn
         password = self.password
         if not password:
             raise MissingRequiredParameterException("password requires when login")
@@ -193,9 +199,8 @@ class Api:
             ssl_verification_metadata=self.ssl_verification_data)
 
         api_token = response.text
-        self._api_token = api_token
-        self.api_token_expiration = datetime.now() + timedelta(minutes=self.API_TOKEN_DURATION)
-
+        api_token_expiration = datetime.now() + timedelta(minutes=self.API_TOKEN_DURATION)
+        self.update_api_token(api_token, api_token_expiration)
         return api_token
 
     async def resources_list(self, list_constraints: dict = None) -> dict:
@@ -213,7 +218,7 @@ class Api:
 
         api_token = await self.api_token
         if api_token is None:
-            return
+            raise MissingApiTokenException()
 
         if list_constraints is not None:
             response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.RESOURCES,
@@ -260,7 +265,7 @@ class Api:
 
         api_token = await self.api_token
         if api_token is None:
-            return
+            raise MissingApiTokenException()
 
         # pylint: disable=no-else-return
         if version is not None:
@@ -291,7 +296,7 @@ class Api:
 
         api_token = await self.api_token
         if api_token is None:
-            return
+            raise MissingApiTokenException()
 
         response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.BATCH_SECRETS,
                                          self._default_params,
@@ -334,7 +339,7 @@ class Api:
 
         api_token = await self.api_token
         if api_token is None:
-            return
+            raise MissingApiTokenException()
 
         return await invoke_endpoint(HttpVerb.POST,
                                      ConjurEndpoint.HOST_FACTORY_TOKENS,
@@ -378,7 +383,7 @@ class Api:
 
         api_token = await self.api_token
         if api_token is None:
-            return
+            raise MissingApiTokenException()
 
         return await invoke_endpoint(HttpVerb.DELETE,
                                      ConjurEndpoint.HOST_FACTORY_REVOKE_TOKEN,
@@ -399,7 +404,7 @@ class Api:
 
         api_token = await self.api_token
         if api_token is None:
-            return
+            raise MissingApiTokenException()
 
         response = await invoke_endpoint(HttpVerb.POST, ConjurEndpoint.SECRETS, params,
                                          value, api_token=api_token,
@@ -423,7 +428,7 @@ class Api:
 
         api_token = await self.api_token
         if api_token is None:
-            return
+            raise MissingApiTokenException()
 
         response = await invoke_endpoint(http_verb, ConjurEndpoint.POLICIES, params,
                                          policy_data, api_token=api_token,
@@ -466,7 +471,7 @@ class Api:
 
         api_token = await self.api_token
         if api_token is None:
-            return
+            raise MissingApiTokenException()
 
         response = await invoke_endpoint(HttpVerb.PUT, ConjurEndpoint.ROTATE_API_KEY,
                                          self._default_params,
@@ -520,7 +525,7 @@ class Api:
         """
         api_token = await self.api_token
         if api_token is None:
-            return
+            raise MissingApiTokenException()
 
         response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.WHOAMI,
                                          self._default_params,
@@ -555,7 +560,7 @@ class Api:
 
         api_token = await self.api_token
         if api_token is None:
-            return
+            raise MissingApiTokenException()
 
         response = await invoke_endpoint(HttpVerb.GET,
                                          ConjurEndpoint.ROLES_MEMBERS_OF,
@@ -595,7 +600,7 @@ class Api:
 
         api_token = await self.api_token
         if api_token is None:
-            return
+            raise MissingApiTokenException()
 
         response = await invoke_endpoint(HttpVerb.GET,
                                          ConjurEndpoint.RESOURCES_PERMITTED_ROLES,

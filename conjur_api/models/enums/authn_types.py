@@ -10,5 +10,5 @@ class AuthnTypes(Enum):   # pragma: no cover
     """
     Represent possible authentication methods that the cli might be using
     """
-    UsernamePassword = 0
+    Authn = 0
     OIDC = 1
