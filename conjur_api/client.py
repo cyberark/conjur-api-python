@@ -12,10 +12,10 @@ import json
 import logging
 from typing import Optional
 
+# Internals
 from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException, HttpStatusError
 from conjur_api.http.api import Api
 from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
-# Internals
 from conjur_api.models import SslVerificationMode, CreateHostData, CreateTokenData, ListMembersOfData, \
     ListPermittedRolesData, ConjurConnectionInfo, Resource
 from conjur_api.utils.decorators import allow_sync_invocation
