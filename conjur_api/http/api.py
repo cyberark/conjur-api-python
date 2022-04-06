@@ -98,7 +98,7 @@ class Api:
             logging.debug("API token missing or expired. Fetching new one...")
             api_token = await self.authenticate()
             api_token_expiration = datetime.now() + timedelta(minutes=self.API_TOKEN_DURATION)
-            self.update_api_token(api_token, api_token_expiration)
+            self.set_api_token(api_token, api_token_expiration)
             return api_token
 
         elif self._authentication_type == AuthnTypes.OIDC:
@@ -124,7 +124,7 @@ class Api:
             self._login_id = self.credentials_provider.load(self._url).username
         return self._login_id
 
-    def update_api_token(self, api_token, api_token_expiration, decode_token=True):
+    def set_api_token(self, api_token, api_token_expiration, decode_token=True):
         if not decode_token:
             api_token = base64.b64decode(api_token.encode('ascii')).decode('ascii')
         self._api_token = api_token
@@ -203,7 +203,7 @@ class Api:
 
         api_token = response.text
         api_token_expiration = datetime.now() + timedelta(minutes=self.API_TOKEN_DURATION)
-        self.update_api_token(api_token, api_token_expiration)
+        self.set_api_token(api_token, api_token_expiration)
         return api_token
 
     async def resources_list(self, list_constraints: dict = None) -> dict:
