@@ -10,6 +10,7 @@ the Conjur server
 # Builtins
 import json
 import logging
+from datetime import datetime
 from typing import Optional
 
 # Internals
@@ -90,6 +91,13 @@ class Client:
         @return: API key
         """
         return await self._api.login()
+
+    def update_api_token(self, api_token: str, api_token_expiration: datetime, decode_token=True):
+        """
+        Set the api token and its expiration manually - this way you can use any supported authentication method you'de like.
+        @:param decode_token: set True if the token you supplied is a json string and False if it is a base64 string
+        """
+        self._api.update_api_token(api_token, api_token_expiration, decode_token)
 
     async def oidc_authentication(self, jwt: str) -> str:
         """

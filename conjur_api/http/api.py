@@ -6,6 +6,7 @@ API module
 Provides high-level interface for programmatic API interactions
 """
 # Builtins
+import base64
 import logging
 from datetime import datetime, timedelta
 from typing import Optional
@@ -34,12 +35,12 @@ class Api:
     API_TOKEN_DURATION = 5
 
     KIND_VARIABLE = 'variable'
-    KIND_HOSTFACTORY = 'host_factory'
+    KIND_HOST_FACTORY = 'host_factory'
     ID_FORMAT = '{account}:{kind}:{id}'
     ID_RETURN_PREFIX = '{account}:{kind}:'
 
     _api_token = None
-    _authentication_type: AuthnTypes
+    _authentication_type: AuthnTypes = None
 
     # We explicitly want to enumerate all params needed to instantiate this
     # class but this might not be needed in the future
@@ -123,7 +124,9 @@ class Api:
             self._login_id = self.credentials_provider.load(self._url).username
         return self._login_id
 
-    def update_api_token(self, api_token, api_token_expiration):
+    def update_api_token(self, api_token, api_token_expiration, decode_token=True):
+        if not decode_token:
+            api_token = base64.b64decode(api_token.encode('ascii')).decode('ascii')
         self._api_token = api_token
         self.api_token_expiration = api_token_expiration
 
@@ -325,7 +328,7 @@ class Api:
             raise MissingRequiredParameterException('create_token_data is empty')
 
         create_token_data.host_factory = self.ID_FORMAT.format(account=self._account,
-                                                               kind=self.KIND_HOSTFACTORY,
+                                                               kind=self.KIND_HOST_FACTORY,
                                                                id=create_token_data.host_factory)
 
         # parse.urlencode, If any values in the query arg are sequences and doseq is true, each
