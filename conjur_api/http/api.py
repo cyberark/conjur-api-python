@@ -94,7 +94,7 @@ class Api:
             logging.debug("Using cached API token...")
             return self._api_token
 
-        if self._authentication_type == AuthnTypes.Authn:
+        if self._authentication_type == AuthnTypes.AUTHN:
             logging.debug("API token missing or expired. Fetching new one...")
             api_token = await self.authenticate()
             api_token_expiration = datetime.now() + timedelta(minutes=self.API_TOKEN_DURATION)
@@ -125,6 +125,11 @@ class Api:
         return self._login_id
 
     def set_api_token(self, api_token, api_token_expiration, decode_token=True):
+        """
+        Set the api token and its expiration manually - this way you can use any supported authentication
+        method you'd like.
+        @:param decode_token: set True if the token you supplied is a json string and False if it is a base64 string
+        """
         if not decode_token:
             api_token = base64.b64decode(api_token.encode('ascii')).decode('ascii')
         self._api_token = api_token
@@ -137,7 +142,7 @@ class Api:
         retrieve short-lived conjur_api tokens.
         """
         logging.debug("Logging in to %s...", self._url)
-        self._authentication_type = AuthnTypes.Authn
+        self._authentication_type = AuthnTypes.AUTHN
         password = self.password
         if not password:
             raise MissingRequiredParameterException("password requires when login")

@@ -94,7 +94,8 @@ class Client:
 
     def set_api_token(self, api_token: str, api_token_expiration: datetime, decode_token=True):
         """
-        Set the api token and its expiration manually - this way you can use any supported authentication method you'de like.
+        Set the api token and its expiration manually - this way you can use any supported authentication
+        method you'd like.
         @:param decode_token: set True if the token you supplied is a json string and False if it is a base64 string
         """
         self._api.set_api_token(api_token, api_token_expiration, decode_token)
