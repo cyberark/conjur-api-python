@@ -101,7 +101,7 @@ class Api:
             self.set_api_token(api_token, api_token_expiration)
             return api_token
 
-        elif self._authentication_type == AuthnTypes.OIDC:
+        if self._authentication_type == AuthnTypes.OIDC:
             logging.debug("API token missing or expired. Please provide a valid one.")
             return None
 
