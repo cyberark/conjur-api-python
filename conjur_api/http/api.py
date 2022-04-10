@@ -96,7 +96,7 @@ class Api:
 
         if self._authentication_type == AuthnTypes.AUTHN:
             logging.debug("API token missing or expired. Fetching new one...")
-            api_token = await self.authenticate()
+            api_token = await self.api_key_authentication()
             api_token_expiration = datetime.now() + timedelta(minutes=self.API_TOKEN_DURATION)
             self.set_api_token(api_token, api_token_expiration)
             return api_token
@@ -152,7 +152,7 @@ class Api:
         self._api_key = response.text
         return self.api_key
 
-    async def authenticate(self) -> str:
+    async def api_key_authentication(self) -> str:
         """
         Authenticate uses the api_key to fetch a short-lived conjur_api token that
         for a limited time will allow you to interact fully with the Conjur
