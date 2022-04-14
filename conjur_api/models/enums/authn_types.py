@@ -6,9 +6,9 @@ This module is used to represent different authentication methods.
 from enum import Enum
 
 
-class AuthnTypes(Enum):   # pragma: no cover
+class AuthnTypes(Enum):  # pragma: no cover
     """
-    Represent possible authentication methods that the cli might be using
+    Represent possible authentication methods that the CLI might be using
     """
     AUTHN = 0
-    OIDC = 1
+    PROVIDED_TOKEN = 1

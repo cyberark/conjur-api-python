@@ -40,7 +40,6 @@ class Api:
     ID_RETURN_PREFIX = '{account}:{kind}:'
 
     _api_token = None
-    _authentication_type: AuthnTypes = None
 
     # We explicitly want to enumerate all params needed to instantiate this
     # class but this might not be needed in the future
@@ -63,7 +62,8 @@ class Api:
         self.credentials_provider: CredentialsProviderInterface = credentials_provider
         self.debug = debug
         self.http_debug = http_debug
-        self.api_token_expiration = None
+        self.api_token_expiration = datetime.now()
+        self._authentication_type = connection_info.authn_type
         self._login_id = None
 
         self._default_params = {  # TODO remove, pass to invoke endpoint ConjurConnectionInfo
@@ -101,9 +101,13 @@ class Api:
             self.set_api_token(api_token, api_token_expiration)
             return api_token
 
-        if self._authentication_type == AuthnTypes.OIDC:
-            logging.debug("API token missing or expired. Please provide a valid one.")
-            return None
+        if self._authentication_type == AuthnTypes.PROVIDED_TOKEN:
+            if self._api_token is None:
+                logging.debug("API token missing. Please authenticate to Conjur.")
+                return None
+            if datetime.now() > self.api_token_expiration:
+                logging.debug("API token expired. Please provide a valid one.")
+                return None
 
         return None
 
@@ -124,13 +128,13 @@ class Api:
             self._login_id = self.credentials_provider.load(self._url).username
         return self._login_id
 
-    def set_api_token(self, api_token, api_token_expiration, decode_token=True):
+    def set_api_token(self, api_token: str, api_token_expiration: datetime, decode_token=False):
         """
         Set the api token and its expiration manually - this way you can use any supported authentication
         method you'd like.
-        @:param decode_token: set True if the token you supplied is a json string and False if it is a base64 string
+        @:param decode_token: set True if the token you supplied needs to get base64 decoded
         """
-        if not decode_token:
+        if decode_token:
             api_token = base64.b64decode(api_token.encode('ascii')).decode('ascii')
         self._api_token = api_token
         self.api_token_expiration = api_token_expiration
@@ -189,7 +193,7 @@ class Api:
         """
         service_id = 'cyberark'
         account = 'conjur'
-        self._authentication_type = AuthnTypes.OIDC
+        self._authentication_type = AuthnTypes.PROVIDED_TOKEN
         params = {
             'serviceId': service_id,
             'account': account,
@@ -209,7 +213,7 @@ class Api:
         api_token = response.text
         api_token_expiration = datetime.now() + timedelta(minutes=self.API_TOKEN_DURATION)
         self.set_api_token(api_token, api_token_expiration)
-        return api_token
+        return (api_token, api_token_expiration)
 
     async def resources_list(self, list_constraints: dict = None) -> dict:
         """

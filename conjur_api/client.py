@@ -92,18 +92,18 @@ class Client:
         """
         return await self._api.login()
 
-    def set_api_token(self, api_token: str, api_token_expiration: datetime, decode_token=True):
+    def set_api_token(self, api_token: str, api_token_expiration: datetime, decode_token=False):
         """
         Set the api token and its expiration manually - this way you can use any supported authentication
         method you'd like.
-        @:param decode_token: set True if the token you supplied is a json string and False if it is a base64 string
+        @:param decode_token: set True if the token you supplied needs to get base64 decoded
         """
         self._api.set_api_token(api_token, api_token_expiration, decode_token)
 
     async def oidc_authentication(self, jwt: str) -> str:
         """
         Authenticate to conjur using JWT
-        @return: API token
+        @return: API token and its expiration
         """
         return await self._api.oidc_authentication(jwt)
 
