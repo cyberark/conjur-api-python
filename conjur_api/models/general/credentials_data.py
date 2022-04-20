@@ -13,6 +13,7 @@ class CredentialsData:
     Used for setting user input data to login to Conjur
     """
 
+    # pylint: disable=too-many-arguments
     def __init__(self, machine: str = None, username: str = None, password: str = None, api_token: str = None,
                  api_token_expiration: str = None):
         self.machine = machine
