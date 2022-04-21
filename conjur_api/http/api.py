@@ -63,7 +63,7 @@ class Api:
         self.debug = debug
         self.http_debug = http_debug
         self.api_token_expiration = datetime.now()
-        self._authentication_type = connection_info.authn_type
+        self._authentication_type = AuthnTypes(connection_info.authn_type)
         self._login_id = None
 
         self._default_params = {  # TODO remove, pass to invoke endpoint ConjurConnectionInfo
