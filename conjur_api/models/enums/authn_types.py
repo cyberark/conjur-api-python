@@ -10,5 +10,5 @@ class AuthnTypes(Enum):  # pragma: no cover
     """
     Represent possible authentication methods that the CLI might be using
     """
-    PROVIDED_TOKEN = 0
-    AUTHN = 1
+    AUTHN = 0
+    PROVIDED_TOKEN = 1
