@@ -185,9 +185,9 @@ class Api:
             ssl_verification_metadata=self.ssl_verification_data)
         return response.text
 
-    async def oidc_authentication(self, jwt: str) -> str:
+    async def oidc_authentication(self, jwt: str) -> (str, datetime):
         """
-        Authenticate with oidc uses JWT to fetch a short-lived conjur_api token that
+        Authenticate with OIDC using JWT to fetch a short-lived conjur_api token that
         for a limited time will allow you to interact fully with the Conjur
         vault.
         """
@@ -213,7 +213,7 @@ class Api:
         api_token = response.text
         api_token_expiration = datetime.now() + timedelta(minutes=self.API_TOKEN_DURATION)
         self.set_api_token(api_token, api_token_expiration)
-        return (api_token, api_token_expiration)
+        return api_token, api_token_expiration
 
     async def resources_list(self, list_constraints: dict = None) -> dict:
         """

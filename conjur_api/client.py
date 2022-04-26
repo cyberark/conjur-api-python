@@ -100,9 +100,9 @@ class Client:
         """
         self._api.set_api_token(api_token, api_token_expiration, decode_token)
 
-    async def oidc_authentication(self, jwt: str) -> str:
+    async def oidc_authentication(self, jwt: str) -> (str, datetime):
         """
-        Authenticate to conjur using JWT
+        Authenticate to conjur using OIDC
         @return: API token and its expiration
         """
         return await self._api.oidc_authentication(jwt)
