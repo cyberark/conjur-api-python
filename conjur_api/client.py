@@ -11,13 +11,13 @@ the Conjur server
 import json
 import logging
 from typing import Optional
+from conjur_api.interface.authentication_strategy_interface import AuthenticationStrategyInterface
 
 # Internals
 from conjur_api.models import SslVerificationMode, CreateHostData, CreateTokenData, ListMembersOfData, \
     ListPermittedRolesData, ConjurConnectionInfo, Resource
 
 from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException, HttpStatusError
-from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
 from conjur_api.http.api import Api
 from conjur_api.utils.decorators import allow_sync_invocation
 
@@ -41,7 +41,7 @@ class Client:
             self,
             connection_info: ConjurConnectionInfo,
             ssl_verification_mode: SslVerificationMode = SslVerificationMode.TRUST_STORE,
-            credentials_provider: CredentialsProviderInterface = None,
+            authn_strategy: AuthenticationStrategyInterface = None,
             debug: bool = False,
             http_debug: bool = False,
             async_mode: bool = True):
@@ -49,7 +49,7 @@ class Client:
 
         @param conjurrc_data: Connection metadata for conjur server
         @param ssl_verification_mode: Certificate validation stratagy
-        @param credentials_provider:
+        @param authn_strategy:
         @param debug:
         @param http_debug:
         @param async_mode: This will make all of the class async functions run in sync mode (without need of await)
@@ -69,7 +69,7 @@ class Client:
         self.ssl_verification_mode = ssl_verification_mode
         self.connection_info = connection_info
         self.debug = debug
-        self._api = self._create_api(http_debug, credentials_provider)
+        self._api = self._create_api(http_debug, authn_strategy)
 
         logging.debug("Client initialized")
 
@@ -236,16 +236,12 @@ class Client:
 
         return resources[0]
 
-    def _create_api(self, http_debug, credentials_provider):
-
-        credential_location = credentials_provider.get_store_location()
-        logging.debug("Attempting to retrieve credentials from the '%s'...", credential_location)
-        logging.debug("Successfully retrieved credentials from the '%s'", credential_location)
+    def _create_api(self, http_debug, authn_strategy):
 
         return Api(
             connection_info=self.connection_info,
             ssl_verification_mode=self.ssl_verification_mode,
-            credentials_provider=credentials_provider,
+            authn_strategy=authn_strategy,
             debug=self.debug,
             http_debug=http_debug)
 

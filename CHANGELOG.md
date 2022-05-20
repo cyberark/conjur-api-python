@@ -6,10 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-### Added
-- The `get_server_info` method is now available in SDK. It is only supported against Conjur enterprise server 
 ### Changed
-### Deprecated
-### Removed
-### Fixed
-### Security
+- Abstract authentication flow into new `AuthenticationStrategyInterface`
+  [conjur-api-python#20](https://github.com/cyberark/conjur-api-python/pull/20)
+
+## [8.0.0] - 2022-05-25
+
+[Unreleased]: https://github.com/cyberark/conjur-api-python/compare/v8.0.0...HEAD
+[8.0.0]: https://github.com/cyberark/conjur-api-python/releases/tag/v8.0.0

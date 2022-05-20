@@ -36,8 +36,10 @@ python API!
 The SDK can be installed via PyPI. Note that the SDK is a **Community level** project meaning that the SDK is subject to
 alterations that may result in breaking change.
 
-```
+```sh
+
 pip3 install conjur
+
 ```
 
 To avoid unanticipated breaking changes, make sure that you stay up-to-date on our latest releases and review the
@@ -48,8 +50,10 @@ source and not necessarily an official release.
 
 If you wish to install the library from the source clone the [project](https://github.com/cyberark/conjur-api-python) and run:
 
-```
+```sh
+
 pip3 install .
+
 ```
 
 ### Configuring the client
@@ -58,7 +62,7 @@ pip3 install .
 
 In order to login to conjur you need to have 5 parameters known from advance.
 
-```
+```python
 conjur_url = "https://my_conjur.com"
 account = "my_account"
 username = "user1"
@@ -70,7 +74,9 @@ ssl_verification_mode = SslVerificationMode.TRUST_STORE
 
 ConjurConnectionInfo is a data class containing all the non-credentials connection details.
 
-`connection_info = ConjurConnectionInfo(conjur_url=conjur_url,account=account,cert_file = None)`
+```python
+connection_info = ConjurConnectionInfo(conjur_url=conjur_url,account=account,cert_file=None)
+```
 
 * conjur_url - url of conjur server
 * account - the account which we want to connect to
@@ -88,23 +94,32 @@ fit (`keyring` usage for example)
 We also provide the user with a simple implementation of such provider called `SimpleCredentialsProvider`. Example of
 creating such provider + storing credentials:
 
-```
+```python
 credentials = CredentialsData(username=username, password=password, machine=conjur_url)
-
 credentials_provider = SimpleCredentialsProvider()
-
 credentials_provider.save(credentials)
-
 del credentials
+```
+
+#### Create authentication strategy
+
+The client also uses an authentication strategy in order to authenticate to conjur. This approach allows us to implement different authentication strategies
+(e.g. `authn`, `authn-ldap`, `authn-k8s`) and to keep the authentication logic separate from the client implementation.
+
+We provide the `AuthnAuthenticationStrategy` for the default Conjur authenticator. Example use:
+
+```python
+authn_provider = AuthnAuthenticationStrategy(credentials_provider)
 ```
 
 #### Creating the client and use it
 
-Now that we have created `connection_info` and `credentials_provider`
-We can create our client
+Now that we have created `connection_info` and `authn_provider`, we can create our client:
 
-```
-client = Client(connection_info, credentials_provider=credentials_provider, ssl_verification_mode=ssl_verification_mode)
+```python
+client = Client(connection_info,
+                authn_strategy=authn_provider,
+                ssl_verification_mode=ssl_verification_mode)
 ```
 
 * ssl_verification_mode = `SslVerificationMode` enum that states what is the certificate verification technique we will
@@ -112,10 +127,9 @@ client = Client(connection_info, credentials_provider=credentials_provider, ssl_
 
 After creating the client we can login to conjur and start using it. Example of usage:
 
-```
-client.login() # login to conjur and return the api_key`
-
-client.list() # get list of all conjur resources that the user authorize to read`
+```python
+client.login() # login to conjur and return the api_key
+client.list() # get list of all conjur resources that the user authorize to read
 ```
 
 ## Supported Client methods

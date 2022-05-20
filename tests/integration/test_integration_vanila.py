@@ -5,7 +5,7 @@ from aiounittest import AsyncTestCase
 
 from conjur_api import Client
 from conjur_api.models import  SslVerificationMode, ConjurConnectionInfo, CredentialsData
-from conjur_api.providers import SimpleCredentialsProvider
+from conjur_api.providers import AuthnAuthenticationStrategy, SimpleCredentialsProvider
 
 
 class TestIntegrationVanila(AsyncTestCase):
@@ -25,9 +25,10 @@ class TestIntegrationVanila(AsyncTestCase):
             account=account
         )
         credentials_provider = SimpleCredentialsProvider()
+        authn_provider = AuthnAuthenticationStrategy(credentials_provider)
         credentials = CredentialsData(username=username, password=api_key,machine=conjur_url)
         credentials_provider.save(credentials)
-        c = Client(conjur_data, credentials_provider=credentials_provider,
+        c = Client(conjur_data, authn_strategy=authn_provider,
                    ssl_verification_mode=SslVerificationMode.INSECURE)
         resources = await c.list()
         self.assertEqual(len(resources), 2)

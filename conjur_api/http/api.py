@@ -13,7 +13,7 @@ from urllib import parse
 
 # Internals
 from conjur_api.http.endpoints import ConjurEndpoint
-from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
+from conjur_api.interface.authentication_strategy_interface import AuthenticationStrategyInterface
 from conjur_api.wrappers.http_response import HttpResponse
 from conjur_api.wrappers.http_wrapper import HttpVerb, invoke_endpoint
 from conjur_api.errors.errors import InvalidResourceException, MissingRequiredParameterException
@@ -44,7 +44,7 @@ class Api:
     def __init__(
             self,
             connection_info: ConjurConnectionInfo,
-            credentials_provider: CredentialsProviderInterface,
+            authn_strategy: AuthenticationStrategyInterface,
             ssl_verification_mode: SslVerificationMode = SslVerificationMode.TRUST_STORE,
             debug: bool = False,
             http_debug=False,
@@ -55,8 +55,7 @@ class Api:
 
         self._account = connection_info.conjur_account
         self._url = connection_info.conjur_url
-        self._api_key = None
-        self.credentials_provider: CredentialsProviderInterface = credentials_provider
+        self.authn_strategy: AuthenticationStrategyInterface = authn_strategy
         self.debug = debug
         self.http_debug = http_debug
         self.api_token_expiration = None
@@ -70,15 +69,6 @@ class Api:
         # WARNING: ONLY FOR DEBUGGING - DO NOT CHECK IN LINES BELOW UNCOMMENTED
         # from .http import enable_http_logging
         # if http_debug: enable_http_logging()
-
-    @property
-    def api_key(self) -> str:
-        """
-        Property returns api_key. if no api_key we try the password as sometimes
-        @return: api_key
-        """
-        # TODO do not use password after credentials store is fixed to also store API key
-        return self._api_key or self.password
 
     @property
     # pylint: disable=missing-docstring
@@ -96,38 +86,18 @@ class Api:
         logging.debug("Using cached API token...")
         return self._api_token
 
-    @property
-    def password(self) -> str:
-        """
-        password as being saved inside credentials_provider
-        @return:
-        """
-        return self.credentials_provider.load(self._url).password
-
-    @property
-    def login_id(self) -> str:
-        """
-        @return: The login_id (username)
-        """
-        if not self._login_id:
-            self._login_id = self.credentials_provider.load(self._url).username
-        return self._login_id
-
     async def login(self) -> str:
         """
         This method uses the basic auth login id (username) and password
         to retrieve an conjur_api key from the server that can be later used to
         retrieve short-lived conjur_api tokens.
         """
-        logging.debug("Logging in to %s...", self._url)
-        password = self.password
-        if not password:
-            raise MissingRequiredParameterException("password requires when login")
-        response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.LOGIN,
-                                         self._default_params, auth=(self.login_id, password),
-                                         ssl_verification_metadata=self.ssl_verification_data)
-        self._api_key = response.text
-        return self.api_key
+
+        if 'login' in self.authn_strategy:
+            return await self.authn_strategy.login(
+                ConjurConnectionInfo(self._url, self._account),
+                self.ssl_verification_data
+            )
 
     async def authenticate(self) -> str:
         """
@@ -135,28 +105,10 @@ class Api:
         for a limited time will allow you to interact fully with the Conjur
         vault.
         """
-        if not self.api_key and self.login_id and self.password:
-            # TODO we do this since api_key is not provided. it should be stored like username,
-            # password inside credentials_data
-            await self.login()
-
-        if not self.login_id or not self.api_key:
-            raise MissingRequiredParameterException("Missing parameters in "
-                                                    "authentication invocation")
-
-        params = {
-            'login': self.login_id
-        }
-        params.update(self._default_params)
-
-        logging.debug("Authenticating to %s...", self._url)
-        response = await invoke_endpoint(
-            HttpVerb.POST,
-            ConjurEndpoint.AUTHENTICATE,
-            params,
-            self.api_key,
-            ssl_verification_metadata=self.ssl_verification_data)
-        return response.text
+        return await self.authn_strategy.authenticate(
+            ConjurConnectionInfo(self._url, self._account),
+            self.ssl_verification_data
+        )
 
     async def resources_list(self, list_constraints: dict = None) -> dict:
         """
