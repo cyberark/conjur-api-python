@@ -99,6 +99,20 @@ credentials = CredentialsData(username=username, password=password, machine=conj
 credentials_provider = SimpleCredentialsProvider()
 credentials_provider.save(credentials)
 del credentials
+
+```
+
+#### Create authentication strategy
+
+The client also uses an authentication strategy in order to authenticate to conjur. This approach allows us to implement different authentication strategies
+(e.g. `authn`, `authn-ldap`, `authn-k8s`) and to keep the authentication logic separate from the client implementation.
+
+We provide the `AuthnAuthenticationStrategy` for the default Conjur authenticator. Example use:
+
+```python
+
+authn_provider = AuthnAuthenticationStrategy(credentials_provider)
+
 ```
 
 #### Create authentication strategy
