@@ -1,0 +1,11 @@
+# Python cache files
+*.pyc
+__pycache__
+
+# Test artifacts
+.coverage
+coverage.xml
+ci/test/output/
+.env
+*.crt
+*.key
