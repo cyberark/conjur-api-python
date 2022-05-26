@@ -53,8 +53,7 @@ class Api:
         self.ssl_verification_data = SslVerificationMetadata(ssl_verification_mode,
                                                              connection_info.cert_file)
 
-        self._account = connection_info.conjur_account
-        self._url = connection_info.conjur_url
+        self._connection_info = connection_info
         self.authn_strategy: AuthenticationStrategyInterface = authn_strategy
         self.debug = debug
         self.http_debug = http_debug
@@ -69,6 +68,14 @@ class Api:
         # WARNING: ONLY FOR DEBUGGING - DO NOT CHECK IN LINES BELOW UNCOMMENTED
         # from .http import enable_http_logging
         # if http_debug: enable_http_logging()
+
+    @property
+    def _account(self) -> str:
+        return self._connection_info.conjur_account
+
+    @property
+    def _url(self) -> str:
+        return self._connection_info.conjur_url
 
     @property
     # pylint: disable=missing-docstring
@@ -93,9 +100,9 @@ class Api:
         retrieve short-lived conjur_api tokens.
         """
 
-        if 'login' in self.authn_strategy:
+        if hasattr(self.authn_strategy, 'login') and callable(self.authn_strategy.login):
             return await self.authn_strategy.login(
-                ConjurConnectionInfo(self._url, self._account),
+                self._connection_info,
                 self.ssl_verification_data
             )
 
@@ -106,7 +113,7 @@ class Api:
         vault.
         """
         return await self.authn_strategy.authenticate(
-            ConjurConnectionInfo(self._url, self._account),
+            self._connection_info,
             self.ssl_verification_data
         )
 

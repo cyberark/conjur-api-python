@@ -75,13 +75,14 @@ ssl_verification_mode = SslVerificationMode.TRUST_STORE
 ConjurConnectionInfo is a data class containing all the non-credentials connection details.
 
 ```python
-connection_info = ConjurConnectionInfo(conjur_url=conjur_url,account=account,cert_file=None)
+connection_info = ConjurConnectionInfo(conjur_url=conjur_url,account=account,cert_file=None,service_id="ldap-service-id")
 ```
 
 * conjur_url - url of conjur server
 * account - the account which we want to connect to
 * cert_file - a path to conjur rootCA file. we need it if we initialize the client in `SslVerificationMode.SELF_SIGN`
   or `SslVerificationMode.CA_BUNDLE` mode
+* service_id - a service id for the Conjur authenticator. Required when using the ldap authenticator (see below) but not when using the default `authn` authenticator.
 
 #### Create credentials provider
 
@@ -99,20 +100,6 @@ credentials = CredentialsData(username=username, password=password, machine=conj
 credentials_provider = SimpleCredentialsProvider()
 credentials_provider.save(credentials)
 del credentials
-
-```
-
-#### Create authentication strategy
-
-The client also uses an authentication strategy in order to authenticate to conjur. This approach allows us to implement different authentication strategies
-(e.g. `authn`, `authn-ldap`, `authn-k8s`) and to keep the authentication logic separate from the client implementation.
-
-We provide the `AuthnAuthenticationStrategy` for the default Conjur authenticator. Example use:
-
-```python
-
-authn_provider = AuthnAuthenticationStrategy(credentials_provider)
-
 ```
 
 #### Create authentication strategy
@@ -125,6 +112,14 @@ We provide the `AuthnAuthenticationStrategy` for the default Conjur authenticato
 ```python
 authn_provider = AuthnAuthenticationStrategy(credentials_provider)
 ```
+
+We also provide the `LdapAuthenticationStrategy` for the ldap authenticator. Example use:
+
+```python
+authn_provider = LdapAuthenticationStrategy(credentials_provider)
+```
+
+When using the `LdapAuthenticationStrategy` make sure `connection_info` has a `service_id` specified.
 
 #### Creating the client and use it
 

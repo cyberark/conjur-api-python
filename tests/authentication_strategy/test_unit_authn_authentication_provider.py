@@ -13,7 +13,7 @@ class AuthnAuthenticationStrategyTest(AsyncTestCase):
         connection_info = ConjurConnectionInfo(conjur_url, "some_account")
 
         credentials_provider = SimpleCredentialsProvider()
-        credentials = CredentialsData(password="mypassword",machine=conjur_url)
+        credentials = CredentialsData(password="mypassword", machine=conjur_url)
         credentials_provider.save(credentials)
         
         provider = AuthnAuthenticationStrategy(
@@ -23,3 +23,5 @@ class AuthnAuthenticationStrategyTest(AsyncTestCase):
             await provider.authenticate(connection_info, None)
 
         self.assertRegex(context.exception.message, "Missing parameters")
+
+    # TODO: Mock a conjur authn server and test that it is called with the correct parameters

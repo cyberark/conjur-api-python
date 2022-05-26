@@ -1,0 +1,12 @@
+dn: uid=alice,dc=conjur,dc=net
+cn: Alice
+sn: Smith
+uid: alice
+givenName: alice
+mail: alice@conjur.net
+objectClass: person
+objectClass: uidObject
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+userPassword: alice

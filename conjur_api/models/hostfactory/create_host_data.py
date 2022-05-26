@@ -7,7 +7,7 @@ This module represents the DTO that holds the params the user passes in.
 We use this DTO to build the hostfactory create host request
 """
 
-# pylint: disable=too-many-arguments,no-self-use,too-few-public-methods
+# pylint: disable=too-many-arguments,too-few-public-methods
 from conjur_api.errors.errors import MissingRequiredParameterException
 
 

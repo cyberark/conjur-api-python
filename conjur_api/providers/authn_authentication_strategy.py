@@ -18,7 +18,7 @@ class AuthnAuthenticationStrategy(AuthenticationStrategyInterface):
     """
     AuthnAuthenticationStrategy class
 
-    This class implements the "authn" strategy of authentication, which is Conjur's default authenticator type
+    This class implements the "authn" strategy of authentication, which is Conjur's default authenticator type.
     """
     def __init__(
             self,
@@ -27,33 +27,18 @@ class AuthnAuthenticationStrategy(AuthenticationStrategyInterface):
         self._credentials_provider = credentials_provider
         self._api_key = None
 
-    def _retrieve_credential_data(self, url: str) -> CredentialsData:
-        credential_location = self._credentials_provider.get_store_location()
-        logging.debug("Retrieving credentials from the '%s'...", credential_location)
-
-        return self._credentials_provider.load(url)
-
     async def login(self, connection_info: ConjurConnectionInfo, ssl_verification_data: SslVerificationMetadata) -> str:
         """
         Login uses a username and password to fetch a long-lived conjur_api token
         """
 
         logging.debug("Logging in to %s...", connection_info.conjur_url)
-        url = connection_info.conjur_url
-        account = connection_info.conjur_account
-        creds = self._retrieve_credential_data(url)
+        creds = self._retrieve_credential_data(connection_info.conjur_url)
 
         if not creds.password:
-            raise MissingRequiredParameterException("password requires when login")
+            raise MissingRequiredParameterException("password is required for login")
 
-        params = {
-            'url': url,
-            'account': account
-        }
-        response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.LOGIN,
-                                         params, auth=(creds.username, creds.password),
-                                         ssl_verification_metadata=ssl_verification_data)
-        self._api_key = response.text
+        self._api_key = await self._send_login_request(ssl_verification_data, connection_info, creds)
         return self._api_key
 
     async def authenticate(self, connection_info, ssl_verification_data) -> str:
@@ -61,10 +46,18 @@ class AuthnAuthenticationStrategy(AuthenticationStrategyInterface):
         Authenticate uses the api_key (retrieved in `login()`) to fetch a short-lived conjur_api token that
         for a limited time will allow you to interact fully with the Conjur vault.
         """
-        url = connection_info.conjur_url
-        account = connection_info.conjur_account
-        creds = self._retrieve_credential_data(url)
+        logging.debug("Authenticating to %s...", connection_info.conjur_url)
+        creds = self._retrieve_credential_data(connection_info.conjur_url)
+        await self._ensure_logged_in(connection_info, ssl_verification_data, creds)
+        return await self._send_authenticate_request(ssl_verification_data, connection_info, creds)
 
+    def _retrieve_credential_data(self, url: str) -> CredentialsData:
+        credential_location = self._credentials_provider.get_store_location()
+        logging.debug("Retrieving credentials from the '%s'...", credential_location)
+
+        return self._credentials_provider.load(url)
+
+    async def _ensure_logged_in(self, connection_info, ssl_verification_data, creds):
         if not self._api_key and creds.username and creds.password:
             # TODO we do this since api_key is not provided. it should be stored like username,
             # password inside credentials_data
@@ -74,13 +67,25 @@ class AuthnAuthenticationStrategy(AuthenticationStrategyInterface):
             raise MissingRequiredParameterException("Missing parameters in "
                                                     "authentication invocation")
 
+    async def _send_login_request(self, ssl_verification_data, connection_info, creds):
         params = {
-            'url': url,
-            'account': account,
+            'url': connection_info.conjur_url,
+            'account': connection_info.conjur_account
+        }
+
+        response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.LOGIN,
+                                         params, auth=(creds.username, creds.password),
+                                         ssl_verification_metadata=ssl_verification_data)
+
+        return response.text
+
+    async def _send_authenticate_request(self, ssl_verification_data, connection_info, creds):
+        params = {
+            'url': connection_info.conjur_url,
+            'account': connection_info.conjur_account,
             'login': creds.username
         }
 
-        logging.debug("Authenticating to %s...", url)
         response = await invoke_endpoint(
             HttpVerb.POST,
             ConjurEndpoint.AUTHENTICATE,
