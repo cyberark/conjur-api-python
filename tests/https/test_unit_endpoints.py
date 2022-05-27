@@ -10,6 +10,12 @@ class EndpointsTest(unittest.TestCase):
                                                                  login='mylogin')
         self.assertEqual(auth_endpoint, 'http://host/authn/myacct/mylogin/authenticate')
 
+    def test_endpoint_has_correct_authenticate_with_oidc_template_string(self):
+        auth_endpoint = ConjurEndpoint.AUTHENTICATE_WITH_OIDC.value.format(url='http://host',
+                                                                 account='myacct',
+                                                                 serviceId='myserviceid')
+        self.assertEqual(auth_endpoint, 'http://host/authn-oidc/myserviceid/myacct/authenticate')
+
     def test_endpoint_has_correct_info_template_string(self):
         info_endpoint = ConjurEndpoint.INFO.value.format(url='https://host')
         self.assertEqual(info_endpoint, 'https://host/info')
