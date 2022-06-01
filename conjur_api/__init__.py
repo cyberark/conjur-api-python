@@ -7,6 +7,7 @@ __version__ = "0.0.5"
 
 from conjur_api.client import Client
 from conjur_api.interface import CredentialsProviderInterface
+from conjur_api.interface import AuthenticationStrategyInterface
 from conjur_api import models
 from conjur_api import errors
 from conjur_api import providers
