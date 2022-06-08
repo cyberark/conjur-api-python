@@ -5,7 +5,7 @@ from aiounittest import AsyncTestCase
 
 from conjur_api import Client
 from conjur_api.models import  SslVerificationMode, ConjurConnectionInfo, CredentialsData
-from conjur_api.providers import AuthnAuthenticationStrategy, SimpleCredentialsProvider
+from conjur_api.providers import AuthnAuthenticationStrategy, LdapAuthenticationStrategy, SimpleCredentialsProvider
 
 
 class TestIntegrationVanila(AsyncTestCase):
@@ -26,7 +26,31 @@ class TestIntegrationVanila(AsyncTestCase):
         )
         credentials_provider = SimpleCredentialsProvider()
         authn_provider = AuthnAuthenticationStrategy(credentials_provider)
-        credentials = CredentialsData(username=username, password=api_key,machine=conjur_url)
+        credentials = CredentialsData(username=username, password=api_key, machine=conjur_url)
+        credentials_provider.save(credentials)
+        c = Client(conjur_data, authn_strategy=authn_provider,
+                   ssl_verification_mode=SslVerificationMode.INSECURE)
+        resources = await c.list()
+        self.assertEqual(len(resources), 6)
+
+    async def test_integration_vanilla_ldap(self):
+        """
+        This is a simple happy path test making sure authn-ldap works.
+        @return:
+        """
+        conjur_url = "https://conjur-https"
+        username = "alice"
+        password = "alice"
+        account = "dev"
+        ldap_service_id = "test-service"
+        conjur_data = ConjurConnectionInfo(
+            conjur_url=conjur_url,
+            account=account,
+            service_id=ldap_service_id
+        )
+        credentials_provider = SimpleCredentialsProvider()
+        authn_provider = LdapAuthenticationStrategy(credentials_provider)
+        credentials = CredentialsData(username=username, password=password, machine=conjur_url)
         credentials_provider.save(credentials)
         c = Client(conjur_data, authn_strategy=authn_provider,
                    ssl_verification_mode=SslVerificationMode.INSECURE)

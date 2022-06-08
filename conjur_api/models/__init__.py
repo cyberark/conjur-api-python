@@ -13,4 +13,3 @@ from conjur_api.models.list.list_members_of_data import ListMembersOfData
 from conjur_api.models.hostfactory.create_host_data import CreateHostData
 from conjur_api.models.ssl.ssl_verification_mode import SslVerificationMode
 from conjur_api.models.general.credentials_data import CredentialsData
-from conjur_api.models.enums.authn_types import AuthnTypes
