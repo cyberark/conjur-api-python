@@ -25,7 +25,6 @@ class AuthnAuthenticationStrategy(AuthenticationStrategyInterface):
             credentials_provider: CredentialsProviderInterface,
     ):
         self._credentials_provider = credentials_provider
-        self._api_key = None
 
     async def login(self, connection_info: ConjurConnectionInfo, ssl_verification_data: SslVerificationMetadata) -> str:
         """
@@ -38,8 +37,8 @@ class AuthnAuthenticationStrategy(AuthenticationStrategyInterface):
         if not creds.password:
             raise MissingRequiredParameterException("password is required for login")
 
-        self._api_key = await self._send_login_request(ssl_verification_data, connection_info, creds)
-        return self._api_key
+        creds.api_key = await self._send_login_request(ssl_verification_data, connection_info, creds)
+        return creds.api_key
 
     async def authenticate(self, connection_info, ssl_verification_data) -> str:
         """
@@ -58,12 +57,10 @@ class AuthnAuthenticationStrategy(AuthenticationStrategyInterface):
         return self._credentials_provider.load(url)
 
     async def _ensure_logged_in(self, connection_info, ssl_verification_data, creds):
-        if not self._api_key and creds.username and creds.password:
-            # TODO we do this since api_key is not provided. it should be stored like username,
-            # password inside credentials_data
-            await self.login(connection_info, ssl_verification_data)
+        if not creds.api_key and creds.username and creds.password:
+            creds.api_key = await self.login(connection_info, ssl_verification_data)
 
-        if not creds.username or not self._api_key:
+        if not creds.username or not creds.api_key:
             raise MissingRequiredParameterException("Missing parameters in "
                                                     "authentication invocation")
 
@@ -90,6 +87,6 @@ class AuthnAuthenticationStrategy(AuthenticationStrategyInterface):
             HttpVerb.POST,
             ConjurEndpoint.AUTHENTICATE,
             params,
-            self._api_key,
+            creds.api_key,
             ssl_verification_metadata=ssl_verification_data)
         return response.text

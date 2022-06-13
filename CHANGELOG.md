@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   [conjur-api-python#20](https://github.com/cyberark/conjur-api-python/pull/20)
 - Add support for LDAP authentication
   [conjur-api-python#22](https://github.com/cyberark/conjur-api-python/pull/22)
+- Store API key in `CreditentialsData` object
+  [conjur-api-python#23](https://github.com/cyberark/conjur-api-python/pull/23)
 
 
 [Unreleased]: https://github.com/cyberark/conjur-api-python/compare/v8.0.0...HEAD

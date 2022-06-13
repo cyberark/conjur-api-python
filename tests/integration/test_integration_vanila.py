@@ -26,7 +26,7 @@ class TestIntegrationVanila(AsyncTestCase):
         )
         credentials_provider = SimpleCredentialsProvider()
         authn_provider = AuthnAuthenticationStrategy(credentials_provider)
-        credentials = CredentialsData(username=username, password=api_key, machine=conjur_url)
+        credentials = CredentialsData(username=username, api_key=api_key, machine=conjur_url)
         credentials_provider.save(credentials)
         c = Client(conjur_data, authn_strategy=authn_provider,
                    ssl_verification_mode=SslVerificationMode.INSECURE)
