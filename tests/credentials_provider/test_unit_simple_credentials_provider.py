@@ -4,8 +4,8 @@ from conjur_api.providers import SimpleCredentialsProvider
 from conjur_api.models import CredentialsData
 
 
-def create_credentials(machine: str = "machine", username: str = "some_username", password: str = "some_password"):
-    return CredentialsData(machine, username, password)
+def create_credentials(machine: str = "machine", username: str = "some_username", password: str = "some_password", api_key: str = "some_api_key") -> CredentialsData:
+    return CredentialsData(machine, username, password, api_key)
 
 
 class SimpleCredentialsProviderTest(TestCase):
@@ -22,7 +22,7 @@ class SimpleCredentialsProviderTest(TestCase):
         credentials_data1 = create_credentials()
         provider.save(credentials_data1)
 
-        credentials_data2 = create_credentials("machine2", "user2", "psswd2")
+        credentials_data2 = create_credentials("machine2", "user2", "psswd2", "api_key2")
         provider.save(credentials_data2)
 
         self.assertEqual(credentials_data1, provider.load(credentials_data1.machine))

@@ -50,7 +50,7 @@ class LdapAuthenticationStrategy(AuthnAuthenticationStrategy):
             HttpVerb.POST,
             ConjurEndpoint.AUTHENTICATE_LDAP,
             params,
-            self._api_key,
+            creds.api_key,
             ssl_verification_metadata=ssl_verification_data)
         return response.text
 
