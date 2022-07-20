@@ -20,10 +20,10 @@ class CreateHostData:
                  # using id shadows the internal id
                  host_id: str = "",
                  token: str = "",
-                 annotations: dict = {}):
+                 annotations: dict = None):
         self.host_id = host_id
         self.token = token
-        self.annotations = annotations
+        self.annotations = annotations or {}
 
         if self.host_id.strip() == "":
             raise MissingRequiredParameterException("Missing required parameter, 'host_id'")
