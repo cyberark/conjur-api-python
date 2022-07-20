@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+- Create host using host factory supports providing annotations
+
 ## [8.0.0] - 2022-05-25
 
 ### Changed
