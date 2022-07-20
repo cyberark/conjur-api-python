@@ -44,9 +44,12 @@ class CreateHostData:
         return params
 
     def get_annotations(self) -> dict:
-        return self.annotations
-        #dict([{"annotations[$key]", value} for key, value in self.annotations.items()])
-        #return dict(map(lambda key, value: {"annotations[$key]": value}, self.annotations.items()))
+        """
+        :return: dictionary containing annotations in a format acceptable by Conjur REST API
+        """
+        return {
+            f"annotations[{key}]": value for key, value in self.annotations.items()
+        }
 
     def __repr__(self) -> str:
-        return f"{{'id': '{self.host_id}'"
+        return f"{{'id': '{self.host_id}', 'annotations': '{self.annotations}'"
