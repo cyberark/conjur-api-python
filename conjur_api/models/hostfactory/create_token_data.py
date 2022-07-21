@@ -9,7 +9,7 @@ We use this DTO to build the hostfactory create token request
 
 from datetime import timedelta, datetime
 
-# pylint: disable=too-many-arguments,no-self-use,too-few-public-methods
+# pylint: disable=too-many-arguments,too-few-public-methods
 from conjur_api.errors.errors import MissingRequiredParameterException, InvalidFormatException
 
 
