@@ -11,7 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - The `get_server_info` method is now available in SDK. It is only supported against Conjur enterprise server
 - Authentication via OIDC is now supported
-- Supplying api token manually is now supported 
+- Supplying api token manually is now supported
+- Added support for enabling and disabling of an authenticator
 ### Changed
 - Abstract authentication flow into new `AuthenticationStrategyInterface`
   [conjur-api-python#20](https://github.com/cyberark/conjur-api-python/pull/20)

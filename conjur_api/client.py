@@ -206,6 +206,15 @@ class Client:
         """
         return await self._api.rotate_personal_api_key(logged_in_user, current_password)
 
+    async def set_authenticator_state(self, authenticator_id: str, enabled: bool) -> str:
+        """
+        Sets the authenticator state
+        @note: This endpoint is part of an early implementation of support for enabling Conjur authenticators via the
+               API, and is currently available at the Community (or early alpha) level. This endpoint is still subject
+               to breaking changes in the future.
+        """
+        return await self._api.set_authenticator_state(authenticator_id, enabled)
+
     async def get_server_info(self):
         """
         Get the info json response from conjur.

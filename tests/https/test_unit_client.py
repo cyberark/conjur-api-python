@@ -3,9 +3,11 @@ from datetime import datetime, timedelta
 from unittest import mock, IsolatedAsyncioTestCase
 from unittest.mock import PropertyMock, mock_open, patch
 
+from conjur_api.errors.errors import HttpError
+
 from conjur_api.client import Client
 from conjur_api.http.api import Api
-from conjur_api.models import SslVerificationMode
+from conjur_api.models import SslVerificationMode, CredentialsData
 from conjur_api.models.general.conjur_connection_info import ConjurConnectionInfo
 from conjur_api.models.general.resource import Resource
 from conjur_api.models.hostfactory.create_host_data import CreateHostData
@@ -16,6 +18,8 @@ from conjur_api.models.ssl.ssl_verification_metadata import SslVerificationMetad
 from conjur_api.providers.authn_authentication_strategy import AuthnAuthenticationStrategy
 from conjur_api.providers.simple_credentials_provider import SimpleCredentialsProvider
 from conjur_api.wrappers.http_response import HttpResponse
+from tests.https.test_unit_http import MockResponse
+
 
 def exists_in_args(val, args):
     return any(val in str(t) for t in args)
@@ -33,7 +37,7 @@ class ClientTest(IsolatedAsyncioTestCase):
         self.ssl_verification_mode = SslVerificationMode.INSECURE
         self.ssl_verification_metadata = SslVerificationMetadata(self.ssl_verification_mode, None)
         self.client = Client(self.conjur_data, authn_strategy=self.authn_provider, ssl_verification_mode=self.ssl_verification_mode)
-        
+
         # Shift the API token expiration ahead to avoid false negatives
         self.client._api.api_token_expiration = datetime.now() + timedelta(days=1)
 
@@ -47,7 +51,7 @@ class ClientTest(IsolatedAsyncioTestCase):
           await self.client.create_token(None)
           self.assertTrue('create_token_data is empty' in str(context.exception))
 
-    @patch.object(Api, '_api_token', new_callable=PropertyMock)  
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
     async def test_client_create_token_invokes_api(self, mock_api_token, mock_invoke_endpoint):
       mock_api_token.return_value = 'test_token'
       create_token_data = CreateTokenData(host_factory='abcdefg', days=1)
@@ -56,7 +60,7 @@ class ClientTest(IsolatedAsyncioTestCase):
       args, kwargs = mock_invoke_endpoint.call_args
       self.assertEqual('test_token', kwargs.get('api_token'))
       self.assertTrue(exists_in_args('abcdefg', args))
-      mock_invoke_endpoint.assert_called_once() 
+      mock_invoke_endpoint.assert_called_once()
 
     @patch.object(Api, '_api_token', new_callable=PropertyMock)
     async def test_client_whoami_invokes_api(self, mock_api_token, mock_invoke_endpoint):
@@ -67,7 +71,7 @@ class ClientTest(IsolatedAsyncioTestCase):
         self.assertEqual('test_token', kwargs.get('api_token'))
         mock_invoke_endpoint.assert_called_once()
 
-    @patch.object(Api, '_api_token', new_callable=PropertyMock)  
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
     async def test_client_revoke_token_invokes_api(self, mock_api_token, mock_invoke_endpoint):
         mock_api_token.return_value = 'test_token'
         await self.client.revoke_token('revoked_token')
@@ -77,7 +81,7 @@ class ClientTest(IsolatedAsyncioTestCase):
         self.assertTrue(exists_in_args('revoked_token', args))
         mock_invoke_endpoint.assert_called_once()
 
-    @patch.object(Api, '_api_token', new_callable=PropertyMock)  
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
     async def test_client_list_permitted_roles_invokes_api(self, mock_api_token, mock_invoke_endpoint):
         mock_api_token.return_value = 'test_token'
         await self.client.list_permitted_roles(ListPermittedRolesData(kind='host', identifier='dummy-host', privilege='read'))
@@ -87,7 +91,7 @@ class ClientTest(IsolatedAsyncioTestCase):
         self.assertTrue(exists_in_args('dummy-host', args))
         mock_invoke_endpoint.assert_called_once()
 
-    @patch.object(Api, '_api_token', new_callable=PropertyMock)  
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
     async def test_client_get_invokes_api(self, mock_api_token, mock_invoke_endpoint):
         mock_api_token.return_value = 'test_token'
         await self.client.get('dummy-var')
@@ -105,7 +109,7 @@ class ClientTest(IsolatedAsyncioTestCase):
         self.assertTrue(exists_in_args('abcdefg', args))
         mock_invoke_endpoint.assert_called_once()
 
-    @patch.object(Api, '_api_token', new_callable=PropertyMock)  
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
     async def test_client_set_invokes_api(self, mock_api_token, mock_invoke_endpoint):
         mock_api_token.return_value = 'test_token'
         await self.client.set('dummy-var', 'dummy-value')
@@ -115,7 +119,7 @@ class ClientTest(IsolatedAsyncioTestCase):
         self.assertTrue(exists_in_args('dummy-var', args) and exists_in_args('dummy-value', args))
         mock_invoke_endpoint.assert_called_once()
 
-    @patch.object(Api, '_api_token', new_callable=PropertyMock)  
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
     async def test_client_load_policy_file_invokes_api(self, mock_api_token, mock_invoke_endpoint):
         mock_api_token.return_value = 'test_token'
         with patch('builtins.open', mock_open(read_data='!variable dummy-var')) as mock_file:
@@ -126,7 +130,7 @@ class ClientTest(IsolatedAsyncioTestCase):
             self.assertTrue(exists_in_args('test', args))
             mock_invoke_endpoint.assert_called_once()
 
-    @patch.object(Api, '_api_token', new_callable=PropertyMock)  
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
     async def test_client_replace_policy_file_invokes_api(self, mock_api_token, mock_invoke_endpoint):
         mock_api_token.return_value = 'test_token'
         with patch('builtins.open', mock_open(read_data='!variable dummy-var')) as mock_file:
@@ -137,7 +141,7 @@ class ClientTest(IsolatedAsyncioTestCase):
             self.assertTrue(exists_in_args('test', args))
             mock_invoke_endpoint.assert_called_once()
 
-    @patch.object(Api, '_api_token', new_callable=PropertyMock)  
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
     async def test_client_update_policy_file_invokes_api(self, mock_api_token, mock_invoke_endpoint):
         mock_api_token.return_value = 'test_token'
         with patch('builtins.open', mock_open(read_data='!variable dummy-var')) as mock_file:
@@ -148,7 +152,7 @@ class ClientTest(IsolatedAsyncioTestCase):
             self.assertTrue(exists_in_args('test', args))
             mock_invoke_endpoint.assert_called_once()
 
-    @patch.object(Api, '_api_token', new_callable=PropertyMock)  
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
     async def test_client_rotate_other_api_key_invokes_api(self, mock_api_token, mock_invoke_endpoint):
         mock_api_token.return_value = 'test_token'
         resource = Resource(kind='user', identifier='dummy-user')
@@ -161,26 +165,26 @@ class ClientTest(IsolatedAsyncioTestCase):
 
     async def test_client_rotate_personal_api_key_invokes_api(self, mock_invoke_endpoint):
       await self.client.rotate_personal_api_key('dummy-user', 'dummy-password')
-      
+
       args, kwargs = mock_invoke_endpoint.call_args
       self.assertTrue(exists_in_args('dummy-user', kwargs.get('auth')) and exists_in_args('dummy-password', kwargs.get('auth')))
-      mock_invoke_endpoint.assert_called_once() 
+      mock_invoke_endpoint.assert_called_once()
 
     async def test_client_get_server_info_invokes_api(self, mock_invoke_endpoint):
       await self.client.get_server_info()
-      mock_invoke_endpoint.assert_called_once() 
+      mock_invoke_endpoint.assert_called_once()
 
     async def test_client_change_personal_password_invokes_api(self, mock_invoke_endpoint):
         await self.client.change_personal_password('dummy-user', 'dummy-password', 'dummy-new-password')
-        
+
         args, kwargs = mock_invoke_endpoint.call_args
         self.assertTrue(exists_in_args('dummy-user', kwargs.get('auth')) and exists_in_args('dummy-password', kwargs.get('auth')))
         self.assertTrue(exists_in_args('dummy-new-password', args))
-        mock_invoke_endpoint.assert_called_once() 
+        mock_invoke_endpoint.assert_called_once()
 
-    @patch.object(Api, '_api_token', new_callable=PropertyMock)  
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
     async def test_client_find_resource_by_identifier_invokes_api(self, mock_api_token, mock_invoke_endpoint):
-        with self.assertRaises(Exception) as context:      
+        with self.assertRaises(Exception) as context:
             mock_api_token.return_value = 'test_token'
             json_data = '[{"id":"host:myHost"}]'
             mock_invoke_endpoint.return_value = HttpResponse(200, json_data, 'OK')
@@ -188,10 +192,10 @@ class ClientTest(IsolatedAsyncioTestCase):
 
             args, kwargs = mock_invoke_endpoint.call_args
             self.assertEqual('test_token', kwargs.get('api_token'))
-            mock_invoke_endpoint.assert_called_once() 
+            mock_invoke_endpoint.assert_called_once()
             self.assertTrue('Resource not found' in str(context.exception))
 
-    @patch.object(Api, '_api_token', new_callable=PropertyMock)  
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
     async def test_client_find_resources_by_identifier_invokes_api(self, mock_api_token, mock_invoke_endpoint):
         mock_api_token.return_value = 'test_token'
         json_data = '[{"id":"host:myHost"}]'
@@ -203,7 +207,7 @@ class ClientTest(IsolatedAsyncioTestCase):
         self.assertIn('host:myHost', kwargs.get('query').get('search'))
         mock_invoke_endpoint.assert_called_once()
 
-    @patch.object(Api, '_api_token', new_callable=PropertyMock)  
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
     async def test_client_list_members_of_role_invokes_api(self, mock_api_token, mock_invoke_endpoint):
         mock_api_token.return_value = 'test_token'
         resource = Resource(kind='variable', identifier='dummy-var')
@@ -216,7 +220,7 @@ class ClientTest(IsolatedAsyncioTestCase):
         self.assertTrue(exists_in_args('dummy-var', args))
         mock_invoke_endpoint.assert_called_once()
 
-    @patch.object(Api, '_api_token', new_callable=PropertyMock)  
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
     async def test_client_list_invokes_api(self, mock_api_token, mock_invoke_endpoint):
         mock_api_token.return_value = 'test_token'
         await self.client.list({'type': 'host'})
@@ -226,7 +230,7 @@ class ClientTest(IsolatedAsyncioTestCase):
         self.assertIn('host', kwargs.get('query').get('type'))
         mock_invoke_endpoint.assert_called_once()
 
-    @patch.object(Api, '_api_token', new_callable=PropertyMock)  
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
     async def test_client_get_many_invokes_api(self, mock_api_token, mock_invoke_endpoint):
         mock_api_token.return_value = 'test_token'
         json_data = '{"test:variable:dummy-var":"myValue", \
@@ -241,3 +245,76 @@ class ClientTest(IsolatedAsyncioTestCase):
         self.assertIn('test:variable:dummy-var-2', kwargs.get('query').get('variable_ids'))
         self.assertIn('test:variable:dummy-var-3', kwargs.get('query').get('variable_ids'))
         mock_invoke_endpoint.assert_called_once()
+
+    @patch('aiohttp.ClientSession.request')
+    async def test_client_enable_valid_authenticator(self, mock_request):
+        conjur_data, credentials_provider = self._initialize_input()
+
+        mock_request.return_value = MockResponse('', 204)
+        c = Client(conjur_data, credentials_provider=credentials_provider, ssl_verification_mode=SslVerificationMode.INSECURE)
+        response = await c.set_authenticator_state('authn-iam/test', True)
+
+        self.assertTrue(response == '')
+
+    @patch('aiohttp.ClientSession.request')
+    async def test_client_disable_valid_authenticator(self, mock_request):
+        conjur_data, credentials_provider = self._initialize_input()
+
+        mock_request.return_value = MockResponse('', 204)
+        c = Client(conjur_data, credentials_provider=credentials_provider, ssl_verification_mode=SslVerificationMode.INSECURE)
+        response = await c.set_authenticator_state('authn-iam/test', False)
+
+        self.assertTrue(response == '')
+
+    @patch('aiohttp.ClientSession.request')
+    async def test_client_enable_authenticator_no_permissions(self, mock_request):
+        conjur_data, credentials_provider = self._initialize_input()
+
+        mock_request.return_value = MockResponse('', 403)
+        c = Client(conjur_data, credentials_provider=credentials_provider, ssl_verification_mode=SslVerificationMode.INSECURE)
+
+        with self.assertRaises(HttpError) as context:
+            await c.set_authenticator_state('authn-iam/test', True)
+
+    @patch('aiohttp.ClientSession.request')
+    async def test_client_disable_authenticator_no_permissions(self, mock_request):
+        conjur_data, credentials_provider = self._initialize_input()
+
+        mock_request.return_value = MockResponse('', 403)
+        c = Client(conjur_data, credentials_provider=credentials_provider, ssl_verification_mode=SslVerificationMode.INSECURE)
+
+        with self.assertRaises(HttpError) as context:
+            await c.set_authenticator_state('authn-iam/test', False)
+
+    @patch('aiohttp.ClientSession.request')
+    async def test_client_enable_non_existing_authenticator(self, mock_request):
+        conjur_data, credentials_provider = self._initialize_input()
+
+        mock_request.return_value = MockResponse('', 401)
+        c = Client(conjur_data, credentials_provider=credentials_provider, ssl_verification_mode=SslVerificationMode.INSECURE)
+
+        with self.assertRaises(HttpError) as context:
+            await c.set_authenticator_state('authn-iam/test', True)
+
+    @patch('aiohttp.ClientSession.request')
+    async def test_client_disable_non_existing_authenticator(self, mock_request):
+        conjur_data, credentials_provider = self._initialize_input()
+
+        mock_request.return_value = MockResponse('', 401)
+        c = Client(conjur_data, credentials_provider=credentials_provider, ssl_verification_mode=SslVerificationMode.INSECURE)
+
+        with self.assertRaises(HttpError) as context:
+            await c.set_authenticator_state('authn-iam/test', False)
+
+    @staticmethod
+    def _initialize_input() -> tuple[ConjurConnectionInfo, SimpleCredentialsProvider]:
+        conjur_url = 'https://conjur-https'
+        conjur_data = ConjurConnectionInfo(
+            conjur_url=conjur_url,
+            account='dev'
+        )
+        credentials_provider = SimpleCredentialsProvider()
+        credentials = CredentialsData(username='user', password='password', machine=conjur_url)
+        credentials_provider.save(credentials)
+
+        return conjur_data, credentials_provider
