@@ -1,0 +1,2 @@
+- !user test-authenticator-valid-user
+- !user test-authenticator-invalid-user

@@ -215,6 +215,14 @@ _Note: This method requires Conjur v1.9+_
 Returns a Python dictionary of information about the client making an API request (such as its IP address, user,
 account, token expiration date, etc).
 
+#### `set_authenticator_state(authenticator_id, enabled)`
+
+Allows enabling and disabling an authenticator.  
+
+_Note: This functionality relies on an endpoint in Conjur which is part of an early implementation of support for
+enabling Conjur authenticators via the API, and is currently available at the Community (or early alpha) level. This
+endpoint is still subject to breaking changes in the future._ 
+
 ## Contributing
 
 We welcome contributions of all kinds to this repository. For instructions on how to get started and descriptions of our
