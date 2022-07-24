@@ -514,7 +514,7 @@ class Api:
         }
         params.update(self._default_params)
 
-        body = f'enabled={"true" if enabled else "false"}'
+        body = f'enabled={str(enabled).lower()}'
 
         api_token = await self.api_token
         if api_token is None:
