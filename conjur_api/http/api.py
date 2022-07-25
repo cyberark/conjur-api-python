@@ -504,6 +504,26 @@ class Api:
                                          ssl_verification_metadata=self.ssl_verification_data)
         return response.text
 
+    async def set_authenticator_state(self, authenticator_id: str, enabled: bool) -> str:
+        """
+        This method sets the state of a given authenticator
+        """
+
+        params = {
+            'authenticator_id': authenticator_id
+        }
+        params.update(self._default_params)
+
+        body = f'enabled={str(enabled).lower()}'
+
+        api_token = await self.api_token
+        if api_token is None:
+            raise MissingApiTokenException()
+
+        response = await invoke_endpoint(HttpVerb.PATCH, ConjurEndpoint.AUTHENTICATOR, params, body,
+                                         api_token=api_token, ssl_verification_metadata=self.ssl_verification_data)
+        return response.text
+
     async def change_personal_password(
             self, logged_in_user: str, current_password: str,
             new_password: str) -> str:

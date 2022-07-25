@@ -15,28 +15,7 @@ from aiohttp import BasicAuth
 from conjur_api.models import SslVerificationMode, SslVerificationMetadata
 from conjur_api.errors.errors import HttpSslError
 from conjur_api.wrappers.http_wrapper import HttpVerb, invoke_endpoint
-
-
-class MockResponse:
-    def __init__(self, text: str, status: int):
-        self._text = text
-        self.status = status
-
-    async def read(self):
-        pass
-
-    async def text(self, encoding: str = 'utf-8'):
-        return self._text
-
-    def raise_for_status(self):
-        if self.status >= 400:
-            raise Exception(f"Bad status: {self.status}")
-
-    async def __aexit__(self, exc_type, exc, tb):
-        pass
-
-    async def __aenter__(self):
-        return self
+from tests.https.common import MockResponse
 
 
 class HttpVerbTest(unittest.TestCase):

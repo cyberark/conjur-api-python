@@ -45,8 +45,8 @@ valid_badssl_endpoints = [
     "https://rsa4096.badssl.com",
     "https://rsa8192.badssl.com",
     "https://sha256.badssl.com",
-    "https://sha384.badssl.com",
-    "https://sha512.badssl.com",
+    # "https://sha384.badssl.com",
+    # "https://sha512.badssl.com",
     # "https://tls-v1-2.badssl.com",
     "https://cbc.badssl.com"
 ]
