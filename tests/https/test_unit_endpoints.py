@@ -41,6 +41,13 @@ class EndpointsTest(unittest.TestCase):
                                                              account='myacct')
         self.assertEqual(auth_endpoint, 'http://host/resources/myacct')
 
+    def test_endpoint_has_correct_resource_template_string(self):
+        endpoint = ConjurEndpoint.RESOURCE.value.format(url='http://host',
+                                                             account='myacct',
+                                                             kind='varkind',
+                                                             identifier='varid')
+        self.assertEqual(endpoint, 'http://host/resources/myacct/varkind/varid')
+
     def test_endpoint_has_correct_whoami_template_string(self):
         auth_endpoint = ConjurEndpoint.WHOAMI.value.format(url='http://host',
                                                              account='myacct')
