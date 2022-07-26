@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Authentication via OIDC is now supported
 - Supplying api token manually is now supported
 - Added support for enabling and disabling of an authenticator
+- Create host using host factory supports providing annotations
 ### Changed
 - Abstract authentication flow into new `AuthenticationStrategyInterface`
   [conjur-api-python#20](https://github.com/cyberark/conjur-api-python/pull/20)

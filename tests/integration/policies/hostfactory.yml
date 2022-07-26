@@ -1,0 +1,4 @@
+- !layer lay
+- !host-factory
+  id: factory
+  layers: [!layer lay]
