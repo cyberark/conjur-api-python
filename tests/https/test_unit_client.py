@@ -274,7 +274,7 @@ class ClientTest(IsolatedAsyncioTestCase):
                    ssl_verification_mode=SslVerificationMode.INSECURE)
         response = await c.set_authenticator_state('authn-iam/test', True)
 
-        self.assertTrue(response == '')
+        self.assertEqual(response, '')
 
     @patch('aiohttp.ClientSession.request')
     async def test_client_disable_valid_authenticator(self, mock_request):
@@ -285,7 +285,7 @@ class ClientTest(IsolatedAsyncioTestCase):
                    ssl_verification_mode=SslVerificationMode.INSECURE)
         response = await c.set_authenticator_state('authn-iam/test', False)
 
-        self.assertTrue(response == '')
+        self.assertEqual(response, '')
 
     @patch('aiohttp.ClientSession.request')
     async def test_client_enable_authenticator_no_permissions(self, mock_request):
@@ -330,6 +330,28 @@ class ClientTest(IsolatedAsyncioTestCase):
 
         with self.assertRaises(HttpError) as context:
             await c.set_authenticator_state('authn-iam/test', False)
+
+    @patch('aiohttp.ClientSession.request')
+    async def test_client_enable_authenticator_without_service_id(self, mock_request):
+        conjur_data, credentials_provider = self._initialize_input()
+
+        mock_request.return_value = MockResponse('', 204)
+        c = Client(conjur_data, authn_strategy=AuthnAuthenticationStrategy(credentials_provider),
+                   ssl_verification_mode=SslVerificationMode.INSECURE)
+        response = await c.set_authenticator_state('authn-gcp', True)
+
+        self.assertEqual(response, '')
+
+    @patch('aiohttp.ClientSession.request')
+    async def test_client_disable_authenticator_without_service_id(self, mock_request):
+        conjur_data, credentials_provider = self._initialize_input()
+
+        mock_request.return_value = MockResponse('', 204)
+        c = Client(conjur_data, authn_strategy=AuthnAuthenticationStrategy(credentials_provider),
+                   ssl_verification_mode=SslVerificationMode.INSECURE)
+        response = await c.set_authenticator_state('authn-gcp', False)
+
+        self.assertEqual(response, '')
 
     @staticmethod
     def _initialize_input() -> tuple[ConjurConnectionInfo, SimpleCredentialsProvider]:
