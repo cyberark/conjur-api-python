@@ -85,13 +85,13 @@ class TestEnableDisableAuthenticators(AsyncTestCase):
 
         self.assertEqual(response, '')
 
-    async def test_authenticator_enable_without_service_id_failure(self):
+    async def test_authenticator_enable_failure_while_auth_without_service_id(self):
         c = await create_client(self.invalid_user.id, self.invalid_user.api_key)
         with self.assertRaises(HttpStatusError) as context:
             response = await c.set_authenticator_state('authn-gcp', True)
         self.assertEqual(context.exception.status, 403)
 
-    async def test_authenticator_disable_without_service_id_failure(self):
+    async def test_authenticator_disable_failure_while_auth_without_service_id(self):
         c = await create_client(self.invalid_user.id, self.invalid_user.api_key)
         with self.assertRaises(HttpStatusError) as context:
             response = await c.set_authenticator_state('authn-gcp', False)
