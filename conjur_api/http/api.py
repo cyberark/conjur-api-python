@@ -12,15 +12,11 @@ from datetime import datetime, timedelta
 from typing import Optional
 from urllib import parse
 
-# Internals
-from conjur_api.errors.errors import InvalidResourceException, MissingRequiredParameterException, \
-    MissingApiTokenException
-from conjur_api.http.endpoints import ConjurEndpoint
-from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
-from conjur_api.interface.authentication_strategy_interface import AuthenticationStrategyInterface
-from conjur_api.wrappers.http_response import HttpResponse
-from conjur_api.wrappers.http_wrapper import HttpVerb, invoke_endpoint
 from conjur_api.errors.errors import InvalidResourceException, MissingRequiredParameterException
+# Internals
+from conjur_api.errors.errors import MissingApiTokenException
+from conjur_api.http.endpoints import ConjurEndpoint
+from conjur_api.interface.authentication_strategy_interface import AuthenticationStrategyInterface
 # pylint: disable=too-many-instance-attributes
 from conjur_api.models import Resource, ConjurConnectionInfo, ListPermittedRolesData, \
     ListMembersOfData, CreateHostData, CreateTokenData, SslVerificationMetadata, SslVerificationMode
@@ -111,6 +107,17 @@ class Api:
                 return None
 
         return None
+
+    def set_api_token(self, api_token: str, api_token_expiration: datetime, decode_token=False):
+        """
+        Set the api token and its expiration manually - this way you can use any supported authentication
+        method you'd like.
+        @:param decode_token: set True if the token you supplied needs to get base64 decoded
+        """
+        if decode_token:
+            api_token = base64.b64decode(api_token.encode('ascii')).decode('ascii')
+        self._api_token = api_token
+        self.api_token_expiration = api_token_expiration
 
     async def login(self) -> str:
         """

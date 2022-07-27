@@ -31,7 +31,7 @@ class TestIntegrationVanila(AsyncTestCase):
         c = Client(conjur_data, authn_strategy=authn_provider,
                    ssl_verification_mode=SslVerificationMode.INSECURE)
         resources = await c.list()
-        self.assertEqual(len(resources), 6)
+        self.assertGreater(len(resources), 0)
 
     async def test_integration_vanilla_ldap(self):
         """

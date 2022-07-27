@@ -12,17 +12,13 @@ import json
 import logging
 from datetime import datetime
 from typing import Optional
-from conjur_api.interface.authentication_strategy_interface import AuthenticationStrategyInterface
 
-# Internals
 from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException, HttpStatusError
 from conjur_api.http.api import Api
-from conjur_api.interface.credentials_store_interface import CredentialsProviderInterface
+from conjur_api.interface.authentication_strategy_interface import AuthenticationStrategyInterface
+# Internals
 from conjur_api.models import SslVerificationMode, CreateHostData, CreateTokenData, ListMembersOfData, \
     ListPermittedRolesData, ConjurConnectionInfo, Resource
-
-from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException, HttpStatusError
-from conjur_api.http.api import Api
 from conjur_api.utils.decorators import allow_sync_invocation
 
 LOGGING_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
