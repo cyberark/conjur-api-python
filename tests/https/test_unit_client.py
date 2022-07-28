@@ -227,6 +227,17 @@ class ClientTest(IsolatedAsyncioTestCase):
         mock_invoke_endpoint.assert_called_once()
 
     @patch.object(Api, '_api_token', new_callable=PropertyMock)  
+    async def test_client_get_resource_invokes_api(self, mock_api_token, mock_invoke_endpoint):
+        mock_api_token.return_value = 'test_token'
+        await self.client.get_resource('policy', 'dummy')
+
+        args, kwargs = mock_invoke_endpoint.call_args
+        self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertTrue(exists_in_args('policy', args))
+        self.assertTrue(exists_in_args('dummy', args))
+        mock_invoke_endpoint.assert_called_once()
+
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)  
     async def test_client_get_many_invokes_api(self, mock_api_token, mock_invoke_endpoint):
         mock_api_token.return_value = 'test_token'
         json_data = '{"test:variable:dummy-var":"myValue", \

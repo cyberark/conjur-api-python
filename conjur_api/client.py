@@ -105,6 +105,12 @@ class Client:
         """
         return await self._api.resources_list(list_constraints)
 
+    async def get_resource(self, kind: str, resource_id: str) -> json:
+        """
+        Gets a resource based on its kind and ID
+        """
+        return await self._api.get_resource(kind, resource_id)
+
     async def list_permitted_roles(self, list_permitted_roles_data: ListPermittedRolesData) -> dict:
         """
         Lists the roles which have the named permission on a resource.
