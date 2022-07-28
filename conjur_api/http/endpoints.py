@@ -32,6 +32,7 @@ class ConjurEndpoint(Enum):
     HOST_FACTORY_TOKENS = "{url}/host_factory_tokens"
     HOST_FACTORY_REVOKE_TOKEN = "{url}/host_factory_tokens/{token}"
     HOST_FACTORY_HOSTS = "{url}/host_factories/hosts"
+    ROLE = "{url}/roles/{account}/{kind}/{identifier}"
     ROLES_MEMBERS_OF = "{url}/roles/{account}/{kind}/{identifier}?members"
     RESOURCES_PERMITTED_ROLES =\
         "{url}/resources/{account}/{kind}/{identifier}?permitted_roles=true&privilege={privilege}"

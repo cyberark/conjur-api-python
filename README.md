@@ -197,6 +197,10 @@ For example: `client.list({'kind': 'user', 'inspect': True})`
 
 Gets a resource based on its kind and ID. Resource is json data that contains metadata about the resource.
 
+#### `get_role(kind, role_id)`
+
+Gets a role based on its kind and ID. Role is json data that contains metadata about the role.
+
 #### `def list_permitted_roles(list_permitted_roles_data: ListPermittedRolesData)`
 
 Lists the roles which have the named permission on a resource.

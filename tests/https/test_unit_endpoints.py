@@ -52,3 +52,10 @@ class EndpointsTest(unittest.TestCase):
         auth_endpoint = ConjurEndpoint.WHOAMI.value.format(url='http://host',
                                                              account='myacct')
         self.assertEqual(auth_endpoint, 'http://host/whoami')
+
+    def test_endpoint_has_correct_role_template_string(self):
+        endpoint = ConjurEndpoint.ROLE.value.format(url='http://host',
+                                                             account='myacct',
+                                                             kind='rolekind',
+                                                             identifier='roleid')
+        self.assertEqual(endpoint, 'http://host/roles/myacct/rolekind/roleid')

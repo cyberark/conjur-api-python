@@ -252,3 +252,14 @@ class ClientTest(IsolatedAsyncioTestCase):
         self.assertIn('test:variable:dummy-var-2', kwargs.get('query').get('variable_ids'))
         self.assertIn('test:variable:dummy-var-3', kwargs.get('query').get('variable_ids'))
         mock_invoke_endpoint.assert_called_once()
+
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)  
+    async def test_client_get_role_invokes_api(self, mock_api_token, mock_invoke_endpoint):
+        mock_api_token.return_value = 'test_token'
+        await self.client.get_role('policy', 'dummy')
+
+        args, kwargs = mock_invoke_endpoint.call_args
+        self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertTrue(exists_in_args('policy', args))
+        self.assertTrue(exists_in_args('dummy', args))
+        mock_invoke_endpoint.assert_called_once()

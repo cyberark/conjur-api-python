@@ -179,6 +179,29 @@ class Api:
         # ?tocpath=Developer%7CREST%C2%A0APIs%7C_____19
         return resource
 
+    async def get_role(self, kind: str, resource_id: str) -> dict:
+        """
+        This method is used to fetch a specific role.
+        """
+        params = {
+            'account': self._account,
+            'kind': kind,
+            'identifier': resource_id
+        }
+        params.update(self._default_params)
+
+        response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.ROLE,
+                                         params,
+                                         api_token=await self.api_token,
+                                         ssl_verification_metadata=self.ssl_verification_data)
+
+        role = response.json
+
+        # To see the full roles response see
+        # https://docs.conjur.org/Latest/en/Content/Developer/Conjur_API_Show_Role.htm
+        # ?tocpath=Developer%7CREST%C2%A0APIs%7C_____15
+        return role
+
     async def get_variable(self, variable_id: str, version: str = None) -> Optional[bytes]:
         """
         This method is used to fetch a secret's (aka "variable") value from
