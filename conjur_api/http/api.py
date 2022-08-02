@@ -16,7 +16,7 @@ from conjur_api.http.endpoints import ConjurEndpoint
 from conjur_api.interface.authentication_strategy_interface import AuthenticationStrategyInterface
 from conjur_api.wrappers.http_response import HttpResponse
 from conjur_api.wrappers.http_wrapper import HttpVerb, invoke_endpoint
-from conjur_api.errors.errors import InvalidResourceException, MissingRequiredParameterException
+from conjur_api.errors.errors import HttpStatusError, InvalidResourceException, MissingRequiredParameterException
 # pylint: disable=too-many-instance-attributes
 from conjur_api.models import Resource, ConjurConnectionInfo, ListPermittedRolesData, \
     ListMembersOfData, CreateHostData, CreateTokenData, SslVerificationMetadata, SslVerificationMode
@@ -178,6 +178,33 @@ class Api:
         # https://docs.conjur.org/Latest/en/Content/Developer/Conjur_API_Show_Resources.htm
         # ?tocpath=Developer%7CREST%C2%A0APIs%7C_____19
         return resource
+
+    async def resource_exists(self, kind: str, resource_id: str) -> bool:
+        """
+        This method is used to check whether a specific resource exists.
+        """
+        params = {
+            'account': self._account,
+            'kind': kind,
+            'identifier': resource_id
+        }
+        params.update(self._default_params)
+
+        try:
+            await invoke_endpoint(HttpVerb.HEAD, ConjurEndpoint.RESOURCE,
+                                  params,
+                                  api_token=await self.api_token,
+                                  ssl_verification_metadata=self.ssl_verification_data)
+        except HttpStatusError as err:
+            if err.status == 404:
+                return False
+
+            if err.status == 403:
+                return True
+
+            raise
+
+        return True
 
     async def get_role(self, kind: str, resource_id: str) -> dict:
         """

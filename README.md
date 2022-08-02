@@ -197,6 +197,10 @@ For example: `client.list({'kind': 'user', 'inspect': True})`
 
 Gets a resource based on its kind and ID. Resource is json data that contains metadata about the resource.
 
+#### `resource_exists(kind, resource_id)`
+
+Check the existence of a resource based on its kind and ID. Returns a boolean.
+
 #### `get_role(kind, role_id)`
 
 Gets a role based on its kind and ID. Role is json data that contains metadata about the role.
