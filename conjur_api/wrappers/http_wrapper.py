@@ -37,6 +37,7 @@ class HttpVerb(Enum):
     PUT = 3
     DELETE = 4
     PATCH = 5
+    HEAD = 6
 
 
 # pylint: disable=too-many-locals,consider-using-f-string,too-many-arguments

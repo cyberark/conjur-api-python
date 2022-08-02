@@ -111,6 +111,12 @@ class Client:
         """
         return await self._api.get_resource(kind, resource_id)
 
+    async def resource_exists(self, kind: str, resource_id: str) -> bool:
+        """
+        Check for the existance of a resource based on its kind and ID
+        """
+        return await self._api.resource_exists(kind, resource_id)
+
     async def get_role(self, kind: str, role_id: str) -> json:
         """
         Gets a role based on its kind and ID

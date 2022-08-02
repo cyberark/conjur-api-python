@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   [conjur-api-python#30](https://github.com/cyberark/conjur-api-python/pull/30)
 - Add support for Show Resource endpoint
   [conjur-api-python#31](https://github.com/cyberark/conjur-api-python/pull/31)
+- Add `resource_exists` method
+  [conjur-api-python#32](https://github.com/cyberark/conjur-api-python/pull/32)
 - Add support for LDAP authentication
   [conjur-api-python#22](https://github.com/cyberark/conjur-api-python/pull/22)
 
