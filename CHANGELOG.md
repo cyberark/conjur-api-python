@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [8.0.0] - 2022-05-25
 
 ### Added
+- Add support for Role Memberships endpoint
+  [conjur-api-python#30](https://github.com/cyberark/conjur-api-python/pull/33)
 - Add support for Show Role endpoint
   [conjur-api-python#30](https://github.com/cyberark/conjur-api-python/pull/30)
 - Add support for Show Resource endpoint

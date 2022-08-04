@@ -205,6 +205,10 @@ Check the existence of a resource based on its kind and ID. Returns a boolean.
 
 Gets a role based on its kind and ID. Role is json data that contains metadata about the role.
 
+#### `role_memberships(kind, role_id)`
+
+Gets a role's memberships based on its kind and ID. Returns a list of all roles recursively inherited by this role.
+
 #### `def list_permitted_roles(list_permitted_roles_data: ListPermittedRolesData)`
 
 Lists the roles which have the named permission on a resource.

@@ -59,3 +59,11 @@ class EndpointsTest(unittest.TestCase):
                                                              kind='rolekind',
                                                              identifier='roleid')
         self.assertEqual(endpoint, 'http://host/roles/myacct/rolekind/roleid')
+
+    def test_endpoint_has_correct_role_memberships_all_template_string(self):
+        endpoint = ConjurEndpoint.ROLES_MEMBERSHIPS.value.format(url='http://host',
+                                                             account='myacct',
+                                                             kind='rolekind',
+                                                             identifier='roleid',
+                                                             membership='all')
+        self.assertEqual(endpoint, 'http://host/roles/myacct/rolekind/roleid?all')

@@ -34,5 +34,6 @@ class ConjurEndpoint(Enum):
     HOST_FACTORY_HOSTS = "{url}/host_factories/hosts"
     ROLE = "{url}/roles/{account}/{kind}/{identifier}"
     ROLES_MEMBERS_OF = "{url}/roles/{account}/{kind}/{identifier}?members"
+    ROLES_MEMBERSHIPS = "{url}/roles/{account}/{kind}/{identifier}?{membership}"
     RESOURCES_PERMITTED_ROLES =\
         "{url}/resources/{account}/{kind}/{identifier}?permitted_roles=true&privilege={privilege}"

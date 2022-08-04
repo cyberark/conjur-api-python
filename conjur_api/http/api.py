@@ -229,6 +229,30 @@ class Api:
         # ?tocpath=Developer%7CREST%C2%A0APIs%7C_____15
         return role
 
+    async def role_memberships(self, kind: str, resource_id: str, direct: bool) -> dict:
+        """
+        This method is used to fetch the memberships of a role
+        """
+        recursive_param = "memberships" if direct else "all"
+        params = {
+            'account': self._account,
+            'kind': kind,
+            'identifier': resource_id,
+            'membership': recursive_param
+        }
+        params.update(self._default_params)
+
+        response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.ROLES_MEMBERSHIPS,
+                                         params,
+                                         api_token=await self.api_token,
+                                         ssl_verification_metadata=self.ssl_verification_data)
+
+        if direct:
+            memberships = map(lambda membership: membership['role'], response.json)
+            return list(memberships)
+
+        return response.json
+
     async def get_variable(self, variable_id: str, version: str = None) -> Optional[bytes]:
         """
         This method is used to fetch a secret's (aka "variable") value from
