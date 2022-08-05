@@ -105,6 +105,12 @@ class Client:
         """
         return await self._api.resources_list(list_constraints)
 
+    async def check_privilege(self, kind: str, resource_id: str, privilege: str, role_id: str = None) -> bool:
+        """
+        Checks a privilege on a resource based on its kind, ID, role, and privilege.
+        """
+        return await self._api.check_privilege(kind, resource_id, privilege, role_id)
+
     async def get_resource(self, kind: str, resource_id: str) -> json:
         """
         Gets a resource based on its kind and ID

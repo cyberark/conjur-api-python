@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Add support for Role Memberships endpoint
   [conjur-api-python#30](https://github.com/cyberark/conjur-api-python/pull/33)
+- Add support for Check Privilege endpoint
+  [conjur-api-python#34](https://github.com/cyberark/conjur-api-python/pull/34)
 - Add support for Show Role endpoint
   [conjur-api-python#30](https://github.com/cyberark/conjur-api-python/pull/30)
 - Add `role_exists` method

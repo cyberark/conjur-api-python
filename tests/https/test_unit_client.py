@@ -298,7 +298,7 @@ class ClientTest(IsolatedAsyncioTestCase):
         self.assertTrue(exists_in_args('memberships', args))
         mock_invoke_endpoint.assert_called_once()
 
-    @patch.object(Api, '_api_token', new_callable=PropertyMock)  
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
     async def test_client_role_memberships_invokes_api(self, mock_api_token, mock_invoke_endpoint):
         mock_api_token.return_value = 'test_token'
         await self.client.role_memberships('policy', 'dummy')
@@ -308,4 +308,17 @@ class ClientTest(IsolatedAsyncioTestCase):
         self.assertTrue(exists_in_args('policy', args))
         self.assertTrue(exists_in_args('dummy', args))
         self.assertTrue(exists_in_args('all', args))
+        mock_invoke_endpoint.assert_called_once()
+
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
+    async def test_client_check_privilege_invokes_api(self, mock_api_token, mock_invoke_endpoint):
+        mock_api_token.return_value = 'test_token'
+        await self.client.check_privilege('policy', 'dummy1', 'dummy2', 'dummy3')
+
+        args, kwargs = mock_invoke_endpoint.call_args
+        self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertTrue(exists_in_args('policy', args))
+        self.assertTrue(exists_in_args('dummy1', args))
+        self.assertTrue(exists_in_args('dummy2', args))
+        self.assertTrue(exists_in_args('dummy3', args))
         mock_invoke_endpoint.assert_called_once()

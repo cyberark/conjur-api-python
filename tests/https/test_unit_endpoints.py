@@ -67,3 +67,12 @@ class EndpointsTest(unittest.TestCase):
                                                              identifier='roleid',
                                                              membership='all')
         self.assertEqual(endpoint, 'http://host/roles/myacct/rolekind/roleid?all')
+
+    def test_endpoint_has_correct_check_privilege_template_string(self):
+        endpoint = ConjurEndpoint.PRIVILEGE.value.format(url='http://host',
+                                                             account='myacct',
+                                                             kind='resourcekind',
+                                                             identifier='resourceid',
+                                                             role='roleid',
+                                                             privilege='respriv')
+        self.assertEqual(endpoint, 'http://host/resources/myacct/resourcekind/resourceid?check=true&role=roleid&privilege=respriv')

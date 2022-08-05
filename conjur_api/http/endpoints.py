@@ -24,6 +24,7 @@ class ConjurEndpoint(Enum):
     POLICIES = "{url}/policies/{account}/policy/{identifier}"
     BATCH_SECRETS = "{url}/secrets"
     SECRETS = "{url}/secrets/{account}/{kind}/{identifier}"
+    PRIVILEGE = "{url}/resources/{account}/{kind}/{identifier}?check=true&role={role}&privilege={privilege}"
     RESOURCES = "{url}/resources/{account}"
     RESOURCE = "{url}/resources/{account}/{kind}/{identifier}"
     ROTATE_API_KEY = "{url}/authn/{account}/api_key"
