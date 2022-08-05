@@ -123,6 +123,12 @@ class Client:
         """
         return await self._api.get_role(kind, role_id)
 
+    async def role_memberships(self, kind: str, role_id: str, direct: bool = False) -> json:
+        """
+        Lists the memberships of a role
+        """
+        return await self._api.role_memberships(kind, role_id, direct)
+
     async def list_permitted_roles(self, list_permitted_roles_data: ListPermittedRolesData) -> dict:
         """
         Lists the roles which have the named permission on a resource.
