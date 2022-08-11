@@ -253,6 +253,33 @@ class Api:
 
         return response.json
 
+    async def role_exists(self, kind: str, resource_id: str) -> bool:
+        """
+        This method is used to check whether a specific role exists.
+        """
+        params = {
+            'account': self._account,
+            'kind': kind,
+            'identifier': resource_id
+        }
+        params.update(self._default_params)
+
+        try:
+            await invoke_endpoint(HttpVerb.HEAD, ConjurEndpoint.ROLE,
+                                  params,
+                                  api_token=await self.api_token,
+                                  ssl_verification_metadata=self.ssl_verification_data)
+        except HttpStatusError as err:
+            if err.status == 404:
+                return False
+
+            if err.status == 403:
+                return True
+
+            raise
+
+        return True
+
     async def get_variable(self, variable_id: str, version: str = None) -> Optional[bytes]:
         """
         This method is used to fetch a secret's (aka "variable") value from

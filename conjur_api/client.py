@@ -123,6 +123,12 @@ class Client:
         """
         return await self._api.get_role(kind, role_id)
 
+    async def role_exists(self, kind: str, role_id: str) -> bool:
+        """
+        Check for the existance of a role based on its kind and ID
+        """
+        return await self._api.role_exists(kind, role_id)
+
     async def role_memberships(self, kind: str, role_id: str, direct: bool = False) -> json:
         """
         Lists the memberships of a role
