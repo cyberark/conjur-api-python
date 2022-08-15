@@ -9,3 +9,14 @@ ci/test/output/
 .env
 *.crt
 *.key
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Virtual environment
+venv/
+
+# Misc
+.DS_Store

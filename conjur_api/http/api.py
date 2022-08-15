@@ -156,6 +156,33 @@ class Api:
         # ?tocpath=Developer%7CREST%C2%A0APIs%7C_____17
         return resources
 
+    async def check_privilege(self, kind: str, resource_id: str, privilege: str, role_id: str = None) -> bool:
+        """
+        This method is used to check for a privilege on a resource.
+        """
+        params = {
+            'account': self._account,
+            'kind': kind,
+            'identifier': resource_id,
+            'privilege': privilege,
+            'role': role_id if role_id else ''
+        }
+        params.update(self._default_params)
+
+        try:
+            response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.PRIVILEGE,
+                                  params,
+                                  api_token=await self.api_token,
+                                  ssl_verification_metadata=self.ssl_verification_data)
+            logging.debug(str(response))
+        except HttpStatusError as err:
+            if err.status == 404:
+                return False
+
+            raise err
+
+        return True
+
     async def get_resource(self, kind: str, resource_id: str) -> dict:
         """
         This method is used to fetch a specific resource.

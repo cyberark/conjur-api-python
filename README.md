@@ -193,6 +193,10 @@ For example: `client.list({'kind': 'user', 'inspect': True})`
 | search           | Search for resources based on specified query                |
 | inspect          | List the metadata for resources                              |
 
+### `check_privilege(kind, resource_id, privilege, role_id)`
+
+Checks for a privilege on a resource based on its kind, resource ID, and an optional role ID. Returns a boolean.
+
 #### `get_resource(kind, resource_id)`
 
 Gets a resource based on its kind and ID. Resource is json data that contains metadata about the resource.
