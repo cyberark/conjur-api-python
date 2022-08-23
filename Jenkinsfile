@@ -38,6 +38,7 @@ pipeline {
             classCoverageTargets: '80, 80, 80',
             fileCoverageTargets: '80, 80, 80',
         )
+        ccCoverage("coverage.py")
         }
       }
     }
