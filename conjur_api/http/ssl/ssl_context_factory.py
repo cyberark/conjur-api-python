@@ -8,9 +8,9 @@ This module job is to encapsulate the creation of SSLContext in the dependent of
 # Builtin
 import logging
 import ssl
-import subprocess
-import platform
 from functools import lru_cache
+# nosec
+import subprocess
 
 # Internals
 from conjur_api.models import SslVerificationMetadata, SslVerificationMode
@@ -24,21 +24,16 @@ def create_ssl_context(ssl_verification_metadata: SslVerificationMetadata) -> ss
     """
     Factory method to create SSLContext loaded with system RootCA's
     @return: SSLContext configured with the system certificates
+    and/or the cert_file
     """
-    os_name = platform.system()
+    os_type = get_current_os()
 
     if ssl_verification_metadata.mode == SslVerificationMode.TRUST_STORE:
-        logging.debug("Creating SSLContext from OS TrustStore for '%s'", os_name)
-
-        current_os = get_current_os()
-        if current_os == OSTypes.MAC_OS:
-            ssl_context = ssl.create_default_context(cadata=_get_mac_ca_certs())
-        elif current_os in (OSTypes.LINUX, OSTypes.WINDOWS):
-            ssl_context = ssl.create_default_context()
-        else:
-            raise UnknownOSError(f"Cannot find CA certificates for OS '{os_name}'")
+        logging.debug("Creating SSLContext from OS TrustStore for '%s'", os_type)
+        ssl_context = _create_ssl_context(os_type)
     else:
         ssl_context = ssl.create_default_context(cafile=ssl_verification_metadata.ca_cert_path)
+        _append_system_certs(ssl_context, os_type)
 
     ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
     # pylint: disable=no-member
@@ -49,11 +44,39 @@ def create_ssl_context(ssl_verification_metadata: SslVerificationMetadata) -> ss
     return ssl_context
 
 
+def _append_system_certs(ssl_context, os_type):
+    """
+    Append system root CAs to the SSL context.
+    """
+    if os_type in (OSTypes.LINUX, OSTypes.WINDOWS):
+        ssl_context.load_default_certs()
+    elif os_type == OSTypes.MAC_OS:
+        ssl_context.load_verify_locations(cadata=_get_mac_ca_certs())
+
+
+def _create_ssl_context(os_type) -> ssl.SSLContext:
+    """
+    Create new SSLContext object based on the OS.
+        MacOS uses the System Root keychain.
+        Linux/Windows use the OpenSSL truststore.
+    @return: SSLContext configured with certificates
+    from the system truststore.
+    """
+    if os_type == OSTypes.MAC_OS:
+        return ssl.create_default_context(cadata=_get_mac_ca_certs())
+    if os_type in (OSTypes.LINUX, OSTypes.WINDOWS):
+        return ssl.create_default_context()
+
+    raise UnknownOSError(f"Cannot find CA certificates for OS '{os_type}'")
+
+
 @lru_cache
 def _get_mac_ca_certs() -> str:
-    """ Get Root CAs from mac Keychain. """
-    logging.debug("Get CA certs from mac keychain")
-
+    """
+    Get Root CAs from Mac Keychain.
+    @return: String containing trusted root CAs from the keychain.
+    """
+    logging.debug("Get CA certs from Mac keychain")
     try:
         get_ca_certs_process = subprocess.run(
             ["security", "find-certificate", "-a", "-p", "/System/Library/Keychains/SystemRootCertificates.keychain"],

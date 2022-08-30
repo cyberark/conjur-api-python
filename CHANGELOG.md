@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [8.0.0] - 2022-05-25
 
 ### Added
+
 - Add support for Role Memberships endpoint
   [conjur-api-python#30](https://github.com/cyberark/conjur-api-python/pull/33)
 - Add support for Check Privilege endpoint
@@ -25,6 +26,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   [conjur-api-python#22](https://github.com/cyberark/conjur-api-python/pull/22)
 
 ### Changed
+
+- Include system truststore certs even if cert_file config is present
+  [conjur-api-python#37](https://github.com/cyberark/conjur-api-python/pull/37)
 - Abstract authentication flow into new `AuthenticationStrategyInterface`
   [conjur-api-python#20](https://github.com/cyberark/conjur-api-python/pull/20)
 - Store API key in `CreditentialsData` object
