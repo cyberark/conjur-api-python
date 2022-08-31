@@ -40,4 +40,3 @@ class ConjurEndpoint(Enum):
     RESOURCES_PERMITTED_ROLES =\
         "{url}/resources/{account}/{kind}/{identifier}?permitted_roles=true&privilege={privilege}"
     AUTHENTICATOR = "{url}/{authenticator_id}/{account}"
-    AUTHENTICATOR = "{url}/{authenticator_id}/{account}"
