@@ -14,14 +14,15 @@ import time
 from enum import Enum
 from typing import Union
 from urllib.parse import quote
-from aiohttp import BasicAuth, ClientError, ClientResponseError, ClientSSLError, ClientSession
+
 import async_timeout
 import urllib3
+from aiohttp import BasicAuth, ClientError, ClientResponseError, ClientSSLError, ClientSession
 
-from conjur_api.http.ssl import ssl_context_factory
-from conjur_api.models import SslVerificationMetadata, SslVerificationMode
 from conjur_api.errors.errors import CertificateHostnameMismatchException, HttpSslError, HttpError, HttpStatusError
 from conjur_api.http.endpoints import ConjurEndpoint
+from conjur_api.http.ssl import ssl_context_factory
+from conjur_api.models import SslVerificationMetadata, SslVerificationMode
 from conjur_api.wrappers.http_response import HttpResponse
 
 REQUEST_TIMEOUT_SECONDS = 10

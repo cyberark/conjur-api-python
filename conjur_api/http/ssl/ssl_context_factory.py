@@ -55,12 +55,18 @@ def _get_mac_ca_certs() -> str:
     logging.debug("Get CA certs from mac keychain")
 
     try:
-        get_ca_certs_process = subprocess.run(
+        get_root_ca_certs_process = subprocess.run(
             ["security", "find-certificate", "-a", "-p", "/System/Library/Keychains/SystemRootCertificates.keychain"],
             capture_output=True,
             timeout=10,
             check=True,
             text=True)
-        return get_ca_certs_process.stdout
+        get_system_ca_certs_process = subprocess.run(
+            ["security", "find-certificate", "-a", "-p", "/Library/Keychains/System.keychain"],
+            capture_output=True,
+            timeout=10,
+            check=True,
+            text=True)
+        return get_root_ca_certs_process.stdout + get_system_ca_certs_process.stdout
     except Exception as ex:
         raise MacCertificatesError() from ex

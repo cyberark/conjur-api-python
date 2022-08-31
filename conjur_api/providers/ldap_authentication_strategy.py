@@ -20,6 +20,7 @@ class LdapAuthenticationStrategy(AuthnAuthenticationStrategy):
     which is included in the authentication request url.
     """
 
+    # pylint: disable=duplicate-code
     async def _send_login_request(self, ssl_verification_data, connection_info, creds):
         self._validate_service_id_exists(connection_info)
 
@@ -29,7 +30,6 @@ class LdapAuthenticationStrategy(AuthnAuthenticationStrategy):
             'account': connection_info.conjur_account,
         }
 
-        # pylint: disable=duplicate-code
         response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.LOGIN_LDAP,
                                          params, auth=(creds.username, creds.password),
                                          ssl_verification_metadata=ssl_verification_data)

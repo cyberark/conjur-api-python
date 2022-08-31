@@ -13,11 +13,15 @@ class CredentialsData:
     Used for setting user input data to login to Conjur
     """
 
-    def __init__(self, machine: str = None, username: str = None, password: str = None, api_key: str = None):
+    # pylint: disable=too-many-arguments
+    def __init__(self, machine: str = None, username: str = None, password: str = None, api_key: str = None,
+                 api_token: str = None, api_token_expiration: str = None):
         self.machine = machine
         self.username = username
         self.password = password
         self.api_key = api_key
+        self.api_token = api_token
+        self.api_token_expiration = api_token_expiration
 
     @classmethod
     def convert_dict_to_obj(cls, dic: dict):
