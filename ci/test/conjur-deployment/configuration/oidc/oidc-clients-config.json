@@ -1,0 +1,9 @@
+[
+  {
+    "ClientId": "client-credentials-mock-client",
+    "ClientSecrets": ["client-credentials-mock-client-secret"],
+    "Description": "Client for client credentials flow",
+    "AllowedGrantTypes": ["password"],
+    "AllowedScopes": ["openid", "profile"]
+  }
+]
