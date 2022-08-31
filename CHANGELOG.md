@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- Supplying api token manually is now supported
+- Add support for OIDC authentication
+- Add support for enabling and disabling of an authenticator
+- Add support for creating hosts using host factory with provided annotations
+- The `get_server_info` method is now available in SDK. It is only supported against Conjur enterprise server
+
 ## [8.0.0] - 2022-05-25
 
 ### Added
