@@ -1,11 +1,14 @@
 import datetime
 import os
+import ssl
 
 from aiounittest import AsyncTestCase
+from unittest.mock import patch
 
 from conjur_api import Client
-from conjur_api.models import  SslVerificationMode, ConjurConnectionInfo, CredentialsData
+from conjur_api.models import  SslVerificationMode, SslVerificationMetadata, ConjurConnectionInfo, CredentialsData
 from conjur_api.providers import AuthnAuthenticationStrategy, LdapAuthenticationStrategy, SimpleCredentialsProvider
+from conjur_api.http.ssl import ssl_context_factory
 
 
 class TestIntegrationVanila(AsyncTestCase):
@@ -40,7 +43,7 @@ class TestIntegrationVanila(AsyncTestCase):
         """
         conjur_url = "https://conjur-https"
         username = "alice"
-        password = "alice"
+        password = "alice"  # nosec
         account = "dev"
         ldap_service_id = "test-service"
         conjur_data = ConjurConnectionInfo(
@@ -56,3 +59,18 @@ class TestIntegrationVanila(AsyncTestCase):
                    ssl_verification_mode=SslVerificationMode.INSECURE)
         resources = await c.list()
         self.assertEqual(len(resources), 2)
+
+    @patch('ssl.SSLContext.load_verify_locations')
+    async def test_integration_truststore(self, mock_load_verify_locations):
+        """
+        This is a simple happy path test making sure the SSL context with a
+        CA pem file provided also contains system CA's
+        """
+        ssl_metadata = SslVerificationMetadata(
+            SslVerificationMode.CA_BUNDLE,
+            ca_cert_path='/some/path.pem'
+            )
+        ssl_context = ssl_context_factory.create_ssl_context(ssl_metadata)
+        ssl_context_default = ssl.create_default_context()
+
+        self.assertTrue(ssl_context.cert_store_stats().get('x509_ca') >= ssl_context_default.cert_store_stats().get('x509_ca'))

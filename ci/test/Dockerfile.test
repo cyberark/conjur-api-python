@@ -33,3 +33,6 @@ RUN curl -L -s https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-ins
     && pip install -r requirements.txt
 
 COPY . $INSTALL_DIR
+
+# Create a truststore in the default OpenSSL dir
+COPY ./ci/test/truststore.pem  /usr/lib/ssl/cert.pem
