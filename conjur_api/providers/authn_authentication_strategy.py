@@ -110,70 +110,7 @@ class AuthnAuthenticationStrategy(AuthenticationStrategyInterface):
     @staticmethod
     def _is_authenticated(creds) -> bool:
         if creds.api_token and creds.api_token_expiration:
-            return creds.api_token_expiration > datetime.now()
-        return False
-
-    @staticmethod
-    # pylint: disable=bare-except
-    def _calculate_token_expiration(api_token: str) -> datetime:
-        # Attempt to get the expiration from the token. If failing then the default expiration will be used
-        try:
-            # The token is in JSON format. Each field in the token is base64 encoded.
-            # So we decode the payload filed and then extract the expiration date from it
-            decoded_token_payload = base64.b64decode(json.loads(api_token)['payload'].encode('ascii'))
-            token_expiration = json.loads(decoded_token_payload)['exp']
-            return datetime.fromtimestamp(token_expiration) - timedelta(minutes=API_TOKEN_SAFETY_BUFFER)
-        except:
-            # If we can't extract the expiration from the token because we work with an older version
-            # of Conjur, then we use the default expiration
-            return datetime.now() + timedelta(minutes=DEFAULT_API_TOKEN_DURATION)
-
-    @staticmethod
-    def _is_authenticated(creds) -> bool:
-        if creds.api_token and creds.api_token_expiration:
-            return creds.api_token_expiration > datetime.now()
-        return False
-
-    @staticmethod
-    # pylint: disable=bare-except
-    def _calculate_token_expiration(api_token: str) -> datetime:
-        # Attempt to get the expiration from the token. If failing then the default expiration will be used
-        try:
-            # The token is in JSON format. Each field in the token is base64 encoded.
-            # So we decode the payload filed and then extract the expiration date from it
-            decoded_token_payload = base64.b64decode(json.loads(api_token)['payload'].encode('ascii'))
-            token_expiration = json.loads(decoded_token_payload)['exp']
-            return datetime.fromtimestamp(token_expiration) - timedelta(minutes=API_TOKEN_SAFETY_BUFFER)
-        except:
-            # If we can't extract the expiration from the token because we work with an older version
-            # of Conjur, then we use the default expiration
-            return datetime.now() + timedelta(minutes=DEFAULT_API_TOKEN_DURATION)
-
-    @staticmethod
-    def _is_authenticated(creds) -> bool:
-        if creds.api_token and creds.api_token_expiration:
-            return creds.api_token_expiration > datetime.now()
-        return False
-
-    @staticmethod
-    # pylint: disable=bare-except
-    def _calculate_token_expiration(api_token: str) -> datetime:
-        # Attempt to get the expiration from the token. If failing then the default expiration will be used
-        try:
-            # The token is in JSON format. Each field in the token is base64 encoded.
-            # So we decode the payload filed and then extract the expiration date from it
-            decoded_token_payload = base64.b64decode(json.loads(api_token)['payload'].encode('ascii'))
-            token_expiration = json.loads(decoded_token_payload)['exp']
-            return datetime.fromtimestamp(token_expiration) - timedelta(minutes=API_TOKEN_SAFETY_BUFFER)
-        except:
-            # If we can't extract the expiration from the token because we work with an older version
-            # of Conjur, then we use the default expiration
-            return datetime.now() + timedelta(minutes=DEFAULT_API_TOKEN_DURATION)
-
-    @staticmethod
-    def _is_authenticated(creds) -> bool:
-        if creds.api_token and creds.api_token_expiration:
-            return creds.api_token_expiration > datetime.now()
+            return datetime.strptime(creds.api_token_expiration, "%Y-%m-%d %H:%M:%S") > datetime.now()
         return False
 
     @staticmethod
