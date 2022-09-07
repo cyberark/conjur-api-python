@@ -10,6 +10,7 @@ the Conjur server
 # Builtins
 import json
 import logging
+from datetime import datetime
 from typing import Optional
 
 from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException, HttpStatusError
@@ -91,7 +92,7 @@ class Client:
         """
         return await self._api.login()
 
-    async def authenticate(self) -> str:
+    async def authenticate(self) -> tuple[str, datetime]:
         """
         Authenticate to conjur using credentials provided to credentials provider
         @return: API token

@@ -59,12 +59,16 @@ class AuthnAuthenticationStrategy(AuthenticationStrategyInterface):
 
         # If the credential provider already has a valid API token, return it
         if self._is_authenticated(creds):
-            return str(creds.api_token), cast(datetime, creds.api_token_expiration)
+            return str(creds.api_token), self._str_to_datetime(creds.api_token_expiration)
 
         await self._ensure_logged_in(connection_info, ssl_verification_data, creds)
         api_token = await self._send_authenticate_request(ssl_verification_data, connection_info, creds)
 
         return api_token, self._calculate_token_expiration(api_token)
+
+    @staticmethod
+    def _str_to_datetime(api_token_expiration: str):
+        return datetime.strptime(api_token_expiration, "%Y-%m-%d %H:%M:%S")
 
     def _retrieve_credential_data(self, url: str) -> CredentialsData:
         credential_location = self._credentials_provider.get_store_location()
@@ -110,7 +114,7 @@ class AuthnAuthenticationStrategy(AuthenticationStrategyInterface):
     @staticmethod
     def _is_authenticated(creds) -> bool:
         if creds.api_token and creds.api_token_expiration:
-            return datetime.strptime(creds.api_token_expiration, "%Y-%m-%d %H:%M:%S") > datetime.now()
+            return AuthnAuthenticationStrategy._str_to_datetime(creds.api_token_expiration) > datetime.now()
         return False
 
     @staticmethod
