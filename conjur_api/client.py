@@ -18,7 +18,7 @@ from conjur_api.http.api import Api
 from conjur_api.interface.authentication_strategy_interface import AuthenticationStrategyInterface
 # Internals
 from conjur_api.models import SslVerificationMode, CreateHostData, CreateTokenData, ListMembersOfData, \
-    ListPermittedRolesData, ConjurConnectionInfo, Resource
+    ListPermittedRolesData, ConjurConnectionInfo, Resource, CredentialsData
 from conjur_api.utils.decorators import allow_sync_invocation
 
 LOGGING_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
@@ -92,12 +92,13 @@ class Client:
         """
         return await self._api.login()
 
-    async def authenticate(self) -> tuple[str, datetime]:
+    async def authenticate(self) -> tuple[str, str]:
         """
         Authenticate to conjur using credentials provided to credentials provider
         @return: API token
         """
-        return await self._api.authenticate()
+        token, expiration = await self._api.authenticate()
+        return token, CredentialsData.expiration_datetime_to_str(expiration)
 
     async def whoami(self) -> dict:
         """
