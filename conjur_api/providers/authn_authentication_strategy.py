@@ -7,7 +7,6 @@ import base64
 import json
 import logging
 from datetime import datetime, timedelta
-from typing import cast
 
 from conjur_api.errors.errors import MissingRequiredParameterException
 from conjur_api.http.endpoints import ConjurEndpoint
@@ -22,6 +21,7 @@ from conjur_api.wrappers.http_wrapper import HttpVerb, invoke_endpoint
 DEFAULT_TOKEN_EXPIRATION = 8
 API_TOKEN_SAFETY_BUFFER = 3
 DEFAULT_API_TOKEN_DURATION = DEFAULT_TOKEN_EXPIRATION - API_TOKEN_SAFETY_BUFFER
+
 
 class AuthnAuthenticationStrategy(AuthenticationStrategyInterface):
     """
@@ -59,16 +59,12 @@ class AuthnAuthenticationStrategy(AuthenticationStrategyInterface):
 
         # If the credential provider already has a valid API token, return it
         if self._is_authenticated(creds):
-            return str(creds.api_token), self._str_to_datetime(creds.api_token_expiration)
+            return str(creds.api_token), creds.api_token_expiration
 
         await self._ensure_logged_in(connection_info, ssl_verification_data, creds)
         api_token = await self._send_authenticate_request(ssl_verification_data, connection_info, creds)
 
         return api_token, self._calculate_token_expiration(api_token)
-
-    @staticmethod
-    def _str_to_datetime(api_token_expiration: str):
-        return datetime.strptime(api_token_expiration, "%Y-%m-%d %H:%M:%S")
 
     def _retrieve_credential_data(self, url: str) -> CredentialsData:
         credential_location = self._credentials_provider.get_store_location()
@@ -114,7 +110,7 @@ class AuthnAuthenticationStrategy(AuthenticationStrategyInterface):
     @staticmethod
     def _is_authenticated(creds) -> bool:
         if creds.api_token and creds.api_token_expiration:
-            return AuthnAuthenticationStrategy._str_to_datetime(creds.api_token_expiration) > datetime.now()
+            return creds.api_token_expiration > datetime.now()
         return False
 
     @staticmethod

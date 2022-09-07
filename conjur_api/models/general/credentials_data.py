@@ -8,6 +8,9 @@ This module represents the DTO that holds credential data
 
 
 # pylint: disable=too-few-public-methods
+from datetime import datetime
+
+
 class CredentialsData:
     """
     Used for setting user input data to login to Conjur
@@ -21,7 +24,7 @@ class CredentialsData:
         self.password = password
         self.api_key = api_key
         self.api_token = api_token
-        self.api_token_expiration = api_token_expiration
+        self.api_token_expiration = self._str_to_datetime(api_token_expiration)
 
     @classmethod
     def convert_dict_to_obj(cls, dic: dict):
@@ -40,3 +43,9 @@ class CredentialsData:
         """
         return self.machine == other.machine and self.username == other.username and self.password == \
                other.password and self.api_key == other.api_key
+
+    @staticmethod
+    def _str_to_datetime(api_token_expiration: str):
+        if api_token_expiration is None:
+            return None
+        return datetime.strptime(api_token_expiration, "%Y-%m-%d %H:%M:%S")
