@@ -46,10 +46,9 @@ class CredentialsData:
         return self.machine == other.machine and self.username == other.username and self.password == \
                other.password and self.api_key == other.api_key
 
-    @staticmethod
-    def expiration_str_to_datetime(api_token_expiration: str) -> datetime:
-        return datetime.strptime(api_token_expiration, EXPIRATION_FORMAT)
+    def api_token_expiration_datetime(self) -> datetime:
+        return datetime.strptime(self.api_token_expiration, EXPIRATION_FORMAT)
 
     @staticmethod
-    def expiration_datetime_to_str(api_token_expiration: datetime) -> str:
+    def convert_expiration_datetime_to_str(api_token_expiration: datetime) -> str:
         return api_token_expiration.strftime(EXPIRATION_FORMAT)

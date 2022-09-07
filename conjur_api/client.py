@@ -98,7 +98,7 @@ class Client:
         @return: API token
         """
         token, expiration = await self._api.authenticate()
-        return token, CredentialsData.expiration_datetime_to_str(expiration)
+        return token, CredentialsData.convert_expiration_datetime_to_str(expiration)
 
     async def whoami(self) -> dict:
         """
