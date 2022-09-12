@@ -33,9 +33,10 @@ services:
     command: server -a dev -f /policy/initial_policy.yml
     environment:
       CONJUR_DATA_KEY: 'OyXV68Mip14xj33huGaQKewmmS+gKtDlp6ECZ2iATpU='
+      CONJUR_ACCOUNT: dev
       DATABASE_URL: postgres://postgres@pg/postgres
       RAILS_ENV: development
-      CONJUR_AUTHENTICATORS: authn-ldap/test-service,authn
+      CONJUR_AUTHENTICATORS: authn-ldap/test-service,authn-oidc/test-service,authn
       LDAP_URI: ldap://ldap-server:389
       LDAP_BASE: dc=conjur,dc=net
       LDAP_BINDDN: cn=admin,dc=conjur,dc=net
@@ -45,9 +46,11 @@ services:
       - 80
     volumes:
       - ${PWD}/ci/test/conjur-deployment/configuration:/policy:ro
+      - ${PWD}/ci/test/conjur-deployment/configuration/oidc:/oidc:ro
     depends_on:
       - pg
       - ldap-server
+      - oidc-server
 
   conjur-https:
     image: nginx:alpine
@@ -89,6 +92,23 @@ services:
     volumes:
       - ${PWD}/ci/test/conjur-deployment/configuration/ldap:/container/service/slapd/assets/config/bootstrap/ldif/custom
       - ${PWD}/ci/test/conjur-deployment/configuration/ldap/certs:/container/service/slapd/assets/certs:ro
+
+  oidc-server:
+    image: ghcr.io/soluto/oidc-server-mock:0.7.0
+    hostname: oidc-server
+    environment:
+      ASPNETCORE_ENVIRONMENT: development
+      ASPNETCORE_URLS: https://+:443;http://+:80
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /oidc/certs/oidc-server.pfx
+      ASPNETCORE_Kestrel__Certificates__Default__Password: a123456
+      CLIENTS_CONFIGURATION_PATH: /oidc/oidc-clients-config.json
+      USERS_CONFIGURATION_PATH: /oidc/oidc-users-config.json
+      API_RESOURCES_PATH: /oidc/oidc-api-resources-config.yaml
+    ports:
+      - "9000:80"
+      - "9443:443"
+    volumes:
+      - ${PWD}/ci/test/conjur-deployment/configuration/oidc:/oidc:ro
 
   test:
     privileged: true

@@ -10,6 +10,12 @@ class EndpointsTest(unittest.TestCase):
                                                                  login='mylogin')
         self.assertEqual(auth_endpoint, 'http://host/authn/myacct/mylogin/authenticate')
 
+    def test_endpoint_has_correct_authenticate_with_oidc_template_string(self):
+        auth_endpoint = ConjurEndpoint.AUTHENTICATE_OIDC.value.format(url='http://host',
+                                                                      account='myacct',
+                                                                      service_id='myserviceid')
+        self.assertEqual(auth_endpoint, 'http://host/authn-oidc/myserviceid/myacct/authenticate')
+
     def test_endpoint_has_correct_info_template_string(self):
         info_endpoint = ConjurEndpoint.INFO.value.format(url='https://host')
         self.assertEqual(info_endpoint, 'https://host/info')
@@ -38,7 +44,7 @@ class EndpointsTest(unittest.TestCase):
 
     def test_endpoint_has_correct_resources_template_string(self):
         auth_endpoint = ConjurEndpoint.RESOURCES.value.format(url='http://host',
-                                                             account='myacct')
+                                                              account='myacct')
         self.assertEqual(auth_endpoint, 'http://host/resources/myacct')
 
     def test_endpoint_has_correct_resource_template_string(self):
@@ -50,8 +56,14 @@ class EndpointsTest(unittest.TestCase):
 
     def test_endpoint_has_correct_whoami_template_string(self):
         auth_endpoint = ConjurEndpoint.WHOAMI.value.format(url='http://host',
-                                                             account='myacct')
+                                                           account='myacct')
         self.assertEqual(auth_endpoint, 'http://host/whoami')
+
+    def test_endpoint_has_correct_authenticator_template_string(self):
+        auth_endpoint = ConjurEndpoint.AUTHENTICATOR.value.format(url='http://host',
+                                                                  account='myacct',
+                                                                  authenticator_id='authn-oidc/myserviceid')
+        self.assertEqual(auth_endpoint, 'http://host/authn-oidc/myserviceid/myacct')
 
     def test_endpoint_has_correct_role_template_string(self):
         endpoint = ConjurEndpoint.ROLE.value.format(url='http://host',

@@ -1,6 +1,12 @@
 - !variable one/password
 - !user alice
+- !user john.williams
+- !user test-valid-user
+- !user test-invalid-user
 
+- !policy
+  id: conjur
+  body: []
 - !policy
   id: conjur/authn-ldap/test-service
   body:
@@ -12,10 +18,53 @@
     role: !group users
     privilege: [ read, authenticate ]
     resource: !webservice
+- !policy
+  id: conjur/authn-gcp
+  body:
+    - !webservice
+
+    - !group clients
+
+    - !permit
+      role: !user /test-valid-user
+      privilege: [ update ]
+      resource: !webservice
+- !policy
+  id: conjur/authn-iam/test
+  body:
+    - !webservice
+
+    - !group clients
+
+    - !permit
+      role: !user /test-valid-user
+      privilege: [ update ]
+      resource: !webservice
+- !policy
+  id: conjur/authn-oidc/test-service
+  body:
+  - !webservice
+
+  - !webservice
+    id: status
+
+  - !variable provider-uri
+  - !variable id-token-user-property
+
+  - !group users
+
+  - !permit
+    role: !group users
+    privilege: [ read, authenticate ]
+    resource: !webservice
 
 - !grant
   role: !group conjur/authn-ldap/test-service/users
   member: !user alice
+
+- !grant
+  role: !group conjur/authn-oidc/test-service/users
+  member: !user john.williams
 
 - !permit
   role: !user alice

@@ -18,6 +18,7 @@ class ConjurEndpoint(Enum):
     """
     AUTHENTICATE = "{url}/authn/{account}/{login}/authenticate"
     AUTHENTICATE_LDAP = "{url}/authn-ldap/{service_id}/{account}/{login}/authenticate"
+    AUTHENTICATE_OIDC = "{url}/authn-oidc/{service_id}/{account}/authenticate"
     LOGIN = "{url}/authn/{account}/login"
     LOGIN_LDAP = "{url}/authn-ldap/{service_id}/{account}/login"
     INFO = "{url}/info"
@@ -38,3 +39,4 @@ class ConjurEndpoint(Enum):
     ROLES_MEMBERSHIPS = "{url}/roles/{account}/{kind}/{identifier}?{membership}"
     RESOURCES_PERMITTED_ROLES =\
         "{url}/resources/{account}/{kind}/{identifier}?permitted_roles=true&privilege={privilege}"
+    AUTHENTICATOR = "{url}/{authenticator_id}/{account}"

@@ -11,14 +11,13 @@ the Conjur server
 import json
 import logging
 from typing import Optional
-from conjur_api.interface.authentication_strategy_interface import AuthenticationStrategyInterface
-
-# Internals
-from conjur_api.models import SslVerificationMode, CreateHostData, CreateTokenData, ListMembersOfData, \
-    ListPermittedRolesData, ConjurConnectionInfo, Resource
 
 from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException, HttpStatusError
 from conjur_api.http.api import Api
+from conjur_api.interface.authentication_strategy_interface import AuthenticationStrategyInterface
+# Internals
+from conjur_api.models import SslVerificationMode, CreateHostData, CreateTokenData, ListMembersOfData, \
+    ListPermittedRolesData, ConjurConnectionInfo, Resource, CredentialsData
 from conjur_api.utils.decorators import allow_sync_invocation
 
 LOGGING_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
@@ -91,6 +90,14 @@ class Client:
         @return: API key
         """
         return await self._api.login()
+
+    async def authenticate(self) -> tuple[str, str]:
+        """
+        Authenticate to conjur using credentials provided to credentials provider
+        @return: API token
+        """
+        token, expiration = await self._api.authenticate()
+        return token, CredentialsData.convert_expiration_datetime_to_str(expiration)
 
     async def whoami(self) -> dict:
         """
@@ -222,6 +229,15 @@ class Client:
         Rotates personal API keys and returns new API key
         """
         return await self._api.rotate_personal_api_key(logged_in_user, current_password)
+
+    async def set_authenticator_state(self, authenticator_id: str, enabled: bool) -> str:
+        """
+        Sets the authenticator state
+        @note: This endpoint is part of an early implementation of support for enabling Conjur authenticators via the
+               API, and is currently available at the Community (or early alpha) level. This endpoint is still subject
+               to breaking changes in the future.
+        """
+        return await self._api.set_authenticator_state(authenticator_id, enabled)
 
     async def get_server_info(self):
         """
