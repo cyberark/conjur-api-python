@@ -99,7 +99,7 @@ To perform manual tests, run:
 ```
 ./ci/test/test_integration -e ubuntu -d
 ```
-This create sa Conjur environment with an Ubuntu container running in interactive mode.
+This creates a Conjur environment with an Ubuntu container running in interactive mode.
 You can now run Python and manually test the SDK.
 
 The connection parameters to Conjur are:
