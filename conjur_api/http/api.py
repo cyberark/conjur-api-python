@@ -7,19 +7,20 @@ Provides high-level interface for programmatic API interactions
 """
 # Builtins
 import logging
+from datetime import datetime
 from typing import Optional
-from datetime import datetime, timedelta
 from urllib import parse
 
+from conjur_api.errors.errors import HttpStatusError, InvalidResourceException, MissingRequiredParameterException
 # Internals
+from conjur_api.errors.errors import MissingApiTokenException
 from conjur_api.http.endpoints import ConjurEndpoint
 from conjur_api.interface.authentication_strategy_interface import AuthenticationStrategyInterface
-from conjur_api.wrappers.http_response import HttpResponse
-from conjur_api.wrappers.http_wrapper import HttpVerb, invoke_endpoint
-from conjur_api.errors.errors import HttpStatusError, InvalidResourceException, MissingRequiredParameterException
 # pylint: disable=too-many-instance-attributes
 from conjur_api.models import Resource, ConjurConnectionInfo, ListPermittedRolesData, \
     ListMembersOfData, CreateHostData, CreateTokenData, SslVerificationMetadata, SslVerificationMode
+from conjur_api.wrappers.http_response import HttpResponse
+from conjur_api.wrappers.http_wrapper import HttpVerb, invoke_endpoint
 
 
 # pylint: disable=unspecified-encoding,too-many-public-methods
@@ -28,11 +29,9 @@ class Api:
     This module provides a high-level programmatic access to the HTTP API
     when all the needed arguments and parameters are well-known
     """
-    # Tokens should only be reused for 5 minutes (max lifetime is 8 minutes)
-    API_TOKEN_DURATION = 5
 
     KIND_VARIABLE = 'variable'
-    KIND_HOSTFACTORY = 'host_factory'
+    KIND_HOST_FACTORY = 'host_factory'
     ID_FORMAT = '{account}:{kind}:{id}'
     ID_RETURN_PREFIX = '{account}:{kind}:'
 
@@ -57,7 +56,7 @@ class Api:
         self.authn_strategy: AuthenticationStrategyInterface = authn_strategy
         self.debug = debug
         self.http_debug = http_debug
-        self.api_token_expiration = None
+        self.api_token_expiration = datetime.now()
         self._login_id = None
 
         self._default_params = {  # TODO remove, pass to invoke endpoint ConjurConnectionInfo
@@ -78,16 +77,14 @@ class Api:
         return self._connection_info.conjur_url
 
     @property
-    # pylint: disable=missing-docstring
+    # pylint: disable=missing-docstring,bare-except
     async def api_token(self) -> str:
         """
         @return: Conjur api_token
         """
         if not self._api_token or datetime.now() > self.api_token_expiration:
             logging.debug("API token missing or expired. Fetching new one...")
-            self.api_token_expiration = datetime.now() + timedelta(minutes=self.API_TOKEN_DURATION)
-            self._api_token = await self.authenticate()
-
+            self._api_token, self.api_token_expiration = await self.authenticate()
             return self._api_token
 
         logging.debug("Using cached API token...")
@@ -96,21 +93,19 @@ class Api:
     async def login(self) -> str:
         """
         This method uses the basic auth login id (username) and password
-        to retrieve an conjur_api key from the server that can be later used to
+        to retrieve a conjur_api key from the server that can be later used to
         retrieve short-lived conjur_api tokens.
         """
-
         if hasattr(self.authn_strategy, 'login') and callable(self.authn_strategy.login):
             return await self.authn_strategy.login(
                 self._connection_info,
                 self.ssl_verification_data
             )
 
-    async def authenticate(self) -> str:
+    async def authenticate(self) -> tuple[str, datetime]:
         """
-        Authenticate uses the api_key to fetch a short-lived conjur_api token that
-        for a limited time will allow you to interact fully with the Conjur
-        vault.
+        Authenticate based on the chosen strategy to fetch a short-lived conjur_api token that
+        for a limited time will allow you to interact fully with the Conjur vault.
         """
         return await self.authn_strategy.authenticate(
             self._connection_info,
@@ -130,16 +125,20 @@ class Api:
         # Remove 'inspect' from query as it is client-side param that shouldn't get to the server.
         inspect = list_constraints.pop('inspect', None) if list_constraints else None
 
+        api_token = await self.api_token
+        if api_token is None:
+            raise MissingApiTokenException()
+
         if list_constraints is not None:
             response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.RESOURCES,
                                              params,
                                              query=list_constraints,
-                                             api_token=await self.api_token,
+                                             api_token=api_token,
                                              ssl_verification_metadata=self.ssl_verification_data)
         else:
             response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.RESOURCES,
                                              params,
-                                             api_token=await self.api_token,
+                                             api_token=api_token,
                                              ssl_verification_metadata=self.ssl_verification_data)
 
         resources = response.json
@@ -324,14 +323,18 @@ class Api:
                 'version': version
             }
 
+        api_token = await self.api_token
+        if api_token is None:
+            raise MissingApiTokenException()
+
         # pylint: disable=no-else-return
         if version is not None:
             response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.SECRETS, params,
-                                             api_token=await self.api_token, query=query_params,
+                                             api_token=api_token, query=query_params,
                                              ssl_verification_metadata=self.ssl_verification_data)
         else:
             response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.SECRETS, params,
-                                             api_token=await self.api_token,
+                                             api_token=api_token,
                                              ssl_verification_metadata=self.ssl_verification_data)
         return response.content
 
@@ -351,9 +354,13 @@ class Api:
             'variable_ids': ','.join(full_variable_ids),
         }
 
+        api_token = await self.api_token
+        if api_token is None:
+            raise MissingApiTokenException()
+
         response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.BATCH_SECRETS,
                                          self._default_params,
-                                         api_token=await self.api_token,
+                                         api_token=api_token,
                                          ssl_verification_metadata=self.ssl_verification_data,
                                          query=query_params,
                                          )
@@ -378,7 +385,7 @@ class Api:
             raise MissingRequiredParameterException('create_token_data is empty')
 
         create_token_data.host_factory = self.ID_FORMAT.format(account=self._account,
-                                                               kind=self.KIND_HOSTFACTORY,
+                                                               kind=self.KIND_HOST_FACTORY,
                                                                id=create_token_data.host_factory)
 
         # parse.urlencode, If any values in the query arg are sequences and doseq is true, each
@@ -389,11 +396,16 @@ class Api:
 
         params = {}
         params.update(self._default_params)
+
+        api_token = await self.api_token
+        if api_token is None:
+            raise MissingApiTokenException()
+
         return await invoke_endpoint(HttpVerb.POST,
                                      ConjurEndpoint.HOST_FACTORY_TOKENS,
                                      params,
                                      create_token_data,
-                                     api_token=await self.api_token,
+                                     api_token=api_token,
                                      ssl_verification_metadata=self.ssl_verification_data,
                                      headers={'Content-Type': 'application/x-www-form-urlencoded'})
 
@@ -403,7 +415,7 @@ class Api:
         """
         if create_host_data is None:
             raise MissingRequiredParameterException('create_host_data is empty')
-        request_body_parameters = parse.urlencode(create_host_data.get_host_id())
+        request_body_parameters = parse.urlencode(create_host_data.get_host_id() | create_host_data.get_annotations())
         params = {}
         params.update(self._default_params)
         return await invoke_endpoint(HttpVerb.POST,
@@ -429,10 +441,14 @@ class Api:
         # get formatted in the url in invoke_endpoint
         params['token'] = token
 
+        api_token = await self.api_token
+        if api_token is None:
+            raise MissingApiTokenException()
+
         return await invoke_endpoint(HttpVerb.DELETE,
                                      ConjurEndpoint.HOST_FACTORY_REVOKE_TOKEN,
                                      params,
-                                     api_token=await self.api_token,
+                                     api_token=api_token,
                                      ssl_verification_metadata=self.ssl_verification_data)
 
     async def set_variable(self, variable_id: str, value: str) -> str:
@@ -445,8 +461,13 @@ class Api:
             'identifier': variable_id,
         }
         params.update(self._default_params)
+
+        api_token = await self.api_token
+        if api_token is None:
+            raise MissingApiTokenException()
+
         response = await invoke_endpoint(HttpVerb.POST, ConjurEndpoint.SECRETS, params,
-                                         value, api_token=await self.api_token,
+                                         value, api_token=api_token,
                                          ssl_verification_metadata=self.ssl_verification_data)
         return response.text
 
@@ -465,8 +486,12 @@ class Api:
         with open(policy_file, 'r') as content_file:
             policy_data = content_file.read()
 
+        api_token = await self.api_token
+        if api_token is None:
+            raise MissingApiTokenException()
+
         response = await invoke_endpoint(http_verb, ConjurEndpoint.POLICIES, params,
-                                         policy_data, api_token=await self.api_token,
+                                         policy_data, api_token=api_token,
                                          ssl_verification_metadata=self.ssl_verification_data)
         return response.json
 
@@ -503,9 +528,14 @@ class Api:
         query_params = {
             'role': resource.full_id()
         }
+
+        api_token = await self.api_token
+        if api_token is None:
+            raise MissingApiTokenException()
+
         response = await invoke_endpoint(HttpVerb.PUT, ConjurEndpoint.ROTATE_API_KEY,
                                          self._default_params,
-                                         api_token=await self.api_token,
+                                         api_token=api_token,
                                          ssl_verification_metadata=self.ssl_verification_data,
                                          query=query_params)
         return response.text
@@ -520,6 +550,26 @@ class Api:
                                          self._default_params,
                                          auth=(logged_in_user, current_password),
                                          ssl_verification_metadata=self.ssl_verification_data)
+        return response.text
+
+    async def set_authenticator_state(self, authenticator_id: str, enabled: bool) -> str:
+        """
+        This method sets the state of a given authenticator
+        """
+
+        params = {
+            'authenticator_id': authenticator_id
+        }
+        params.update(self._default_params)
+
+        body = f'enabled={str(enabled).lower()}'
+
+        api_token = await self.api_token
+        if api_token is None:
+            raise MissingApiTokenException()
+
+        response = await invoke_endpoint(HttpVerb.PATCH, ConjurEndpoint.AUTHENTICATOR, params, body,
+                                         api_token=api_token, ssl_verification_metadata=self.ssl_verification_data)
         return response.text
 
     async def change_personal_password(
@@ -553,9 +603,13 @@ class Api:
         """
         This method provides dictionary of information about the user making an API request.
         """
+        api_token = await self.api_token
+        if api_token is None:
+            raise MissingApiTokenException()
+
         response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.WHOAMI,
                                          self._default_params,
-                                         api_token=await self.api_token,
+                                         api_token=api_token,
                                          ssl_verification_metadata=self.ssl_verification_data)
 
         return response.json
@@ -584,11 +638,15 @@ class Api:
         # Remove 'inspect' from query as it is client-side param that shouldn't get to the server.
         inspect = request_parameters.pop('inspect', None) if request_parameters else None
 
+        api_token = await self.api_token
+        if api_token is None:
+            raise MissingApiTokenException()
+
         response = await invoke_endpoint(HttpVerb.GET,
                                          ConjurEndpoint.ROLES_MEMBERS_OF,
                                          params,
+                                         api_token=api_token,
                                          query=request_parameters,
-                                         api_token=await self.api_token,
                                          ssl_verification_metadata=self.ssl_verification_data)
 
         resources = response.json
@@ -620,10 +678,14 @@ class Api:
         }
         params.update(self._default_params)
 
+        api_token = await self.api_token
+        if api_token is None:
+            raise MissingApiTokenException()
+
         response = await invoke_endpoint(HttpVerb.GET,
                                          ConjurEndpoint.RESOURCES_PERMITTED_ROLES,
                                          params,
-                                         api_token=await self.api_token,
+                                         api_token=api_token,
                                          ssl_verification_metadata=self.ssl_verification_data)
 
         return response.json

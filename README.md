@@ -113,13 +113,15 @@ We provide the `AuthnAuthenticationStrategy` for the default Conjur authenticato
 authn_provider = AuthnAuthenticationStrategy(credentials_provider)
 ```
 
-We also provide the `LdapAuthenticationStrategy` for the ldap authenticator. Example use:
+We also provide the `LdapAuthenticationStrategy` for the ldap authenticator, and `OidcAuthenticationStrategy` for the OIDC authenticator.
+Example use:
 
 ```python
 authn_provider = LdapAuthenticationStrategy(credentials_provider)
+authn_provider = OidcAuthenticationStrategy(credentials_provider)
 ```
 
-When using the `LdapAuthenticationStrategy` make sure `connection_info` has a `service_id` specified.
+When using these strategies, make sure `connection_info` has a `service_id` specified.
 
 #### Creating the client and use it
 
@@ -261,6 +263,19 @@ _Note: This method requires Conjur v1.9+_
 
 Returns a Python dictionary of information about the client making an API request (such as its IP address, user,
 account, token expiration date, etc).
+
+#### `set_authenticator_state(authenticator_id, enabled)`
+
+Allows enabling and disabling an authenticator.  
+
+_Note: This functionality relies on an endpoint in Conjur which is part of an early implementation of support for
+enabling Conjur authenticators via the API, and is currently available at the Community (or early alpha) level. This
+endpoint is still subject to breaking changes in the future._ 
+
+#### `authenticate()`
+
+Performs an authentication with Conjur, based on the authentication strategy and credentials provider there were given to the client.
+This method is not required, it will also be done implicitly and automatically when session with Conjur needs to be refreshed.
 
 ## Contributing
 

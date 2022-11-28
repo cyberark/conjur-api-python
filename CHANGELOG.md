@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## [8.0.0] - 2022-05-25
+## [8.0.0] - 2022-09-08
 
 ### Added
 
@@ -24,6 +24,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   [conjur-api-python#32](https://github.com/cyberark/conjur-api-python/pull/32)
 - Add support for LDAP authentication
   [conjur-api-python#22](https://github.com/cyberark/conjur-api-python/pull/22)
+- Supplying api token manually is now supported
+  [conjur-api-python#19](https://github.com/cyberark/conjur-api-python/pull/19)
+- Add support for OIDC authentication
+  [conjur-api-python#19](https://github.com/cyberark/conjur-api-python/pull/19)
+- Add support for enabling and disabling of an authenticator
+  [conjur-api-python#19](https://github.com/cyberark/conjur-api-python/pull/19)
+- Add support for creating hosts using host factory with provided annotations
+  [conjur-api-python#19](https://github.com/cyberark/conjur-api-python/pull/19)
+- The `get_server_info` method is now available in SDK. It is only supported against Conjur enterprise server
+  [conjur-api-python#19](https://github.com/cyberark/conjur-api-python/pull/19)
 
 ### Changed
 

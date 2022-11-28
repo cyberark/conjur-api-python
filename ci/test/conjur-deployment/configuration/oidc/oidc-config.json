@@ -1,0 +1,23 @@
+{
+  "idp_name": "http://simple-oidc-provider",
+  "port": 9000,
+  "client_config": [
+    {
+      "client_id": "foo",
+      "client_secret": "bar",
+      "grant_types": ["client_credentials", "implicit"],
+      "response_types": ["id_token"],
+      "redirect_uris": ["https://localhost:9055/callback"]
+    }
+  ],
+  "claim_mapping": {
+    "openid": [ "sub" ],
+    "email": [ "email", "email_verified" ],
+    "profile": [ "name", "nickname" ]
+  },
+  "features": {
+    "clientCredentials": {
+      "enabled": true
+    }
+  }
+}

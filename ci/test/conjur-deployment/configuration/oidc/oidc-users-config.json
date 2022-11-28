@@ -1,0 +1,17 @@
+[
+  {
+    "SubjectId":"john.williams",
+    "Username":"john.williams",
+    "Password":"pwd",
+    "Claims": [
+      {
+        "Type": "name",
+        "Value": "John Williams"
+      },
+      {
+        "Type": "email",
+        "Value": "john.williams@domain.com"
+      }
+    ]
+  }
+]

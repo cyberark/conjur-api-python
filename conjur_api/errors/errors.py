@@ -57,6 +57,14 @@ class MissingRequiredParameterException(Exception):
         super().__init__(self.message)
 
 
+class MissingApiTokenException(Exception):
+    """ Exception when user tries to authenticate with token but it is missing or expired """
+
+    def __init__(self, message: str = "API token missing or expired. Please provide a valid one."):
+        self.message = message
+        super().__init__(self.message)
+
+
 class InvalidResourceException(Exception):
     """ Exception when user inputted an invalid resource type """
 
