@@ -33,5 +33,5 @@ docker run --rm \
                /usr/bin/env twine check dist/*
 
                echo 'Publishing package to \$TWINE_REPOSITORY_URL using account '\$TWINE_USERNAME'...'
-               /usr/bin/env twine upload --repository $TWINE_REPOSITORY_URL dist/*
+               /usr/bin/env twine upload --skip-existing --repository $TWINE_REPOSITORY_URL dist/*
            "
