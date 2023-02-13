@@ -1,7 +1,5 @@
 #!/bin/bash -e
 
-cd "$(dirname "$0")"
-
 main() {
   if [ -z "$1" ]; then
     echo "No version argument supplied"
@@ -9,7 +7,7 @@ main() {
   else
     version="$1"
     echo "Updating module to version $version"
-    update_version "../../conjur_api/__init__.py" "s/__version__ =.+/__version__ = \"$version\"/"
+    update_version "./conjur_api/__init__.py" "s/__version__ =.+/__version__ = \"$version\"/"
   fi
 }
 
@@ -17,10 +15,11 @@ update_version() {
 	local path="$1"
 	local sed_expr="$2"
 
-	if ! sed -E -i "" -e "$sed_expr" "$path" ; then
-		echo "sed error $?" >&2
-		exit 1
-	fi
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -E -i "" -e "$sed_expr" "$path"
+  else
+    sed -E -i -e "$sed_expr" "$path"
+  fi
 }
 
 main "$@"

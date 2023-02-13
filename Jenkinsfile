@@ -17,7 +17,7 @@ if (params.MODE == "PROMOTE") {
     // Anything added to assetDirectory will be attached to the Github Release
 
     // Publish target version.
-    sh 'summon -e production ./ci/publish/publish_package ${targetVersion}'
+    sh "summon -e production ./ci/publish/publish_package ${targetVersion}"
   }
   return
 }

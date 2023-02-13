@@ -1,14 +1,6 @@
 #!/bin/bash -e
 
-#cd "$(dirname "$0")"
-
-SOURCE_DIR=$(pwd)
-
-$SOURCE_DIR/ci/publish/build_publish_container
-$SOURCE_DIR/ci/publish/update_package_version "$1"
-
-REQUIRED_VARS=( "TWINE_REPOSITORY_URL"
-                "TWINE_USERNAME"
+REQUIRED_VARS=( "TWINE_USERNAME"
                 "TWINE_PASSWORD" )
 
 # Sanity check
@@ -19,14 +11,18 @@ for required_var in "${REQUIRED_VARS[@]}"; do
   fi
 done
 
+TWINE_REPOSITORY_URL="https://upload.pypi.org/legacy/"
+
+./ci/publish/update_package_version "$1"
+./ci/publish/build_publish_container
+
 echo "Publishing to PyPI..."
-rm -rf $CURRENT_DIR/dist/
+rm -rf ./dist/
 docker run --rm \
            -t \
            -e TWINE_REPOSITORY_URL \
            -e TWINE_USERNAME \
            -e TWINE_PASSWORD \
-           -v "$(pwd)/../../..:/opt/conjur-api-python3" \
            conjur-api-python3-publish bash -exc "
                echo 'Installing new versions of pip and wheel...'
                /usr/bin/env pip3 install --upgrade pip wheel
@@ -37,6 +33,6 @@ docker run --rm \
                echo 'Testing artifacts in dist/*'
                /usr/bin/env twine check dist/*
 
-               echo 'Publishing package to \$TWINE_REPOSITORY_URL using account '\$TWINE_USERNAME'...'
-               /usr/bin/env twine upload --skip-existing --repository $TWINE_REPOSITORY_URL dist/*
+               echo 'Publishing package to '\$TWINE_REPOSITORY_URL' using account '\$TWINE_USERNAME'...'
+               /usr/bin/env twine upload --skip-existing --repository-url $TWINE_REPOSITORY_URL dist/*
            "
