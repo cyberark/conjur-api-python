@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## [8.0.0] - 2022-09-08
+## [0.0.5] - 2023-02-13
 
 ### Added
 - Add support for Role Memberships endpoint
@@ -42,5 +42,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Store API key in `CreditentialsData` object
   [conjur-api-python#23](https://github.com/cyberark/conjur-api-python/pull/23)
 
-[Unreleased]: https://github.com/cyberark/conjur-api-python/compare/v8.0.0...HEAD
-[8.0.0]: https://github.com/cyberark/conjur-api-python/releases/tag/v8.0.0
+[Unreleased]: https://github.com/cyberark/conjur-api-python/compare/v0.0.5...HEAD
+[0.0.5]: https://github.com/cyberark/conjur-api-python/releases/tag/v0.0.5

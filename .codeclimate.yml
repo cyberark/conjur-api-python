@@ -42,6 +42,12 @@ plugins:
   # Markdown
   markdownlint:
     enabled: true
+    checks:
+      # Disable checks that conflict with our preferred changelog format
+      MD022:
+        enabled: false
+      MD032:
+        enabled: false
     issue_override:
       severity: info # Should be redundant as CC says markdownlint defaults to
                      # info already, but including it here to remind us it's so
