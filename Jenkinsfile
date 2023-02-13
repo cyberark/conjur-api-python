@@ -16,8 +16,8 @@ if (params.MODE == "PROMOTE") {
     // Any publishing of targetVersion artifacts occur here
     // Anything added to assetDirectory will be attached to the Github Release
 
-    // Promote source version to target version.
-    sh 'summon -e production ./ci/publish/publish_package'
+    // Publish target version.
+    sh 'summon -e production ./ci/publish/publish_package ${targetVersion}'
   }
   return
 }

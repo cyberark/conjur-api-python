@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
-docker build -f ci/publish/Dockerfile.publish \
+cd "$(dirname "$0")"
+
+docker build -f Dockerfile.publish \
              -t conjur-api-python3-publish \
              .

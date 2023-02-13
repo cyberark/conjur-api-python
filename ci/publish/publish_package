@@ -1,6 +1,9 @@
 #!/bin/bash -e
 
-CURRENT_DIR=$(pwd)
+cd "$(dirname "$0")"
+
+./build_publish_container
+./update_package_version $1
 
 REQUIRED_VARS=( "TWINE_REPOSITORY_URL"
                 "TWINE_USERNAME"
@@ -15,13 +18,13 @@ for required_var in "${REQUIRED_VARS[@]}"; do
 done
 
 echo "Publishing to PyPI..."
-rm -rf $CURRENT_DIR/dist/
+rm -rf $pwd/../../dist/
 docker run --rm \
            -t \
            -e TWINE_REPOSITORY_URL \
            -e TWINE_USERNAME \
            -e TWINE_PASSWORD \
-           -v "$(pwd):/opt/conjur-api-python3" \
+           -v "$(pwd)/../..:/opt/conjur-api-python3" \
            conjur-api-python3-publish bash -exc "
                echo 'Installing new versions of pip and wheel...'
                /usr/bin/env pip3 install --upgrade pip wheel
