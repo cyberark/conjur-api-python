@@ -116,7 +116,7 @@ Releases should be created by maintainers only. To create and promote a release,
 ### Update the changelog and notices
 
 **NOTE:** If the Changelog and NOTICES.txt are already up-to-date, skip this
-step and promote the desired build from the main branch.
+step and promote the desired release build from the main branch.
 
 1. Create a new branch for the version bump.
 1. Based on the changelog content, determine the new version number and update.
@@ -130,20 +130,20 @@ step and promote the desired build from the main branch.
 
 ### Release and Promote
 
-1. Merging into the main branch will automatically trigger a release.
+1. Merging into the main branch will automatically trigger a release build.
    If successful, this release can be promoted at a later time.
 1. Jenkins build parameters can be utilized to promote a successful release
    or manually trigger aditional releases as needed.
 1. Reference the [internal automated release doc](https://github.com/conjurinc/docs/blob/master/reference/infrastructure/automated_releases.md#release-and-promotion-process)
 for releasing and promoting.
 
-### Verification
+### Manual Verification
 
 1. Log into [PyPI](https://pypi.org)and verify that the package uploaded successfully
 1. Import the package locally by running `pip install conjur-api==<version_number>`,
 for example `pip install conjur-api==0.0.5`
-1. Verify a release release page from the tag.
-    [Click here for assistance](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)
+1. Verify git release page from the tag.
+[Click here for assistance](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)
 
 
 ## Contributing workflow
