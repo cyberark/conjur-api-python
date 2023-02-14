@@ -111,24 +111,40 @@ The connection parameters to Conjur are:
 
 ## Releases
 
-This section describes the requirements for releasing a Conjur python SDK.
+Releases should be created by maintainers only. To create and promote a release, follow the instructions in this section.
 
-### Checklist
+### Update the changelog and notices
 
-1. Create a release branch from main
-2. Verify that all changes related to the version are applied to `README`,`CHANGELOG` and `NOTICES` files
-3. Verify that Jenkins Pipeline is green
-4. Bump the version in `conjur_api.__init__.py` file
-5. Merge the branch into main
-6. Create and push a tag using the following naming convention: v<version_number>, for example `v8.1.0`
-7. Follow the Jenkins Pipeline and verify that it's green and that `Publish to PyPI` step ended successfully
-8. Log into https://pypi.org and verify that the package uploaded successfully
-9. Import the package locally by running `pip install conjur-api==<version_number>`, for example 
-   `pip install conjur-api==8.1.0`
-10. Create a release page from the tag.
-    [Click here for assistance](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)
-11. On the releases page, write all the changes affecting this version (This can be taken from the changelog)
-12. Update all stakeholders that the release was completed successfully
+**NOTE:** If the Changelog and NOTICES.txt are already up-to-date, skip this
+step and promote the desired release build from the main branch.
+
+1. Create a new branch for the version bump.
+1. Based on the changelog content, determine the new version number and update.
+1. Review the git log and ensure the [changelog](CHANGELOG.md) contains all
+   relevant recent changes with references to GitHub issues or PRs, if possible.
+1. Review the changes since the last tag, and if the dependencies have changed
+   revise the [NOTICES](NOTICES.txt) to correctly capture the included
+   dependencies and their licenses / copyrights.
+1. Commit these changes - `Bump version to x.y.z` is an acceptable commit
+   message - and open a PR for review.
+
+### Release and Promote
+
+1. Merging into the main branch will automatically trigger a release build.
+   If successful, this release can be promoted at a later time.
+1. Jenkins build parameters can be utilized to promote a successful release
+   or manually trigger aditional releases as needed.
+1. Reference the [internal automated release doc](https://github.com/conjurinc/docs/blob/master/reference/infrastructure/automated_releases.md#release-and-promotion-process)
+for releasing and promoting.
+
+### Manual Verification
+
+1. Log into [PyPI](https://pypi.org)and verify that the package uploaded successfully
+1. Import the package locally by running `pip install conjur-api==<version_number>`,
+for example `pip install conjur-api==0.0.5`
+1. Verify git release page from the tag.
+[Click here for assistance](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)
+
 
 ## Contributing workflow
 

@@ -1,5 +1,27 @@
 #!/usr/bin/env groovy
 
+// Automated release, promotion and dependencies
+properties([
+  // Include the automated release parameters for the build
+  release.addParams(),
+  // Dependencies of the project that should trigger builds
+  // dependencies([ ])
+])
+
+// Performs release promotion.  No other stages will be run
+if (params.MODE == "PROMOTE") {
+  release.promote(params.VERSION_TO_PROMOTE) { sourceVersion, targetVersion, assetDirectory ->
+    // Any assets from sourceVersion Github release are available in assetDirectory
+    // Any version number updates from sourceVersion to targetVersion occur here
+    // Any publishing of targetVersion artifacts occur here
+    // Anything added to assetDirectory will be attached to the Github Release
+
+    // Publish target version.
+    sh "summon -e production ./ci/publish/publish_package ${targetVersion}"
+  }
+  return
+}
+
 pipeline {
   agent { label 'executor-v2' }
 
@@ -8,13 +30,48 @@ pipeline {
     buildDiscarder(logRotator(numToKeepStr: '30'))
   }
 
+  environment {
+    // Sets the MODE to the specified or autocalculated value as appropriate
+    MODE = release.canonicalizeMode()
+  }
+
   triggers {
     cron(getDailyCronString())
   }
+
   stages {
-      stage('Linting') {
-        steps { sh './ci/test/test_linting.sh' }
+    // Aborts any builds triggered by another project that wouldn't include any changes
+    stage ("Skip build if triggering job didn't create a release") {
+      when {
+        expression {
+          MODE == "SKIP"
+        }
       }
+      steps {
+        script {
+          currentBuild.result = 'ABORTED'
+          error("Aborting build because this build was triggered from upstream, but no release was built")
+        }
+      }
+    }
+
+    stage('Validate') {
+      parallel {
+        stage('Changelog') {
+          steps { sh './ci/test/parse-changelog.sh' }
+        }
+        stage('Linting') {
+        steps { sh './ci/test/test_linting.sh' }
+        }
+      }
+    }
+
+    // Generates a VERSION file based on the current build number and latest version in CHANGELOG.md
+    stage('Validate changelog and set version') {
+      steps {
+        updateVersion("CHANGELOG.md", "${BUILD_NUMBER}")
+      }
+    }
 
     stage('Unit tests') {
       steps {
@@ -55,27 +112,25 @@ pipeline {
       }
     }
 
-    stage('Publish to PyPI') {
-      steps {
-        echo 'Check if publish is required'
-        sh 'summon -e production ./ci/publish/run_is_publish_required'
-
-        echo 'Publish to PyPi'
-        sh 'summon -e production ./ci/publish/publish_package'
-      }
+    stage('Release') {
       when {
-        tag "v*"
+        expression {
+          MODE == "RELEASE"
+        }
+      }
+
+      steps {
+        release { billOfMaterialsDirectory, assetDirectory, toolsDirectory ->
+          // Publish release artifacts to all the appropriate locations
+          // Copy any artifacts to assetDirectory to attach them to the Github release
+        }
       }
     }
   }
+
   post {
     always {
       cleanupAndNotify(currentBuild.currentResult)
-    }
-    unsuccessful {
-      script {
-          cleanupAndNotify(currentBuild.currentResult, notify_team_teams = 'Secrets Manager HQ')
-      }
     }
   }
 }
