@@ -1,37 +1,71 @@
 #!/bin/bash -e
 
-CURRENT_DIR=$(pwd)
+main() {
+TWINE_REPOSITORY_URL="https://upload.pypi.org/legacy/"
+replace_version="$1"
 
-REQUIRED_VARS=( "TWINE_REPOSITORY_URL"
-                "TWINE_USERNAME"
-                "TWINE_PASSWORD" )
+check_required_vars
+update_version
+build_publish_container
+publish_to_pypi
+}
 
-# Sanity check
-for required_var in "${REQUIRED_VARS[@]}"; do
-  if [[ "${!required_var}" == "" ]]; then
-    echo "ERROR: '$required_var' not set!"
+check_required_vars() {
+  REQUIRED_VARS=( "TWINE_USERNAME"
+                  "TWINE_PASSWORD" )
+
+  for required_var in "${REQUIRED_VARS[@]}"; do
+    if [[ "${!required_var}" == "" ]]; then
+      echo "ERROR: '$required_var' not set! Ensure you are running this script with Summon."
+      exit 1
+    fi
+  done
+}
+
+update_version() {
+  if [ -z "$replace_version" ]; then
+    echo "No version argument supplied"
     exit 1
+  else
+    echo "Updating module to version $replace_version"
+    local path="./conjur_api/__init__.py"
+    local sed_expr="s/__version__ =.+/__version__ = \"$replace_version\"/"
+
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+      sed -E -i "" -e "$sed_expr" "$path"
+    else
+      sed -E -i -e "$sed_expr" "$path"
+    fi
   fi
-done
+}
 
-echo "Publishing to PyPI..."
-rm -rf $CURRENT_DIR/dist/
-docker run --rm \
-           -t \
-           -e TWINE_REPOSITORY_URL \
-           -e TWINE_USERNAME \
-           -e TWINE_PASSWORD \
-           -v "$(pwd):/opt/conjur-api-python3" \
-           conjur-api-python3-publish bash -exc "
-               echo 'Installing new versions of pip and wheel...'
-               /usr/bin/env pip3 install --upgrade pip wheel
+build_publish_container() {
+  docker build -f ./ci/publish/Dockerfile.publish \
+             -t conjur-api-python3-publish \
+             .
+}
 
-               echo 'Building distributable package...'
-               /usr/bin/env python3 -m build
+publish_to_pypi() {
+  echo "Publishing to PyPI..."
+  rm -rf ./dist/
+  docker run --rm \
+            -t \
+            -e TWINE_REPOSITORY_URL \
+            -e TWINE_USERNAME \
+            -e TWINE_PASSWORD \
+            conjur-api-python3-publish bash -exc "
+                echo 'Installing new versions of pip and wheel...'
+                /usr/bin/env pip3 install --upgrade pip wheel
 
-               echo 'Testing artifacts in dist/*'
-               /usr/bin/env twine check dist/*
+                echo 'Building distributable package...'
+                /usr/bin/env python3 -m build
 
-               echo 'Publishing package to \$TWINE_REPOSITORY_URL using account '\$TWINE_USERNAME'...'
-               /usr/bin/env twine upload --repository $TWINE_REPOSITORY_URL dist/*
-           "
+                echo 'Testing artifacts in dist/*'
+                /usr/bin/env twine check dist/*
+
+                echo 'Publishing package to '\$TWINE_REPOSITORY_URL' using account '\$TWINE_USERNAME'...'
+                /usr/bin/env twine upload --skip-existing --repository-url $TWINE_REPOSITORY_URL dist/*
+            "
+}
+
+main "$@"
