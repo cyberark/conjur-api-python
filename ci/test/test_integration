@@ -4,14 +4,12 @@ docker_compose_command(){
   docker-compose --file "$COMPOSE_FILE_PATH" --project-directory "${PWD}" $@
 }
 cleanup() {
+  # docker_compose_command logs
   echo "Cleaning up..."
-  echo "Cleaning up... logs in cleanup.log"
   docker_compose_command rm --stop --force
 }
 
-trap 'echo "ERROR: Test script encountered an error!"; docker-compose logs &> cleanup.log; cleanup' ERR
-#trap 'cleanup' EXIT
-
+trap 'cleanup' EXIT ERR
 
 DEBUG="false"
 function get_parameters() {
@@ -43,7 +41,7 @@ echo "Generating certificate..."
 docker_compose_command up openssl
 
 echo "Starting Conjur..."
-docker_compose_command up -d conjur
+docker_compose_command up -d conjur-https
 docker_compose_command exec -T conjur cp /oidc/certs/oidc-server.cert.pem /etc/ssl/certs/oidc-server.cert.pem
 docker-compose --file "$COMPOSE_FILE_PATH" --project-directory "${PWD}" \
    exec -T conjur sh -c 'hash=$(openssl x509 -hash -in /etc/ssl/certs/oidc-server.cert.pem -out /dev/null) && ln -s /etc/ssl/certs/oidc-server.cert.pem /etc/ssl/certs/${hash}.0'
