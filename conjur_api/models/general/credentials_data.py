@@ -12,6 +12,11 @@ from datetime import datetime
 
 EXPIRATION_FORMAT = "%Y-%m-%d %H:%M:%S"
 
+class OidcCodeDetails:
+    def __init__(self, code: str, code_verifier: str, nonce: str):
+        self.code = code
+        self.code_verifier = code_verifier
+        self.nonce = nonce
 
 class CredentialsData:
     """
@@ -20,16 +25,14 @@ class CredentialsData:
 
     # pylint: disable=too-many-arguments
     def __init__(self, machine: str = None, username: str = None, password: str = None, api_key: str = None,
-                 api_token: str = None, api_token_expiration: str = None, code: str = None, code_verifier: str = None, nonce: str = None):
+                 api_token: str = None, api_token_expiration: str = None, oidc_code_details: OidcCodeDetails = None):
         self.machine = machine
         self.username = username
         self.password = password
         self.api_key = api_key
         self.api_token = api_token
         self.api_token_expiration = api_token_expiration
-        self.code = code
-        self.code_verifier = code_verifier
-        self.nonce = nonce
+        self.oidc_code_details = oidc_code_details
 
     @classmethod
     def convert_dict_to_obj(cls, dic: dict):

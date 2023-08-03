@@ -33,16 +33,16 @@ class OidcAuthenticationStrategy(AuthnAuthenticationStrategy):
         if (not creds.code or not creds.code_verifier or not creds.nonce) and (not creds.username or not creds.password):
             raise MissingRequiredParameterException("code,code_verifier,nonce or username and password are required for login") 
 
-        if not creds.code and creds.username and creds.password:
+        if not creds.oidc_code_details:
             data = f"id_token={creds.password}"
             response = await invoke_endpoint(HttpVerb.POST, ConjurEndpoint.AUTHENTICATE_OIDC,
                                          params, data, ssl_verification_metadata=ssl_verification_data)
 
-        if creds.code and creds.code_verifier and creds.nonce:
+        if creds.oidc_code_details:
             query = {
-                'code': creds.code,
-                'code_verifier': creds.code_verifier,
-                'nonce': creds.nonce
+                'code': creds.oidc_code_details.code,
+                'code_verifier': creds.oidc_code_details.code_verifier,
+                'nonce': creds.oidc_code_details.nonce
             }
             response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.AUTHENTICATE_OIDC,
                                          params, query=query, ssl_verification_metadata=ssl_verification_data)                                  
