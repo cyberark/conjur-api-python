@@ -29,10 +29,40 @@ class OidcAuthenticationStrategy(AuthnAuthenticationStrategy):
             'service_id': connection_info.service_id,
             'account': connection_info.conjur_account,
         }
-        data = f"id_token={creds.password}"
 
-        response = await invoke_endpoint(HttpVerb.POST, ConjurEndpoint.AUTHENTICATE_OIDC,
-                                         params, data, ssl_verification_metadata=ssl_verification_data)
+        oidc = creds.oidc_code_detail
+
+        if (not oidc) and (not creds.username or not creds.password):
+            raise MissingRequiredParameterException("code,code_verifier,nonce or username "
+                                                    "and password are required for login")
+
+        # The OIDC Authenticator for application authentication.
+        # OIDC v1 flow works if Username and ID Token provided.
+
+        if not oidc and creds.username and creds.password:
+            data = f"id_token={creds.password}"
+            response = await invoke_endpoint(
+                             HttpVerb.POST,
+                             ConjurEndpoint.AUTHENTICATE_OIDC, params, data,
+                             ssl_verification_metadata=ssl_verification_data
+                             )
+
+        # The OIDC Authenticator for Conjur UI and Conjur CLI.
+        # OIDC V2 flow works if Code, Code_Verifier and Nonce provided
+
+        if oidc:
+            if not oidc.code or not oidc.code_verifier or not oidc.nonce:
+                raise MissingRequiredParameterException("code,code_verifier,nonce")
+            query = {
+                'code': oidc.code,
+                'code_verifier': oidc.code_verifier,
+                'nonce': oidc.nonce
+            }
+            response = await invoke_endpoint(
+                             HttpVerb.GET,
+                             ConjurEndpoint.AUTHENTICATE_OIDC, params, query=query,
+                             ssl_verification_metadata=ssl_verification_data
+                             )
         return response.text
 
     async def _ensure_logged_in(self, connection_info, ssl_verification_data, creds):

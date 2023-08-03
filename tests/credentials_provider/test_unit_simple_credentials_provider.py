@@ -1,11 +1,15 @@
 from unittest import TestCase
 
 from conjur_api.providers import SimpleCredentialsProvider
-from conjur_api.models import CredentialsData
+from conjur_api.models import CredentialsData, OidcCodeDetail
 
 
 def create_credentials(machine: str = "machine", username: str = "some_username", password: str = "some_password", api_key: str = "some_api_key") -> CredentialsData:
     return CredentialsData(machine, username, password, api_key)
+
+def oidc_v2_credential(machine: str="machine", code="code", code_verifier="coded_verifier", nonce="nonce") -> CredentialsData:
+    oidc_detail = OidcCodeDetail(code, code_verifier, nonce)
+    return CredentialsData(machine, oidc_detail)
 
 
 class SimpleCredentialsProviderTest(TestCase):
@@ -77,3 +81,18 @@ class SimpleCredentialsProviderTest(TestCase):
     def test_get_store_location(self):
         provider = SimpleCredentialsProvider()
         self.assertEqual("SimpleCredentialsProvider",provider.get_store_location())
+
+    def test_cleanup_oidc_v2_credentials_if_exist(self):
+        provider = SimpleCredentialsProvider()
+        credentials_data = oidc_v2_credential()
+        provider.save(credentials_data)
+        provider.cleanup_if_exists(credentials_data.machine)
+
+        self.assertFalse(provider.is_exists(credentials_data.machine))
+
+    def test_remove_oidc_v2_credentials(self):
+        provider = SimpleCredentialsProvider()
+        credentials_data = oidc_v2_credential()
+        provider.save(credentials_data)
+        provider.remove_credentials(credentials_data.machine)
+        self.assertFalse(provider.is_exists(credentials_data.machine))

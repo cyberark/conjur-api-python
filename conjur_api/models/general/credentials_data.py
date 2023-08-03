@@ -9,8 +9,20 @@ This module represents the DTO that holds credential data
 
 # pylint: disable=too-few-public-methods
 from datetime import datetime
-
 EXPIRATION_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+
+class OidcCodeDetail:
+    """
+    Used for setting user input data to login to Conjur using OIDC
+    Authenticator for Conjur UI and Conjur CLI uses OIDC interfaces
+    """
+
+    def __init__(self, code: str = None, code_verifier: str = None,
+                nonce: str = None):
+        self.code = code
+        self.code_verifier = code_verifier
+        self.nonce = nonce
 
 
 class CredentialsData:
@@ -19,14 +31,16 @@ class CredentialsData:
     """
 
     # pylint: disable=too-many-arguments
-    def __init__(self, machine: str = None, username: str = None, password: str = None, api_key: str = None,
-                 api_token: str = None, api_token_expiration: str = None):
+    def __init__(self, machine: str = None, username: str = None, password: str = None,
+                api_key: str = None, api_token: str = None,
+                api_token_expiration: str = None, oidc_code_detail: OidcCodeDetail = None):
         self.machine = machine
         self.username = username
         self.password = password
         self.api_key = api_key
         self.api_token = api_token
         self.api_token_expiration = api_token_expiration
+        self.oidc_code_detail = oidc_code_detail
 
     @classmethod
     def convert_dict_to_obj(cls, dic: dict):
