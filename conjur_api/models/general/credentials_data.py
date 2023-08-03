@@ -20,13 +20,16 @@ class CredentialsData:
 
     # pylint: disable=too-many-arguments
     def __init__(self, machine: str = None, username: str = None, password: str = None, api_key: str = None,
-                 api_token: str = None, api_token_expiration: str = None):
+                 api_token: str = None, api_token_expiration: str = None, code: str = None, code_verifier: str = None, nonce: str = None):
         self.machine = machine
         self.username = username
         self.password = password
         self.api_key = api_key
         self.api_token = api_token
         self.api_token_expiration = api_token_expiration
+        self.code = code
+        self.code_verifier = code_verifier
+        self.nonce = nonce
 
     @classmethod
     def convert_dict_to_obj(cls, dic: dict):

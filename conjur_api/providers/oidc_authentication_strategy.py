@@ -29,10 +29,23 @@ class OidcAuthenticationStrategy(AuthnAuthenticationStrategy):
             'service_id': connection_info.service_id,
             'account': connection_info.conjur_account,
         }
-        data = f"id_token={creds.password}"
 
-        response = await invoke_endpoint(HttpVerb.POST, ConjurEndpoint.AUTHENTICATE_OIDC,
+        if (not creds.code or not creds.code_verifier or not creds.nonce) and (not creds.username or not creds.password):
+            raise MissingRequiredParameterException("code,code_verifier,nonce or username and password are required for login") 
+
+        if not creds.code and creds.username and creds.password:
+            data = f"id_token={creds.password}"
+            response = await invoke_endpoint(HttpVerb.POST, ConjurEndpoint.AUTHENTICATE_OIDC,
                                          params, data, ssl_verification_metadata=ssl_verification_data)
+
+        if creds.code and creds.code_verifier and creds.nonce:
+            query = {
+                'code': creds.code,
+                'code_verifier': creds.code_verifier,
+                'nonce': creds.nonce
+            }
+            response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.AUTHENTICATE_OIDC,
+                                         params, query=query, ssl_verification_metadata=ssl_verification_data)                                  
         return response.text
 
     async def _ensure_logged_in(self, connection_info, ssl_verification_data, creds):
