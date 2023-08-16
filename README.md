@@ -59,9 +59,9 @@ pip3 install .
 ### Configuring the client
 
 #### Define Modules
-Authentication strategy supported by package are `authn`, `authn-ldap`, `authn-oidc` and based on authentication machanisam use the below module.
+Authentication strategies supported by this package are `authn`, `authn-ldap`, `authn-oidc`. Based on authentication machanisam use the below module.
 
-* Authn authentication (Supported on Conjur OSS,Enterprise,Cloud)
+* Authn authentication (Supported on Conjur OSS, Enterprise, Cloud)
 ```python
 from conjur_api.providers.authn_authentication_strategy import AuthnAuthenticationStrategy
 ```
@@ -80,7 +80,7 @@ from conjur_api.providers.ldap_authentication_strategy import LdapAuthentication
 
 #### Define connection parameters
 
-In order to login to conjur you need to have 5 parameters known from advance.
+In order to login to conjur you need to have 5 parameters known in advance.
 1. Authn/LDAP login parameters
 
 ```python

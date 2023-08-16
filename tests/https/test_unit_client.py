@@ -525,5 +525,5 @@ class ClientTest(IsolatedAsyncioTestCase):
         self.assertTrue(exists_in_args('account', args))
         self.assertEqual('code', kwargs['query'].get('code'))
         self.assertEqual('code_verifier', kwargs['query'].get('code_verifier'))
-        self.assertEqual('code', kwargs['query'].get('code'))
+        self.assertEqual('nonce', kwargs['query'].get('nonce'))
         mock_auth_invoke_endpoint.assert_called_once()
