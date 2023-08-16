@@ -7,7 +7,8 @@ from conjur_api.errors.errors import HttpError, HttpStatusError
 
 from conjur_api.client import Client
 from conjur_api.http.api import Api
-from conjur_api.models import SslVerificationMode, CredentialsData
+from conjur_api.models import SslVerificationMode, CredentialsData, \
+ OidcCodeDetail
 from conjur_api.models.general.conjur_connection_info import ConjurConnectionInfo
 from conjur_api.models.general.resource import Resource
 from conjur_api.models.hostfactory.create_host_data import CreateHostData
@@ -41,6 +42,10 @@ class ClientTest(IsolatedAsyncioTestCase):
         )
         credential_provider = SimpleCredentialsProvider()
         credential_provider.save(CredentialsData(self.conjur_data.conjur_url, 'username', 'password', 'api_key'))
+
+        oidc_credential_provider = SimpleCredentialsProvider()
+        oidc_credential_provider.save(CredentialsData(self.conjur_data.conjur_url, oidc_code_detail=OidcCodeDetail('code', 'code_verifier', 'nonce')))
+
         self.authn_provider = AuthnAuthenticationStrategy(credential_provider)
         self.oidc_provider = OidcAuthenticationStrategy(credential_provider)
 
@@ -51,6 +56,11 @@ class ClientTest(IsolatedAsyncioTestCase):
                              ssl_verification_mode=self.ssl_verification_mode)
         self.oidc_client = Client(self.conjur_oidc_data, authn_strategy=self.oidc_provider,
                                   ssl_verification_mode=self.ssl_verification_mode)
+
+        self.oidc_client_code = Client(
+            self.conjur_oidc_data, authn_strategy=OidcAuthenticationStrategy(oidc_credential_provider),
+                                  ssl_verification_mode=self.ssl_verification_mode
+                                )
 
         # Shift the API token expiration ahead to avoid false negatives
         self.client._api.api_token_expiration = datetime.now() + timedelta(days=1)
@@ -502,4 +512,18 @@ class ClientTest(IsolatedAsyncioTestCase):
         self.assertTrue(exists_in_args('service_id', args))
         self.assertTrue(exists_in_args('account', args))
         self.assertTrue(exists_in_args('id_token', args))
+        mock_auth_invoke_endpoint.assert_called_once()
+
+    @patch('conjur_api.providers.oidc_authentication_strategy.invoke_endpoint')
+    @patch('conjur_api.http.api.invoke_endpoint')
+    async def test_oidc_authentication(self, mock_regular_invoke_endpoint, mock_auth_invoke_endpoint):
+        await self.oidc_client_code.authenticate()
+
+        args, kwargs = mock_auth_invoke_endpoint.call_args
+        self.assertTrue(exists_in_args('url', args))
+        self.assertTrue(exists_in_args('service_id', args))
+        self.assertTrue(exists_in_args('account', args))
+        self.assertEqual('code', kwargs['query'].get('code'))
+        self.assertEqual('code_verifier', kwargs['query'].get('code_verifier'))
+        self.assertEqual('nonce', kwargs['query'].get('nonce'))
         mock_auth_invoke_endpoint.assert_called_once()
