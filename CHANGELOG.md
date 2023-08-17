@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+- Add support for OIDC Authenticator for Conjur UI and Conjur CLI.
+  [conjur-api-python#43](https://github.com/cyberark/conjur-api-python/pull/43)
+
 ### Security
 - Upgrade ubuntu base image in Dockerfile.test to 23.04
   [conjur-api-python#41](https://github.com/cyberark/conjur-api-python/pull/41)

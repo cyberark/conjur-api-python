@@ -25,8 +25,8 @@ It officially requires python 3.10 and above but can run with lower versions com
 
 It is assumed that Conjur (OSS or Enterprise) have already been installed in the environment and running in the
 background. If you haven't done so, follow these instructions for installation of
-the [OSS](https://docs.conjur.org/Latest/en/Content/OSS/Installation/Install_methods.htm) and these for installation
-of [Enterprise](https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/HomeTilesLPs/LP-Tile2.htm).
+the [OSS](https://docs.conjur.org/Latest/en/Content/HomeTilesLPs/LP-Tile2.htm) , these for installation
+of [Enterprise](https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/HomeTilesLPs/LP-Tile2.htm) and [Cloud](https://docs-er.cyberark.com/ConjurCloud/en/Content/ConjurCloud/ccl-manage-users.htm?tocpath=Get%20started%7CTutorial%7C_____1)
 
 Once Conjur is running in the background, you are ready to start setting up your python app to work with our Conjur
 python API!
@@ -38,7 +38,7 @@ alterations that may result in breaking change.
 
 ```sh
 
-pip3 install conjur
+pip3 install conjur-api
 
 ```
 
@@ -58,11 +58,34 @@ pip3 install .
 
 ### Configuring the client
 
+#### Define Modules
+Authentication strategies supported by this package are `authn`, `authn-ldap`, `authn-oidc`. Based on authentication machanisam use the below module.
+
+* Authn authentication (Supported on Conjur OSS, Enterprise, Cloud)
+```python
+from conjur_api.providers.authn_authentication_strategy import AuthnAuthenticationStrategy
+```
+
+* OIDC authentication (Supported on Conjur OSS, Enterprise)
+##### OIDC authenticator setup on [Conjur](https://docs.cyberark.com/AAM-DAP/13.0/en/Content/OIDC/OIDC.htm?tocpath=Integrations%7COpenID%20Connect%20(OIDC)%20Authenticator%7C_____0) 
+```python
+from conjur_api.providers.oidc_authentication_strategy import OidcAuthenticationStrategy
+```
+
+* LDAP authentication (Supported on Conjur OSS, Enterprise)
+##### LADP authenticator setup on [Conjur](https://docs.cyberark.com/AAM-DAP/13.0/en/Content/Integrations/ldap/ldap_authenticator.html?tocpath=Integrations%7CLDAP%20Authentication%7C_____0)
+```python
+from conjur_api.providers.ldap_authentication_strategy import LdapAuthenticationStrategy
+```
+
 #### Define connection parameters
 
-In order to login to conjur you need to have 5 parameters known from advance.
+In order to login to conjur you need to have 5 parameters known in advance.
+1. Authn/LDAP login parameters
 
 ```python
+from conjur_api.models import SslVerificationMode
+
 conjur_url = "https://my_conjur.com"
 account = "my_account"
 username = "user1"
@@ -70,12 +93,59 @@ password = "SomeStr@ngPassword!1"
 ssl_verification_mode = SslVerificationMode.TRUST_STORE
 ```
 
+2. Authn API key based login parameters
+
+```python
+from conjur_api.models import SslVerificationMode
+
+conjur_url = "https://my_conjur.com"
+account = "my_account"
+username = "user1"
+api_key = "asjfdsjcnk......"
+ssl_verification_mode = SslVerificationMode.TRUST_STORE
+```
+
+3. OIDC Authenticator for Application Authentication
+
+```python
+from conjur_api.models import SslVerificationMode
+
+conjur_url = "https://my_conjur.com"
+account = "my_account"
+username = "user1@xtz.com"
+password = "xyz.asa.xyz" ## Provide valid ID token
+ssl_verification_mode = SslVerificationMode.TRUST_STORE
+```
+
+4. OIDC Authenticator for Conjur UI and Conjur CLI Authentication
+
+```python
+from conjur_api.models import SslVerificationMode
+
+conjur_url = "https://my_conjur.com"
+account = "my_account"
+code = 'dhdf...-fhd...'
+nonce = 'cwq4.....'
+code_verifier = 'ih0BJ.......'
+ssl_verification_mode = SslVerificationMode.TRUST_STORE
+```
+
 #### Define ConjurConnectionInfo
 
 ConjurConnectionInfo is a data class containing all the non-credentials connection details.
+1. authn authentication
 
 ```python
-connection_info = ConjurConnectionInfo(conjur_url=conjur_url,account=account,cert_file=None,service_id="ldap-service-id")
+from conjur_api.models import ConjurConnectionInfo
+
+connection_info = ConjurConnectionInfo(conjur_url=conjur_url,account=account,cert_file=None)
+```
+2. OIDC/LDAP authentication
+
+```python
+from conjur_api.models import ConjurConnectionInfo
+
+connection_info = ConjurConnectionInfo(conjur_url=conjur_url,account=account,cert_file=None,service_id="service-id")
 ```
 
 * conjur_url - url of conjur server
@@ -95,8 +165,34 @@ fit (`keyring` usage for example)
 We also provide the user with a simple implementation of such provider called `SimpleCredentialsProvider`. Example of
 creating such provider + storing credentials:
 
+1. Authn/LDAP/OIDC for application authentication
+
 ```python
+from conjur_api.models import CredentialsData
+
 credentials = CredentialsData(username=username, password=password, machine=conjur_url)
+credentials_provider = SimpleCredentialsProvider()
+credentials_provider.save(credentials)
+del credentials
+```
+2. authn API Key authentication
+
+```python
+from conjur_api.models import CredentialsData
+
+credentials = CredentialsData(username=username, api_key="api key", machine=conjur_url)
+credentials_provider = SimpleCredentialsProvider()
+credentials_provider.save(credentials)
+del credentials
+```
+
+3. OIDC authentication for Conjur UI and Conjur CLI Authentication
+
+```python
+from conjur_api.models import CredentialsData,OidcCodeDetail
+
+oidc_detail = OidcCodeDetail(code=code, code_verifier=code_verifier, nonce=nonce)
+credentials = CredentialsData(oidc_code_detail=oidc_detail, machine=conjur_url)
 credentials_provider = SimpleCredentialsProvider()
 credentials_provider.save(credentials)
 del credentials
@@ -128,6 +224,8 @@ When using these strategies, make sure `connection_info` has a `service_id` spec
 Now that we have created `connection_info` and `authn_provider`, we can create our client:
 
 ```python
+from conjur_api.client import Client
+
 client = Client(connection_info,
                 authn_strategy=authn_provider,
                 ssl_verification_mode=ssl_verification_mode)

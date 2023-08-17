@@ -2,7 +2,7 @@
 
 echo "Building test container..."
 CURRENT_DIR=$(pwd)
-$CURRENT_DIR/ci/test/build_test_container.sh
+"$CURRENT_DIR/ci/test/build_test_container.sh"
 
 DISABLED_ERRORS="fixme"
 

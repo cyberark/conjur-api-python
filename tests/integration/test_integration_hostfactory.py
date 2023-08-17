@@ -19,23 +19,58 @@ class TestHostFactory(AsyncTestCase):
     async def test_create_host_with_annotations(self):
         c = await create_client("admin", os.environ['CONJUR_AUTHN_API_KEY'])
 
-        token: json = await c.create_token(CreateTokenData(host_factory="factory", hours=1, cidr="0.0.0.0/0"))
-        self.assertEqual(1, len(token), f"Expecting one token got {len(token)}")
-        self.assertTrue(token[0].get('token') is not None, "Create token command did not produce a token")
-        response = await c.create_host(CreateHostData("new-host", token[0]['token'], {"creator": "me", "date": "today"}))
+        token: json = await c.create_token(
+            CreateTokenData(host_factory="factory", hours=1, cidr="0.0.0.0/0")
+            )
+
+        self.assertEqual(
+            1,
+            len(token),
+            f"Expecting one token got {len(token)}"
+        )
+
+        self.assertTrue(
+            token[0].get('token') is not None,
+            "Create token command did not produce a token"
+        )
+        response = await c.create_host(
+                CreateHostData(
+                        "new-host",
+                        token[0]['token'],
+                        {
+                            "creator": "me",
+                            "date": "today"
+                        }
+                     )
+                )
         self.assertEqual('dev:host:new-host', response['id'])
-        self.assertListEqual([{'name': 'creator', 'value': 'me'}, {'name': 'date', 'value': 'today'}], response['annotations'])
+        self.assertListEqual(
+                                [
+                                    {'name': 'creator', 'value': 'me'},
+                                    {'name': 'date', 'value': 'today'}
+                                ],
+                                response['annotations']
+                              )
 
     async def test_fail_to_create_host(self):
         c = await create_client("admin", os.environ['CONJUR_AUTHN_API_KEY'])
 
-        token: json = await c.create_token(CreateTokenData(host_factory="factory", hours=1, cidr="0.0.0.0/32"))
+        token: json = await c.create_token(
+            CreateTokenData(host_factory="factory", hours=1, cidr="0.0.0.0/32")
+            )
         with self.assertRaises(HttpStatusError) as ex:
-            await c.create_host(CreateHostData("new-host", token[0]['token'], {"creator": "me", "date": "today"}))
+            await c.create_host(CreateHostData(
+                        "new-host",
+                        token[0]['token'],
+                        {"creator": "me", "date": "today"}
+                )
+            )
         self.assertEqual(401, ex.exception.status)
-
 
     @classmethod
     async def _add_test_data(cls):
         c = await create_client("admin", os.environ['CONJUR_AUTHN_API_KEY'])
-        await c.load_policy_file("root", "tests/integration/policies/hostfactory.yml")
+        await c.load_policy_file(
+                "root",
+                "tests/integration/policies/hostfactory.yml"
+            )

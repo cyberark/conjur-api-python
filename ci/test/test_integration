@@ -51,8 +51,8 @@ echo "Configuring Conjur..."
 admin_api_key=$(docker_compose_command exec -T conjur conjurctl role retrieve-key dev:user:admin | tr -d '\r')
 export CONJUR_AUTHN_API_KEY=$admin_api_key
 export DEBUG=$DEBUG
-conjur_host_port=$(docker_compose_command port conjur 80)
-conjur_port="${conjur_host_port##*:}"
+# conjur_host_port=$(docker_compose_command port conjur 80)
+# conjur_port="${conjur_host_port##*:}"
 export TEST_HOSTNAME=conjur-https
 
 # Docker-compose will pick this file up when starting containers
@@ -65,7 +65,7 @@ ENV
 echo "Starting test env..."
 docker_compose_command up -d test
 
-rm -rf $CURRENT_DIR/output/*
+rm -rf "$CURRENT_DIR"/output/*
 
 # Hint: '--privileged' is added here otherwise we will get operation
 # not permitted when attempting to do anything related to dbus
