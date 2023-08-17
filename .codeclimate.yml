@@ -171,7 +171,7 @@ plugins:
 # commented if no files to exclude as an empty array will error
 exclude_patterns:
   - ".gitignore"
-  - "**/test_unit*"
+  - "**/test_*"
   - "**/conjur_api/**"
   - "**/*.md"
-  - "tests/integration/test_integration_oidc_authentication.py"
+  
