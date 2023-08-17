@@ -174,3 +174,4 @@ exclude_patterns:
   - "**/test_unit*"
   - "**/conjur_api/**"
   - "**/*.md"
+  - "tests/integration/test_integration_oidc_authentication.py"
