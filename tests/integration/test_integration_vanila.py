@@ -6,8 +6,14 @@ from aiounittest import AsyncTestCase
 from unittest.mock import patch
 
 from conjur_api import Client
-from conjur_api.models import  SslVerificationMode, SslVerificationMetadata, ConjurConnectionInfo, CredentialsData
-from conjur_api.providers import AuthnAuthenticationStrategy, LdapAuthenticationStrategy, SimpleCredentialsProvider
+from conjur_api.models \
+    import \
+    SslVerificationMode, \
+    SslVerificationMetadata, \
+    ConjurConnectionInfo, \
+    CredentialsData
+from conjur_api.providers import AuthnAuthenticationStrategy, \
+    LdapAuthenticationStrategy, SimpleCredentialsProvider
 from conjur_api.http.ssl import ssl_context_factory
 
 
@@ -29,7 +35,11 @@ class TestIntegrationVanila(AsyncTestCase):
         )
         credentials_provider = SimpleCredentialsProvider()
         authn_provider = AuthnAuthenticationStrategy(credentials_provider)
-        credentials = CredentialsData(username=username, api_key=api_key, machine=conjur_url)
+        credentials = CredentialsData(
+                username=username,
+                api_key=api_key,
+                machine=conjur_url
+            )
         credentials_provider.save(credentials)
         c = Client(conjur_data, authn_strategy=authn_provider,
                    ssl_verification_mode=SslVerificationMode.INSECURE)
@@ -53,7 +63,11 @@ class TestIntegrationVanila(AsyncTestCase):
         )
         credentials_provider = SimpleCredentialsProvider()
         authn_provider = LdapAuthenticationStrategy(credentials_provider)
-        credentials = CredentialsData(username=username, password=password, machine=conjur_url)
+        credentials = CredentialsData(
+                username=username,
+                password=password,
+                machine=conjur_url
+            )
         credentials_provider.save(credentials)
         c = Client(conjur_data, authn_strategy=authn_provider,
                    ssl_verification_mode=SslVerificationMode.INSECURE)
@@ -73,4 +87,8 @@ class TestIntegrationVanila(AsyncTestCase):
         ssl_context = ssl_context_factory.create_ssl_context(ssl_metadata)
         ssl_context_default = ssl.create_default_context()
 
-        self.assertTrue(ssl_context.cert_store_stats().get('x509_ca') >= ssl_context_default.cert_store_stats().get('x509_ca'))
+        self.assertTrue(
+                ssl_context.cert_store_stats().get(
+                        'x509_ca'
+                    ) >= ssl_context_default.cert_store_stats().get('x509_ca')
+            )
