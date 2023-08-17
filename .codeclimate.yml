@@ -171,3 +171,6 @@ plugins:
 # commented if no files to exclude as an empty array will error
 exclude_patterns:
   - ".gitignore"
+  - "**/test_unit*"
+  - "**/conjur_api/**"
+  - "**/*.md"
