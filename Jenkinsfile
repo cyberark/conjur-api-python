@@ -1,4 +1,5 @@
 #!/usr/bin/env groovy
+@Library("product-pipelines-shared-library") _
 
 // Automated release, promotion and dependencies
 properties([
@@ -23,7 +24,7 @@ if (params.MODE == "PROMOTE") {
 }
 
 pipeline {
-  agent { label 'executor-v2' }
+  agent { label 'conjur-enterprise-common-agent' }
 
   options {
     timestamps()
@@ -55,13 +56,26 @@ pipeline {
       }
     }
 
+    stage('Get InfraPool ExecutorV2 Agent') {
+      steps {
+        script {
+          // Request ExecutorV2 agents for 1 hour(s)
+          INFRAPOOL_EXECUTORV2_AGENT_0 = getInfraPoolAgent.connected(type: "ExecutorV2", quantity: 1, duration: 1)[0]
+        }
+      }
+    }
+
     stage('Validate') {
       parallel {
         stage('Changelog') {
-          steps { sh './ci/test/parse-changelog.sh' }
+          steps {
+            script { INFRAPOOL_EXECUTORV2_AGENT_0.agentSh './ci/test/parse-changelog.sh' }
+          }
         }
         stage('Linting') {
-        steps { sh './ci/test/test_linting.sh' }
+          steps {
+            script { INFRAPOOL_EXECUTORV2_AGENT_0.agentSh './ci/test/test_linting.sh' }
+          }
         }
       }
     }
@@ -69,45 +83,63 @@ pipeline {
     // Generates a VERSION file based on the current build number and latest version in CHANGELOG.md
     stage('Validate changelog and set version') {
       steps {
-        updateVersion("CHANGELOG.md", "${BUILD_NUMBER}")
+        script {
+          updateVersion(INFRAPOOL_EXECUTORV2_AGENT_0, "CHANGELOG.md", "${BUILD_NUMBER}")
+        }
       }
     }
 
     stage('Unit tests') {
       steps {
-        sh './ci/test/test_unit.sh'
+        script {
+          INFRAPOOL_EXECUTORV2_AGENT_0.agentSh './ci/test/test_unit.sh'
+        }
       }
       post {
         always {
-          junit 'ci/test/output/**/*.xml'
-          cobertura(
-            coberturaReportFile: "coverage.xml",
-            onlyStable: false,
-            failNoReports: true,
-            failUnhealthy: true,
-            failUnstable: false,
-            autoUpdateHealth: false,
-            autoUpdateStability: false,
-            zoomCoverageChart: true,
-            maxNumberOfBuilds: 0,
-            lineCoverageTargets: '40, 40, 40',
-            conditionalCoverageTargets: '80, 80, 80',
-            classCoverageTargets: '80, 80, 80',
-            fileCoverageTargets: '80, 80, 80',
-        )
-        ccCoverage("coverage.py")
+          script {
+            INFRAPOOL_EXECUTORV2_AGENT_0.agentStash name: 'xml-unit-tests', includes: 'ci/test/output/*.xml'
+            INFRAPOOL_EXECUTORV2_AGENT_0.agentStash name: 'coverage', includes: 'coverage.*'
+            unstash 'xml-unit-tests'
+            unstash 'coverage'
+            sh 'find . -iname "*.xml" || true'
+            junit 'ci/test/output/**/*.xml'
+            cobertura(
+              coberturaReportFile: "coverage.xml",
+              onlyStable: false,
+              failNoReports: true,
+              failUnhealthy: true,
+              failUnstable: false,
+              autoUpdateHealth: false,
+              autoUpdateStability: false,
+              zoomCoverageChart: true,
+              maxNumberOfBuilds: 0,
+              lineCoverageTargets: '40, 40, 40',
+              conditionalCoverageTargets: '80, 80, 80',
+              classCoverageTargets: '80, 80, 80',
+              fileCoverageTargets: '80, 80, 80',
+            )
+            codacy action: 'reportCoverage', filePath: "coverage.xml"
+          }
         }
       }
     }
 
     stage('Integration tests') {
       steps {
-        sh './ci/test/test_integration --environment ubuntu'
+        script {
+          grantIPAccess(INFRAPOOL_EXECUTORV2_AGENT_0)
+          INFRAPOOL_EXECUTORV2_AGENT_0.agentSh './ci/test/test_integration --environment ubuntu'
+        }
       }
 
       post {
         always {
-          junit 'ci/test/output/**/*.xml'
+          script {
+            INFRAPOOL_EXECUTORV2_AGENT_0.agentStash name: 'xml-integration-tests', includes: 'ci/test/output/*.xml'
+            unstash 'xml-integration-tests'
+            junit 'ci/test/output/**/*.xml'
+          }
         }
       }
     }
@@ -120,7 +152,7 @@ pipeline {
       }
 
       steps {
-        release { billOfMaterialsDirectory, assetDirectory, toolsDirectory ->
+        release(INFRAPOOL_EXECUTORV2_AGENT_0) { billOfMaterialsDirectory, assetDirectory, toolsDirectory ->
           // Publish release artifacts to all the appropriate locations
           // Copy any artifacts to assetDirectory to attach them to the Github release
         }
@@ -130,7 +162,8 @@ pipeline {
 
   post {
     always {
-      cleanupAndNotify(currentBuild.currentResult)
+      removeIPAccess(INFRAPOOL_EXECUTORV2_AGENT_0)
+      releaseInfraPoolAgent(".infrapool/release_agents")
     }
   }
 }
