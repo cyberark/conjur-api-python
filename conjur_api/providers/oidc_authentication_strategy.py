@@ -32,7 +32,8 @@ class OidcAuthenticationStrategy(AuthnAuthenticationStrategy):
         data = f"id_token={creds.password}"
 
         response = await invoke_endpoint(HttpVerb.POST, ConjurEndpoint.AUTHENTICATE_OIDC,
-                                         params, data, ssl_verification_metadata=ssl_verification_data)
+                                         params, data, ssl_verification_metadata=ssl_verification_data,
+                                         proxy_params=connection_info.proxy_params)
         return response.text
 
     async def _ensure_logged_in(self, connection_info, ssl_verification_data, creds):

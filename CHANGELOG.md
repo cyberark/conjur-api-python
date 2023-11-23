@@ -37,6 +37,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   [conjur-api-python#19](https://github.com/cyberark/conjur-api-python/pull/19)
 - The `get_server_info` method is now available in SDK. It is only supported against Conjur enterprise server
   [conjur-api-python#19](https://github.com/cyberark/conjur-api-python/pull/19)
+- Add proxy parameter for http requests to Conjur
+  [conjur-api-python#2](https://github.cyberng.com/Conjur-Enterprise/conjur-api-python/pull/2)
 
 ### Changed
 - Include system truststore certs even if cert_file config is present

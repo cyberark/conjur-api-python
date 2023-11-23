@@ -9,6 +9,7 @@ from conjur_api.client import Client
 from conjur_api.http.api import Api
 from conjur_api.models import SslVerificationMode, CredentialsData
 from conjur_api.models.general.conjur_connection_info import ConjurConnectionInfo
+from conjur_api.models.general.proxy_params import ProxyParams
 from conjur_api.models.general.resource import Resource
 from conjur_api.models.hostfactory.create_host_data import CreateHostData
 from conjur_api.models.hostfactory.create_token_data import CreateTokenData
@@ -33,11 +34,13 @@ class ClientTest(IsolatedAsyncioTestCase):
         self.conjur_data = ConjurConnectionInfo(
             conjur_url='https://conjur-https',
             account='test',
+            proxy_params=ProxyParams(proxy_url='proxy.com')
         )
         self.conjur_oidc_data = ConjurConnectionInfo(
             conjur_url='https://conjur-https',
             account='test',
-            service_id='test-service'
+            service_id='test-service',
+            proxy_params=ProxyParams(proxy_url='proxy.com')
         )
         credential_provider = SimpleCredentialsProvider()
         credential_provider.save(CredentialsData(self.conjur_data.conjur_url, 'username', 'password', 'api_key'))
@@ -75,6 +78,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
       args, kwargs = mock_invoke_endpoint.call_args
       self.assertEqual('test_token', kwargs.get('api_token'))
+      self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
       self.assertTrue(exists_in_args('abcdefg', args))
       mock_invoke_endpoint.assert_called_once()
 
@@ -86,6 +90,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
         args, kwargs = mock_invoke_endpoint.call_args
         self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         mock_invoke_endpoint.assert_called_once()
 
     @patch('conjur_api.http.api.invoke_endpoint')
@@ -96,6 +101,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
         args, kwargs = mock_invoke_endpoint.call_args
         self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         self.assertTrue(exists_in_args('revoked_token', args))
         mock_invoke_endpoint.assert_called_once()
 
@@ -107,6 +113,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
         args, kwargs = mock_invoke_endpoint.call_args
         self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         self.assertTrue(exists_in_args('dummy-host', args))
         mock_invoke_endpoint.assert_called_once()
 
@@ -118,6 +125,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
         args, kwargs = mock_invoke_endpoint.call_args
         self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         self.assertTrue(exists_in_args('dummy-var', args))
         mock_invoke_endpoint.assert_called_once()
 
@@ -127,6 +135,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
         args, kwargs = mock_invoke_endpoint.call_args
         self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         self.assertTrue(exists_in_args('abcdefg', args))
         mock_invoke_endpoint.assert_called_once()
 
@@ -138,6 +147,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
         args, kwargs = mock_invoke_endpoint.call_args
         self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         self.assertTrue(exists_in_args('dummy-var', args) and exists_in_args('dummy-value', args))
         mock_invoke_endpoint.assert_called_once()
 
@@ -150,6 +160,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
             args, kwargs = mock_invoke_endpoint.call_args
             self.assertEqual('test_token', kwargs.get('api_token'))
+            self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
             self.assertTrue(exists_in_args('test', args))
             mock_invoke_endpoint.assert_called_once()
 
@@ -162,6 +173,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
             args, kwargs = mock_invoke_endpoint.call_args
             self.assertEqual('test_token', kwargs.get('api_token'))
+            self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
             self.assertTrue(exists_in_args('test', args))
             mock_invoke_endpoint.assert_called_once()
 
@@ -174,6 +186,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
             args, kwargs = mock_invoke_endpoint.call_args
             self.assertEqual('test_token', kwargs.get('api_token'))
+            self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
             self.assertTrue(exists_in_args('test', args))
             mock_invoke_endpoint.assert_called_once()
 
@@ -186,6 +199,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
         args, kwargs = mock_invoke_endpoint.call_args
         self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         self.assertIn('dummy-user', kwargs.get('query').get('role'))
         mock_invoke_endpoint.assert_called_once()
 
@@ -195,12 +209,15 @@ class ClientTest(IsolatedAsyncioTestCase):
 
       args, kwargs = mock_invoke_endpoint.call_args
       self.assertTrue(exists_in_args('dummy-user', kwargs.get('auth')) and exists_in_args('dummy-password', kwargs.get('auth')))
+      self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
       mock_invoke_endpoint.assert_called_once()
 
     @patch('conjur_api.http.api.invoke_endpoint')
     async def test_client_get_server_info_invokes_api(self, mock_invoke_endpoint):
       await self.client.get_server_info()
       mock_invoke_endpoint.assert_called_once()
+      args, kwargs = mock_invoke_endpoint.call_args
+      self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
 
     @patch('conjur_api.http.api.invoke_endpoint')
     async def test_client_change_personal_password_invokes_api(self, mock_invoke_endpoint):
@@ -209,6 +226,7 @@ class ClientTest(IsolatedAsyncioTestCase):
         args, kwargs = mock_invoke_endpoint.call_args
         self.assertTrue(exists_in_args('dummy-user', kwargs.get('auth')) and exists_in_args('dummy-password', kwargs.get('auth')))
         self.assertTrue(exists_in_args('dummy-new-password', args))
+        self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         mock_invoke_endpoint.assert_called_once()
 
     @patch('conjur_api.http.api.invoke_endpoint')
@@ -222,6 +240,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
             args, kwargs = mock_invoke_endpoint.call_args
             self.assertEqual('test_token', kwargs.get('api_token'))
+            self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
             mock_invoke_endpoint.assert_called_once()
             self.assertTrue('Resource not found' in str(context.exception))
 
@@ -235,6 +254,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
         args, kwargs = mock_invoke_endpoint.call_args
         self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         self.assertIn('host:myHost', kwargs.get('query').get('search'))
         mock_invoke_endpoint.assert_called_once()
 
@@ -249,6 +269,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
         args, kwargs = mock_invoke_endpoint.call_args
         self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         self.assertTrue(exists_in_args('dummy-var', args))
         mock_invoke_endpoint.assert_called_once()
 
@@ -260,6 +281,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
         args, kwargs = mock_invoke_endpoint.call_args
         self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         self.assertIn('host', kwargs.get('query').get('type'))
         mock_invoke_endpoint.assert_called_once()
 
@@ -271,6 +293,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
         args, kwargs = mock_invoke_endpoint.call_args
         self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         self.assertTrue(exists_in_args('policy', args))
         self.assertTrue(exists_in_args('dummy', args))
         mock_invoke_endpoint.assert_called_once()
@@ -283,6 +306,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
         args, kwargs = mock_invoke_endpoint.call_args
         self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         self.assertTrue(exists_in_args('host', args))
         self.assertTrue(exists_in_args('dummy', args))
         mock_invoke_endpoint.assert_called_once()
@@ -299,6 +323,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
         args, kwargs = mock_invoke_endpoint.call_args
         self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         self.assertIn('test:variable:dummy-var', kwargs.get('query').get('variable_ids'))
         self.assertIn('test:variable:dummy-var-2', kwargs.get('query').get('variable_ids'))
         self.assertIn('test:variable:dummy-var-3', kwargs.get('query').get('variable_ids'))
@@ -312,6 +337,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
         args, kwargs = mock_invoke_endpoint.call_args
         self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         self.assertTrue(exists_in_args('policy', args))
         self.assertTrue(exists_in_args('dummy', args))
         mock_invoke_endpoint.assert_called_once()
@@ -324,6 +350,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
         args, kwargs = mock_invoke_endpoint.call_args
         self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         self.assertTrue(exists_in_args('user', args))
         self.assertTrue(exists_in_args('someuser', args))
         mock_invoke_endpoint.assert_called_once()
@@ -336,6 +363,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
         args, kwargs = mock_invoke_endpoint.call_args
         self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         self.assertTrue(exists_in_args('policy', args))
         self.assertTrue(exists_in_args('dummy', args))
         self.assertTrue(exists_in_args('memberships', args))
@@ -349,6 +377,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
         args, kwargs = mock_invoke_endpoint.call_args
         self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         self.assertTrue(exists_in_args('policy', args))
         self.assertTrue(exists_in_args('dummy', args))
         self.assertTrue(exists_in_args('all', args))
@@ -362,6 +391,7 @@ class ClientTest(IsolatedAsyncioTestCase):
 
         args, kwargs = mock_invoke_endpoint.call_args
         self.assertEqual('test_token', kwargs.get('api_token'))
+        self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         self.assertTrue(exists_in_args('policy', args))
         self.assertTrue(exists_in_args('dummy1', args))
         self.assertTrue(exists_in_args('dummy2', args))
@@ -424,73 +454,14 @@ class ClientTest(IsolatedAsyncioTestCase):
 
         self.assertEqual(response, '')
 
-    @patch('conjur_api.providers.oidc_authentication_strategy.invoke_endpoint')
-    @patch('conjur_api.http.api.invoke_endpoint')
-    async def test_oidc_authentication(self, mock_regular_invoke_endpoint, mock_auth_invoke_endpoint):
-        await self.oidc_client.authenticate()
-
-        args, kwargs = mock_auth_invoke_endpoint.call_args
-        self.assertTrue(exists_in_args('url', args))
-        self.assertTrue(exists_in_args('service_id', args))
-        self.assertTrue(exists_in_args('account', args))
-        self.assertTrue(exists_in_args('id_token', args))
-        mock_auth_invoke_endpoint.assert_called_once()
-
     @patch('aiohttp.ClientSession.request')
-    async def test_client_enable_valid_authenticator(self, mock_request):
+    async def test_client_proxy_params_passed_to_auth_enablement(self, mock_request):
         mock_request.return_value = MockResponse('', 204)
         response = await self.client.set_authenticator_state('authn-iam/test', True)
 
         self.assertEqual(response, '')
-
-    @patch('aiohttp.ClientSession.request')
-    async def test_client_disable_valid_authenticator(self, mock_request):
-        mock_request.return_value = MockResponse('', 204)
-        response = await self.client.set_authenticator_state('authn-iam/test', False)
-
-        self.assertEqual(response, '')
-
-    @patch('aiohttp.ClientSession.request')
-    async def test_client_enable_authenticator_no_permissions(self, mock_request):
-        mock_request.return_value = MockResponse('', 403)
-
-        with self.assertRaises(HttpError) as context:
-            await self.client.set_authenticator_state('authn-iam/test', True)
-
-    @patch('aiohttp.ClientSession.request')
-    async def test_client_disable_authenticator_no_permissions(self, mock_request):
-        mock_request.return_value = MockResponse('', 403)
-
-        with self.assertRaises(HttpError) as context:
-            await self.client.set_authenticator_state('authn-iam/test', False)
-
-    @patch('aiohttp.ClientSession.request')
-    async def test_client_enable_non_existing_authenticator(self, mock_request):
-        mock_request.return_value = MockResponse('', 401)
-
-        with self.assertRaises(HttpError) as context:
-            await self.client.set_authenticator_state('authn-iam/test', True)
-
-    @patch('aiohttp.ClientSession.request')
-    async def test_client_disable_non_existing_authenticator(self, mock_request):
-        mock_request.return_value = MockResponse('', 401)
-
-        with self.assertRaises(HttpError) as context:
-            await self.client.set_authenticator_state('authn-iam/test', False)
-
-    @patch('aiohttp.ClientSession.request')
-    async def test_client_enable_authenticator_without_service_id(self, mock_request):
-        mock_request.return_value = MockResponse('', 204)
-        response = await self.client.set_authenticator_state('authn-gcp', True)
-
-        self.assertEqual(response, '')
-
-    @patch('aiohttp.ClientSession.request')
-    async def test_client_disable_authenticator_without_service_id(self, mock_request):
-        mock_request.return_value = MockResponse('', 204)
-        response = await self.client.set_authenticator_state('authn-gcp', False)
-
-        self.assertEqual(response, '')
+        args, kwargs = mock_request.call_args
+        self.assertEqual('proxy.com', kwargs.get('proxy'))
 
     @patch('conjur_api.providers.oidc_authentication_strategy.invoke_endpoint')
     @patch('conjur_api.http.api.invoke_endpoint')
@@ -502,4 +473,5 @@ class ClientTest(IsolatedAsyncioTestCase):
         self.assertTrue(exists_in_args('service_id', args))
         self.assertTrue(exists_in_args('account', args))
         self.assertTrue(exists_in_args('id_token', args))
+        self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         mock_auth_invoke_endpoint.assert_called_once()
