@@ -1,7 +1,7 @@
 #!/bin/bash -ex
 
 docker_compose_command(){
-  docker-compose --file "$COMPOSE_FILE_PATH" --project-directory "${PWD}" $@
+  docker compose --file "$COMPOSE_FILE_PATH" --project-directory "${PWD}" $@
 }
 cleanup() {
   # docker_compose_command logs
@@ -43,7 +43,7 @@ docker_compose_command up openssl
 echo "Starting Conjur..."
 docker_compose_command up -d conjur-https
 docker_compose_command exec -T conjur cp /oidc/certs/oidc-server.cert.pem /etc/ssl/certs/oidc-server.cert.pem
-docker-compose --file "$COMPOSE_FILE_PATH" --project-directory "${PWD}" \
+docker compose --file "$COMPOSE_FILE_PATH" --project-directory "${PWD}" \
    exec -T conjur sh -c 'hash=$(openssl x509 -hash -in /etc/ssl/certs/oidc-server.cert.pem -out /dev/null) && ln -s /etc/ssl/certs/oidc-server.cert.pem /etc/ssl/certs/${hash}.0'
 docker_compose_command exec -T conjur conjurctl wait
 
@@ -55,7 +55,7 @@ conjur_host_port=$(docker_compose_command port conjur 80)
 conjur_port="${conjur_host_port##*:}"
 export TEST_HOSTNAME=conjur-https
 
-# Docker-compose will pick this file up when starting containers
+# Docker Compose will pick this file up when starting containers
 # so we will have these variables in the container
 cat <<ENV >.env
 CONJUR_AUTHN_API_KEY=$admin_api_key
