@@ -32,7 +32,8 @@ class LdapAuthenticationStrategy(AuthnAuthenticationStrategy):
 
         response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.LOGIN_LDAP,
                                          params, auth=(creds.username, creds.password),
-                                         ssl_verification_metadata=ssl_verification_data)
+                                         ssl_verification_metadata=ssl_verification_data,
+                                         proxy_params=connection_info.proxy_params)
 
         return response.text
 
@@ -50,8 +51,9 @@ class LdapAuthenticationStrategy(AuthnAuthenticationStrategy):
             HttpVerb.POST,
             ConjurEndpoint.AUTHENTICATE_LDAP,
             params,
-            creds.api_key,
-            ssl_verification_metadata=ssl_verification_data)
+            data=creds.api_key,
+            ssl_verification_metadata=ssl_verification_data,
+            proxy_params=connection_info.proxy_params)
         return response.text
 
     def _validate_service_id_exists(self, connection_info: ConjurConnectionInfo):

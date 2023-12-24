@@ -75,7 +75,7 @@ ssl_verification_mode = SslVerificationMode.TRUST_STORE
 ConjurConnectionInfo is a data class containing all the non-credentials connection details.
 
 ```python
-connection_info = ConjurConnectionInfo(conjur_url=conjur_url,account=account,cert_file=None,service_id="ldap-service-id")
+connection_info = ConjurConnectionInfo(conjur_url=conjur_url,account=account,cert_file=None,service_id="ldap-service-id", proxy_params=None)
 ```
 
 * conjur_url - url of conjur server
@@ -83,6 +83,7 @@ connection_info = ConjurConnectionInfo(conjur_url=conjur_url,account=account,cer
 * cert_file - a path to conjur rootCA file. we need it if we initialize the client in `SslVerificationMode.SELF_SIGN`
   or `SslVerificationMode.CA_BUNDLE` mode
 * service_id - a service id for the Conjur authenticator. Required when using the ldap authenticator (see below) but not when using the default `authn` authenticator.
+* proxy_params - parameters for proxy connection. see `ProxyParams` class for more details - Optional
 
 #### Create credentials provider
 

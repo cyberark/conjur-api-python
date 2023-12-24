@@ -23,6 +23,7 @@ from conjur_api.errors.errors import CertificateHostnameMismatchException, HttpS
 from conjur_api.http.endpoints import ConjurEndpoint
 from conjur_api.http.ssl import ssl_context_factory
 from conjur_api.models import SslVerificationMetadata, SslVerificationMode
+from conjur_api.models.general.proxy_params import ProxyParams
 from conjur_api.wrappers.http_response import HttpResponse
 
 REQUEST_TIMEOUT_SECONDS = 10
@@ -52,7 +53,8 @@ async def invoke_endpoint(http_verb: HttpVerb,
                           api_token: str = None,
                           query: dict = None,
                           headers=None,
-                          decode_token=True) -> HttpResponse:
+                          decode_token=True,
+                          proxy_params: ProxyParams = None) -> HttpResponse:
     """
     This method flexibly invokes HTTP calls from 'aiohttp' module
     """
@@ -93,7 +95,8 @@ async def invoke_endpoint(http_verb: HttpVerb,
                                     query=query,
                                     ssl_verification_metadata=ssl_verification_metadata,
                                     auth=auth,
-                                    headers=headers)
+                                    headers=headers,
+                                    proxy_params=proxy_params)
 
     if check_errors:
         # takes the response object and expands the raise_for_status method
@@ -130,7 +133,8 @@ async def invoke_request(http_verb: HttpVerb,
                          query: dict,
                          ssl_verification_metadata: SslVerificationMetadata,
                          auth: tuple,
-                         headers: dict) -> HttpResponse:
+                         headers: dict,
+                         proxy_params: ProxyParams) -> HttpResponse:
     """
     This method preforms the actual request and catches possible SSLErrors to
     perform more user-friendly messages
@@ -145,7 +149,8 @@ async def invoke_request(http_verb: HttpVerb,
                                            params=query,
                                            ssl=ssl_context,
                                            auth=BasicAuth(*auth) if auth else None,
-                                           headers=headers) as response:
+                                           headers=headers,
+                                           proxy=proxy_params.proxy_url if proxy_params else None) as response:
                     return await HttpResponse.from_client_response(response)
 
             except ClientSSLError as ssl_error:

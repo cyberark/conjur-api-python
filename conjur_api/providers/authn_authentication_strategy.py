@@ -88,7 +88,8 @@ class AuthnAuthenticationStrategy(AuthenticationStrategyInterface):
 
         response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.LOGIN,
                                          params, auth=(creds.username, creds.password),
-                                         ssl_verification_metadata=ssl_verification_data)
+                                         ssl_verification_metadata=ssl_verification_data,
+                                         proxy_params=connection_info.proxy_params)
 
         return response.text
 
@@ -104,7 +105,8 @@ class AuthnAuthenticationStrategy(AuthenticationStrategyInterface):
             ConjurEndpoint.AUTHENTICATE,
             params,
             creds.api_key,
-            ssl_verification_metadata=ssl_verification_data)
+            ssl_verification_metadata=ssl_verification_data,
+            proxy_params=connection_info.proxy_params)
         return response.text
 
     @staticmethod

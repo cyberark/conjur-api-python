@@ -134,12 +134,14 @@ class Api:
                                              params,
                                              query=list_constraints,
                                              api_token=api_token,
-                                             ssl_verification_metadata=self.ssl_verification_data)
+                                             ssl_verification_metadata=self.ssl_verification_data,
+                                             proxy_params=self._connection_info.proxy_params)
         else:
             response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.RESOURCES,
                                              params,
                                              api_token=api_token,
-                                             ssl_verification_metadata=self.ssl_verification_data)
+                                             ssl_verification_metadata=self.ssl_verification_data,
+                                             proxy_params=self._connection_info.proxy_params)
 
         resources = response.json
         # Returns the result as a list of resource ids instead of the raw JSON only
@@ -170,9 +172,10 @@ class Api:
 
         try:
             response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.PRIVILEGE,
-                                  params,
-                                  api_token=await self.api_token,
-                                  ssl_verification_metadata=self.ssl_verification_data)
+                                             params,
+                                             api_token=await self.api_token,
+                                             ssl_verification_metadata=self.ssl_verification_data,
+                                             proxy_params=self._connection_info.proxy_params)
             logging.debug(str(response))
         except HttpStatusError as err:
             if err.status == 404:
@@ -196,7 +199,8 @@ class Api:
         response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.RESOURCE,
                                          params,
                                          api_token=await self.api_token,
-                                         ssl_verification_metadata=self.ssl_verification_data)
+                                         ssl_verification_metadata=self.ssl_verification_data,
+                                         proxy_params=self._connection_info.proxy_params)
 
         resource = response.json
 
@@ -220,7 +224,8 @@ class Api:
             await invoke_endpoint(HttpVerb.HEAD, ConjurEndpoint.RESOURCE,
                                   params,
                                   api_token=await self.api_token,
-                                  ssl_verification_metadata=self.ssl_verification_data)
+                                  ssl_verification_metadata=self.ssl_verification_data,
+                                  proxy_params=self._connection_info.proxy_params)
         except HttpStatusError as err:
             if err.status == 404:
                 return False
@@ -246,7 +251,8 @@ class Api:
         response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.ROLE,
                                          params,
                                          api_token=await self.api_token,
-                                         ssl_verification_metadata=self.ssl_verification_data)
+                                         ssl_verification_metadata=self.ssl_verification_data,
+                                         proxy_params=self._connection_info.proxy_params)
 
         role = response.json
 
@@ -271,7 +277,8 @@ class Api:
         response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.ROLES_MEMBERSHIPS,
                                          params,
                                          api_token=await self.api_token,
-                                         ssl_verification_metadata=self.ssl_verification_data)
+                                         ssl_verification_metadata=self.ssl_verification_data,
+                                         proxy_params=self._connection_info.proxy_params)
 
         if direct:
             memberships = map(lambda membership: membership['role'], response.json)
@@ -294,7 +301,8 @@ class Api:
             await invoke_endpoint(HttpVerb.HEAD, ConjurEndpoint.ROLE,
                                   params,
                                   api_token=await self.api_token,
-                                  ssl_verification_metadata=self.ssl_verification_data)
+                                  ssl_verification_metadata=self.ssl_verification_data,
+                                  proxy_params=self._connection_info.proxy_params)
         except HttpStatusError as err:
             if err.status == 404:
                 return False
@@ -331,11 +339,13 @@ class Api:
         if version is not None:
             response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.SECRETS, params,
                                              api_token=api_token, query=query_params,
-                                             ssl_verification_metadata=self.ssl_verification_data)
+                                             ssl_verification_metadata=self.ssl_verification_data,
+                                             proxy_params=self._connection_info.proxy_params)
         else:
             response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.SECRETS, params,
                                              api_token=api_token,
-                                             ssl_verification_metadata=self.ssl_verification_data)
+                                             ssl_verification_metadata=self.ssl_verification_data,
+                                             proxy_params=self._connection_info.proxy_params)
         return response.content
 
     async def get_variables(self, *variable_ids) -> dict:
@@ -363,7 +373,7 @@ class Api:
                                          api_token=api_token,
                                          ssl_verification_metadata=self.ssl_verification_data,
                                          query=query_params,
-                                         )
+                                         proxy_params=self._connection_info.proxy_params)
 
         variable_map = response.json
 
@@ -407,7 +417,8 @@ class Api:
                                      create_token_data,
                                      api_token=api_token,
                                      ssl_verification_metadata=self.ssl_verification_data,
-                                     headers={'Content-Type': 'application/x-www-form-urlencoded'})
+                                     headers={'Content-Type': 'application/x-www-form-urlencoded'},
+                                     proxy_params=self._connection_info.proxy_params)
 
     async def create_host(self, create_host_data: CreateHostData) -> HttpResponse:
         """
@@ -425,7 +436,8 @@ class Api:
                                      api_token=create_host_data.token,
                                      ssl_verification_metadata=self.ssl_verification_data,
                                      decode_token=False,
-                                     headers={'Content-Type': 'application/x-www-form-urlencoded'})
+                                     headers={'Content-Type': 'application/x-www-form-urlencoded'},
+                                     proxy_params=self._connection_info.proxy_params)
 
     async def revoke_token(self, token: str) -> HttpResponse:
         """
@@ -449,7 +461,8 @@ class Api:
                                      ConjurEndpoint.HOST_FACTORY_REVOKE_TOKEN,
                                      params,
                                      api_token=api_token,
-                                     ssl_verification_metadata=self.ssl_verification_data)
+                                     ssl_verification_metadata=self.ssl_verification_data,
+                                     proxy_params=self._connection_info.proxy_params)
 
     async def set_variable(self, variable_id: str, value: str) -> str:
         """
@@ -468,7 +481,8 @@ class Api:
 
         response = await invoke_endpoint(HttpVerb.POST, ConjurEndpoint.SECRETS, params,
                                          value, api_token=api_token,
-                                         ssl_verification_metadata=self.ssl_verification_data)
+                                         ssl_verification_metadata=self.ssl_verification_data,
+                                         proxy_params=self._connection_info.proxy_params)
         return response.text
 
     async def _load_policy_file(
@@ -492,7 +506,8 @@ class Api:
 
         response = await invoke_endpoint(http_verb, ConjurEndpoint.POLICIES, params,
                                          policy_data, api_token=api_token,
-                                         ssl_verification_metadata=self.ssl_verification_data)
+                                         ssl_verification_metadata=self.ssl_verification_data,
+                                         proxy_params=self._connection_info.proxy_params)
         return response.json
 
     async def load_policy_file(self, policy_id: str, policy_file: str) -> dict:
@@ -537,7 +552,8 @@ class Api:
                                          self._default_params,
                                          api_token=api_token,
                                          ssl_verification_metadata=self.ssl_verification_data,
-                                         query=query_params)
+                                         query=query_params,
+                                         proxy_params=self._connection_info.proxy_params)
         return response.text
 
     async def rotate_personal_api_key(
@@ -549,7 +565,8 @@ class Api:
         response = await invoke_endpoint(HttpVerb.PUT, ConjurEndpoint.ROTATE_API_KEY,
                                          self._default_params,
                                          auth=(logged_in_user, current_password),
-                                         ssl_verification_metadata=self.ssl_verification_data)
+                                         ssl_verification_metadata=self.ssl_verification_data,
+                                         proxy_params=self._connection_info.proxy_params)
         return response.text
 
     async def set_authenticator_state(self, authenticator_id: str, enabled: bool) -> str:
@@ -569,7 +586,8 @@ class Api:
             raise MissingApiTokenException()
 
         response = await invoke_endpoint(HttpVerb.PATCH, ConjurEndpoint.AUTHENTICATOR, params, body,
-                                         api_token=api_token, ssl_verification_metadata=self.ssl_verification_data)
+                                         api_token=api_token, ssl_verification_metadata=self.ssl_verification_data,
+                                         proxy_params=self._connection_info.proxy_params)
         return response.text
 
     async def change_personal_password(
@@ -582,7 +600,8 @@ class Api:
                                          self._default_params,
                                          new_password,
                                          auth=(logged_in_user, current_password),
-                                         ssl_verification_metadata=self.ssl_verification_data
+                                         ssl_verification_metadata=self.ssl_verification_data,
+                                         proxy_params=self._connection_info.proxy_params
                                          )
         return response.text
 
@@ -597,7 +616,8 @@ class Api:
         return await invoke_endpoint(HttpVerb.GET,
                                      ConjurEndpoint.INFO,
                                      params,
-                                     ssl_verification_metadata=self.ssl_verification_data)
+                                     ssl_verification_metadata=self.ssl_verification_data,
+                                     proxy_params=self._connection_info.proxy_params)
 
     async def whoami(self) -> dict:
         """
@@ -610,7 +630,8 @@ class Api:
         response = await invoke_endpoint(HttpVerb.GET, ConjurEndpoint.WHOAMI,
                                          self._default_params,
                                          api_token=api_token,
-                                         ssl_verification_metadata=self.ssl_verification_data)
+                                         ssl_verification_metadata=self.ssl_verification_data,
+                                         proxy_params=self._connection_info.proxy_params)
 
         return response.json
 
@@ -647,7 +668,8 @@ class Api:
                                          params,
                                          api_token=api_token,
                                          query=request_parameters,
-                                         ssl_verification_metadata=self.ssl_verification_data)
+                                         ssl_verification_metadata=self.ssl_verification_data,
+                                         proxy_params=self._connection_info.proxy_params)
 
         resources = response.json
 
@@ -686,6 +708,7 @@ class Api:
                                          ConjurEndpoint.RESOURCES_PERMITTED_ROLES,
                                          params,
                                          api_token=api_token,
-                                         ssl_verification_metadata=self.ssl_verification_data)
+                                         ssl_verification_metadata=self.ssl_verification_data,
+                                         proxy_params=self._connection_info.proxy_params)
 
         return response.json
