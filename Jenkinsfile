@@ -11,15 +11,18 @@ properties([
 
 // Performs release promotion.  No other stages will be run
 if (params.MODE == "PROMOTE") {
-  release.promote(params.VERSION_TO_PROMOTE) { sourceVersion, targetVersion, assetDirectory ->
+  release.promote(params.VERSION_TO_PROMOTE) { infrapool, sourceVersion, targetVersion, assetDirectory ->
     // Any assets from sourceVersion Github release are available in assetDirectory
     // Any version number updates from sourceVersion to targetVersion occur here
     // Any publishing of targetVersion artifacts occur here
     // Anything added to assetDirectory will be attached to the Github Release
 
     // Publish target version.
-    sh "summon -e production ./ci/publish/publish_package ${targetVersion}"
+    infrapool.agentSh "summon -e production ./ci/publish/publish_package ${targetVersion}"
   }
+
+  // Copy Github Enterprise release to Github
+  release.copyEnterpriseRelease(params.VERSION_TO_PROMOTE)
   return
 }
 
@@ -60,7 +63,7 @@ pipeline {
       steps {
         script {
           // Request ExecutorV2 agents for 1 hour(s)
-          INFRAPOOL_EXECUTORV2_AGENT_0 = getInfraPoolAgent.connected(type: "ExecutorV2", quantity: 1, duration: 1)[0]
+          infrapool = getInfraPoolAgent.connected(type: "ExecutorV2", quantity: 1, duration: 1)[0]
         }
       }
     }
@@ -69,12 +72,12 @@ pipeline {
       parallel {
         stage('Changelog') {
           steps {
-            script { INFRAPOOL_EXECUTORV2_AGENT_0.agentSh './ci/test/parse-changelog.sh' }
+            script { infrapool.agentSh './ci/test/parse-changelog.sh' }
           }
         }
         stage('Linting') {
           steps {
-            script { INFRAPOOL_EXECUTORV2_AGENT_0.agentSh './ci/test/test_linting.sh' }
+            script { infrapool.agentSh './ci/test/test_linting.sh' }
           }
         }
       }
@@ -84,7 +87,7 @@ pipeline {
     stage('Validate changelog and set version') {
       steps {
         script {
-          updateVersion(INFRAPOOL_EXECUTORV2_AGENT_0, "CHANGELOG.md", "${BUILD_NUMBER}")
+          updateVersion(infrapool, "CHANGELOG.md", "${BUILD_NUMBER}")
         }
       }
     }
@@ -92,14 +95,14 @@ pipeline {
     stage('Unit tests') {
       steps {
         script {
-          INFRAPOOL_EXECUTORV2_AGENT_0.agentSh './ci/test/test_unit.sh'
+          infrapool.agentSh './ci/test/test_unit.sh'
         }
       }
       post {
         always {
           script {
-            INFRAPOOL_EXECUTORV2_AGENT_0.agentStash name: 'xml-unit-tests', includes: 'ci/test/output/*.xml'
-            INFRAPOOL_EXECUTORV2_AGENT_0.agentStash name: 'coverage', includes: 'coverage.*'
+            infrapool.agentStash name: 'xml-unit-tests', includes: 'ci/test/output/*.xml'
+            infrapool.agentStash name: 'coverage', includes: 'coverage.*'
             unstash 'xml-unit-tests'
             unstash 'coverage'
             sh 'find . -iname "*.xml" || true'
@@ -128,15 +131,15 @@ pipeline {
     stage('Integration tests') {
       steps {
         script {
-          grantIPAccess(INFRAPOOL_EXECUTORV2_AGENT_0)
-          INFRAPOOL_EXECUTORV2_AGENT_0.agentSh './ci/test/test_integration --environment ubuntu'
+          grantIPAccess(infrapool)
+          infrapool.agentSh './ci/test/test_integration --environment ubuntu'
         }
       }
 
       post {
         always {
           script {
-            INFRAPOOL_EXECUTORV2_AGENT_0.agentStash name: 'xml-integration-tests', includes: 'ci/test/output/*.xml'
+            infrapool.agentStash name: 'xml-integration-tests', includes: 'ci/test/output/*.xml'
             unstash 'xml-integration-tests'
             junit 'ci/test/output/**/*.xml'
           }
@@ -152,7 +155,7 @@ pipeline {
       }
 
       steps {
-        release(INFRAPOOL_EXECUTORV2_AGENT_0) { billOfMaterialsDirectory, assetDirectory, toolsDirectory ->
+        release(infrapool) { billOfMaterialsDirectory, assetDirectory, toolsDirectory ->
           // Publish release artifacts to all the appropriate locations
           // Copy any artifacts to assetDirectory to attach them to the Github release
         }
@@ -162,7 +165,7 @@ pipeline {
 
   post {
     always {
-      removeIPAccess(INFRAPOOL_EXECUTORV2_AGENT_0)
+      removeIPAccess(infrapool)
       releaseInfraPoolAgent(".infrapool/release_agents")
     }
   }
