@@ -6,9 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.1] - 2024-02-16
+
 ### Security
 - Upgrade ubuntu base image in Dockerfile.test to 23.04
   [conjur-api-python#41](https://github.com/cyberark/conjur-api-python/pull/41)
+- Upgrade aiohttp and cryptography (CONJSE-1841)
 
 ## [0.1.0] - 2023-02-14
 
@@ -48,5 +51,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Store API key in `CreditentialsData` object
   [conjur-api-python#23](https://github.com/cyberark/conjur-api-python/pull/23)
 
-[Unreleased]: https://github.com/cyberark/conjur-api-python/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/cyberark/conjur-api-python/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/cyberark/conjur-api-python/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/cyberark/conjur-api-python/releases/tag/v0.1.0

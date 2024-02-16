@@ -26,3 +26,6 @@ venv/
 *.iws
 *.iml
 *.ipr
+
+# VSCode
+.vscode/
