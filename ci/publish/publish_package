@@ -55,16 +55,16 @@ publish_to_pypi() {
             -e TWINE_PASSWORD \
             conjur-api-python3-publish bash -exc "
                 echo 'Installing new versions of pip and wheel...'
-                /usr/bin/env pip3 install --upgrade pip wheel
+                /venv/bin/pip3 install --upgrade pip wheel
 
                 echo 'Building distributable package...'
-                /usr/bin/env python3 -m build
+                /venv/bin/python3 -m build
 
                 echo 'Testing artifacts in dist/*'
-                /usr/bin/env twine check dist/*
+                /venv/bin/twine check dist/*
 
                 echo 'Publishing package to '\$TWINE_REPOSITORY_URL' using account '\$TWINE_USERNAME'...'
-                /usr/bin/env twine upload --skip-existing --repository-url $TWINE_REPOSITORY_URL dist/*
+                /venv/bin/twine upload --skip-existing --repository-url $TWINE_REPOSITORY_URL dist/*
             "
 }
 

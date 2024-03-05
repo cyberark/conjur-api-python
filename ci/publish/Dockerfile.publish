@@ -20,6 +20,7 @@ RUN mkdir -p $INSTALL_DIR
 WORKDIR $INSTALL_DIR
 
 COPY ./requirements.txt $INSTALL_DIR/
-RUN pip3 install -r requirements.txt
+RUN python3 -m venv /venv
+RUN /venv/bin/pip3 install -r requirements.txt
 
 COPY . $INSTALL_DIR
