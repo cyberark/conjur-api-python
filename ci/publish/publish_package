@@ -11,8 +11,7 @@ publish_to_pypi
 }
 
 check_required_vars() {
-  REQUIRED_VARS=( "TWINE_USERNAME"
-                  "TWINE_PASSWORD" )
+  REQUIRED_VARS=( "TWINE_API_KEY" )
 
   for required_var in "${REQUIRED_VARS[@]}"; do
     if [[ "${!required_var}" == "" ]]; then
@@ -51,8 +50,7 @@ publish_to_pypi() {
   docker run --rm \
             -t \
             -e TWINE_REPOSITORY_URL \
-            -e TWINE_USERNAME \
-            -e TWINE_PASSWORD \
+            -e TWINE_API_KEY \
             conjur-api-python3-publish bash -exc "
                 echo 'Installing new versions of pip and wheel...'
                 /venv/bin/pip3 install --upgrade pip wheel
@@ -63,8 +61,14 @@ publish_to_pypi() {
                 echo 'Testing artifacts in dist/*'
                 /venv/bin/twine check dist/*
 
-                echo 'Publishing package to '\$TWINE_REPOSITORY_URL' using account '\$TWINE_USERNAME'...'
-                /venv/bin/twine upload --skip-existing --repository-url $TWINE_REPOSITORY_URL dist/*
+                # See https://pypi.org/help/: 'How can I use API tokens to authenticate with PyPI?'
+                echo 'Publishing package to '\$TWINE_REPOSITORY_URL' using API token...'
+                /venv/bin/twine upload \
+                  --skip-existing \
+                  --repository-url $TWINE_REPOSITORY_URL \
+                  --username __token__ \
+                  --password $TWINE_API_KEY \
+                  dist/*
             "
 }
 
