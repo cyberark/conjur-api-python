@@ -9,10 +9,12 @@ PyInstaller>=4.0
 PyYAML>=5.3.1
 aiohttp>=3.9.3
 asynctest>=0.13.0
-setuptools>=57.0.0
+setuptools>=70.0.0
 twine>=3.2.0
 build>=0.7.0
 # https://nvd.nist.gov/vuln/detail/CVE-2020-26137
-urllib3>=1.25.9
+urllib3>=2.2.2
 
 aiounittest~=1.4.1
+requests>=2.32.2 # not directly required, pinned by Snyk to avoid a vulnerability
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability

@@ -44,7 +44,8 @@ valid_badssl_endpoints = [
     # "https://extended-validation.badssl.com",
     "https://rsa2048.badssl.com",
     "https://rsa4096.badssl.com",
-    "https://rsa8192.badssl.com",
+    # This is temporarily broken, see https://github.com/chromium/badssl.com/issues/501
+    # "https://rsa8192.badssl.com",
     "https://sha256.badssl.com",
     # These are temporarily broken, see https://github.com/chromium/badssl.com/issues/501
     # "https://sha384.badssl.com",
