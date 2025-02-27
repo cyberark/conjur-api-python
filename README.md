@@ -38,7 +38,7 @@ alterations that may result in breaking change.
 
 ```sh
 
-pip3 install conjur
+pip3 install conjur-api
 
 ```
 
