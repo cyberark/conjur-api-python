@@ -293,23 +293,23 @@ class Client:
         """
         await self._api.set_variable(variable_id, value)
 
-    async def load_policy_file(self, policy_name: str, policy_file: str) -> dict:
+    async def load_policy_file(self, policy_name: str, policy_file: str, dry_run: False) -> dict:
         """
         Applies a file-based policy to the Conjur instance
         """
-        return await self._api.load_policy_file(policy_name, policy_file)
+        return await self._api.load_policy_file(policy_name, policy_file, dry_run)
 
-    async def replace_policy_file(self, policy_name: str, policy_file: str) -> dict:
+    async def replace_policy_file(self, policy_name: str, policy_file: str, dry_run: False) -> dict:
         """
         Replaces a file-based policy defined in the Conjur instance
         """
-        return await self._api.replace_policy_file(policy_name, policy_file)
+        return await self._api.replace_policy_file(policy_name, policy_file, dry_run)
 
-    async def update_policy_file(self, policy_name: str, policy_file: str) -> dict:
+    async def update_policy_file(self, policy_name: str, policy_file: str, dry_run: False) -> dict:
         """
         Replaces a file-based policy defined in the Conjur instance
         """
-        return await self._api.update_policy_file(policy_name, policy_file)
+        return await self._api.update_policy_file(policy_name, policy_file, dry_run)
 
     async def rotate_other_api_key(self, resource: Resource) -> str:
         """

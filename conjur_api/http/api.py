@@ -488,7 +488,7 @@ class Api:
 
     async def _load_policy_file(
             self, policy_id: str, policy_file: str,
-            http_verb: HttpVerb) -> dict:
+            http_verb: HttpVerb, dry_run: bool) -> dict:
         """
         This method is used to load, replace or update a file-based policy into the desired
         name.
@@ -505,32 +505,37 @@ class Api:
         if api_token is None:
             raise MissingApiTokenException()
 
+        query = {}
+        if dry_run:
+            query = { 'dryRun': 'true' }
+
         response = await invoke_endpoint(http_verb, ConjurEndpoint.POLICIES, params,
                                          policy_data, api_token=api_token,
                                          ssl_verification_metadata=self.ssl_verification_data,
+                                         query=query,
                                          proxy_params=self._connection_info.proxy_params)
         return response.json
 
-    async def load_policy_file(self, policy_id: str, policy_file: str) -> dict:
+    async def load_policy_file(self, policy_id: str, policy_file: str, dry_run: bool) -> dict:
         """
         This method is used to load a file-based policy into the desired
         name.
         """
-        return await self._load_policy_file(policy_id, policy_file, HttpVerb.POST)
+        return await self._load_policy_file(policy_id, policy_file, HttpVerb.POST, dry_run)
 
-    async def replace_policy_file(self, policy_id: str, policy_file: str) -> dict:
+    async def replace_policy_file(self, policy_id: str, policy_file: str, dry_run: bool) -> dict:
         """
         This method is used to replace a file-based policy into the desired
         policy ID.
         """
-        return await self._load_policy_file(policy_id, policy_file, HttpVerb.PUT)
+        return await self._load_policy_file(policy_id, policy_file, HttpVerb.PUT, dry_run)
 
-    async def update_policy_file(self, policy_id: str, policy_file: str) -> dict:
+    async def update_policy_file(self, policy_id: str, policy_file: str, dry_run: bool) -> dict:
         """
         This method is used to update a file-based policy into the desired
         policy ID.
         """
-        return await self._load_policy_file(policy_id, policy_file, HttpVerb.PATCH)
+        return await self._load_policy_file(policy_id, policy_file, HttpVerb.PATCH, dry_run)
 
     async def rotate_other_api_key(self, resource: Resource) -> str:
         """
