@@ -28,6 +28,26 @@ from conjur_api.wrappers.http_response import HttpResponse
 
 REQUEST_TIMEOUT_SECONDS = 10
 
+class Header():
+    """
+    Set header value
+    """
+    final = 'undefined'
+
+    def set_value( self, value ):
+        """
+        Set header value
+        """
+        self.final = value
+
+    def get_value( self ):
+        """
+        Get header value
+        """
+        return self.final
+
+globalheader = Header()
+CONJUR_HEADER_NAME = "x-cybr-telemetry"
 
 class HttpVerb(Enum):
     """
@@ -41,6 +61,12 @@ class HttpVerb(Enum):
     PATCH = 5
     HEAD = 6
 
+def set_header_value(value:str):  # pragma: no cover
+    """
+    Set header value
+    """
+    encoded = base64.urlsafe_b64encode(value.encode()).rstrip(b'=').decode()
+    globalheader.set_value( encoded )
 
 # pylint: disable=too-many-locals,consider-using-f-string,too-many-arguments
 async def invoke_endpoint(http_verb: HttpVerb,
@@ -70,6 +96,8 @@ async def invoke_endpoint(http_verb: HttpVerb,
 
     if headers is None:
         headers = {}
+
+    headers[ CONJUR_HEADER_NAME ] = globalheader.get_value()
 
     urllib3.disable_warnings()
     orig_params = params or {}

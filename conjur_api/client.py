@@ -19,6 +19,8 @@ from conjur_api.interface.authentication_strategy_interface import Authenticatio
 from conjur_api.models import SslVerificationMode, CreateHostData, CreateTokenData, ListMembersOfData, \
     ListPermittedRolesData, ConjurConnectionInfo, Resource, CredentialsData
 from conjur_api.utils.decorators import allow_sync_invocation
+from conjur_api.wrappers.http_wrapper import set_header_value
+from conjur_api import __version__
 
 LOGGING_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 LOGGING_FORMAT_WARNING = 'WARNING: %(message)s'
@@ -32,6 +34,30 @@ class Client:
 
     This class is used to construct a client for API interaction
     """
+    integration_name = 'SecretsManager Python SDK'
+    integration_version = __version__
+    integration_type = 'cybr-secretsmanager'
+    vendor_name = 'CyberArk'
+    vendor_version = None
+
+    def set_source_name_header(self):
+        """
+        Build http header
+        """
+        final_string = ""
+        if Client.integration_name is not None:
+            final_string += "in=" + Client.integration_name
+            if Client.integration_type is not None:
+                final_string += "&it=" + Client.integration_type
+                if Client.integration_version is not None:
+                    final_string += "&iv=" + Client.integration_version
+
+        if Client.vendor_name is not None:
+            final_string += "&vn=" + Client.vendor_name
+            if Client.vendor_version is not None:
+                final_string += "&vv=" + Client.vendor_version
+
+        set_header_value(final_string)
 
     # The method signature is long but we want to explicitly control
     # what parameters are allowed
@@ -70,7 +96,28 @@ class Client:
         self.debug = debug
         self._api = self._create_api(http_debug, authn_strategy)
 
+        self.set_source_name_header()
         logging.debug("Client initialized")
+
+    def set_integration_name( self, value ):
+        Client.integration_name = value
+        self.set_source_name_header()
+
+    def set_integration_type( self, value ):
+        Client.integration_type = value
+        self.set_source_name_header()
+
+    def set_integration_version( self, value ):
+        Client.integration_version = value
+        self.set_source_name_header()
+
+    def set_vendor_name( self, value ):
+        Client.vendor_name = value
+        self.set_source_name_header()
+
+    def set_vendor_version( self, value ):
+        Client.vendor_version = value
+        self.set_source_name_header()
 
     @staticmethod
     def configure_logger(debug: bool):
