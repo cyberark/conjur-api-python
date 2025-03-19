@@ -32,19 +32,19 @@ class Header():
     """
     Set header value
     """
-    final = 'undefined'
+    final_telemetry = 'undefined'
 
-    def set_value( self, value ):
+    def set_telemetry_value( self, value ):
         """
         Set header value
         """
-        self.final = value
+        self.final_telemetry = value
 
-    def get_value( self ):
+    def get_telemetry_value( self ):
         """
         Get header value
         """
-        return self.final
+        return self.final_telemetry
 
 globalheader = Header()
 CONJUR_HEADER_NAME = "x-cybr-telemetry"
@@ -61,12 +61,16 @@ class HttpVerb(Enum):
     PATCH = 5
     HEAD = 6
 
-def set_header_value(value:str):  # pragma: no cover
+def set_telemetry_header_value(value:str):  # pragma: no cover
     """
-    Set header value
+    Set telemetry header value by encoding the provided string in base64 URL-safe format.
+
+    This function encodes the provided string `value` using URL-safe base64 encoding. The padding characters
+    (`=`) are removed from the encoded string before being set in the global header through the
+    `set_telemetry_value` method.
     """
     encoded = base64.urlsafe_b64encode(value.encode()).rstrip(b'=').decode()
-    globalheader.set_value( encoded )
+    globalheader.set_telemetry_value( encoded )
 
 # pylint: disable=too-many-locals,consider-using-f-string,too-many-arguments
 async def invoke_endpoint(http_verb: HttpVerb,
@@ -97,7 +101,7 @@ async def invoke_endpoint(http_verb: HttpVerb,
     if headers is None:
         headers = {}
 
-    headers[ CONJUR_HEADER_NAME ] = globalheader.get_value()
+    headers[ CONJUR_HEADER_NAME ] = globalheader.get_telemetry_value()
 
     urllib3.disable_warnings()
     orig_params = params or {}

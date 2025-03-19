@@ -57,7 +57,7 @@ class HttpInvokeEndpointTest(AsyncTestCase):
             await invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, {})
 
             mock_create_ssl_context.assert_called_once_with()
-            mock_request.assert_called_once_with('GET', 'no/params', auth=None, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXIgUHl0aG9uIFNESyZpdD1jeWJyLXNlY3JldHNtYW5hZ2VyJml2PTAuMC1kZXYmdm49Q3liZXJBcms'}, data='', ssl=ssl_context,
+            mock_request.assert_called_once_with('GET', 'no/params', auth=None, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXJQeXRob24gU0RLJml0PWN5YnItc2VjcmV0c21hbmFnZXImaXY9Tm8gVmVyc2lvbiBGb3VuZCZ2bj1DeWJlckFyaw'}, data='', ssl=ssl_context,
                                                  params=None, proxy=None)
 
     @patch('aiohttp.ClientSession.request')
@@ -68,9 +68,9 @@ class HttpInvokeEndpointTest(AsyncTestCase):
             await invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None)
 
             mock_create_ssl_context.assert_called_once_with()
-            mock_request.assert_called_once_with('GET', 'no/params', auth=None, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXIgUHl0aG9uIFNESyZpdD1jeWJyLXNlY3JldHNtYW5hZ2VyJml2PTAuMC1kZXYmdm49Q3liZXJBcms'}, data='', ssl=ssl_context,
+            mock_request.assert_called_once_with('GET', 'no/params', auth=None, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXJQeXRob24gU0RLJml0PWN5YnItc2VjcmV0c21hbmFnZXImaXY9Tm8gVmVyc2lvbiBGb3VuZCZ2bj1DeWJlckFyaw'}, data='', ssl=ssl_context,
                                                  params=None, proxy=None)
-
+    
     @patch('aiohttp.ClientSession.request')
     async def test_invoke_endpoint_uses_http_verb_for_method_name(self, mock_request):
         ssl_context = ssl.create_default_context()
@@ -78,17 +78,17 @@ class HttpInvokeEndpointTest(AsyncTestCase):
             mock_request.return_value = MockResponse('', 200)
             await invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, {})
             mock_create_ssl_context.assert_called_with()
-            mock_request.assert_called_with('GET', 'no/params', auth=None, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXIgUHl0aG9uIFNESyZpdD1jeWJyLXNlY3JldHNtYW5hZ2VyJml2PTAuMC1kZXYmdm49Q3liZXJBcms'}, data='', ssl=ssl_context,
+            mock_request.assert_called_with('GET', 'no/params', auth=None, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXJQeXRob24gU0RLJml0PWN5YnItc2VjcmV0c21hbmFnZXImaXY9Tm8gVmVyc2lvbiBGb3VuZCZ2bj1DeWJlckFyaw'}, data='', ssl=ssl_context,
                                             params=None, proxy=None)
 
             await invoke_endpoint(HttpVerb.POST, self.MockEndpoint.NO_PARAMS, {})
-            mock_request.assert_called_with('POST', 'no/params', auth=None, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXIgUHl0aG9uIFNESyZpdD1jeWJyLXNlY3JldHNtYW5hZ2VyJml2PTAuMC1kZXYmdm49Q3liZXJBcms'}, data='', ssl=ssl_context,
+            mock_request.assert_called_with('POST', 'no/params', auth=None, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXJQeXRob24gU0RLJml0PWN5YnItc2VjcmV0c21hbmFnZXImaXY9Tm8gVmVyc2lvbiBGb3VuZCZ2bj1DeWJlckFyaw'}, data='', ssl=ssl_context,
                                             params=None, proxy=None)
 
             await invoke_endpoint(HttpVerb.DELETE, self.MockEndpoint.NO_PARAMS, {})
-            mock_request.assert_called_with('DELETE', 'no/params', auth=None, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXIgUHl0aG9uIFNESyZpdD1jeWJyLXNlY3JldHNtYW5hZ2VyJml2PTAuMC1kZXYmdm49Q3liZXJBcms'}, data='', ssl=ssl_context,
+            mock_request.assert_called_with('DELETE', 'no/params', auth=None, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXJQeXRob24gU0RLJml0PWN5YnItc2VjcmV0c21hbmFnZXImaXY9Tm8gVmVyc2lvbiBGb3VuZCZ2bj1DeWJlckFyaw'}, data='', ssl=ssl_context,
                                             params=None, proxy=None)
-
+    
     @patch('aiohttp.ClientSession.request')
     async def test_invoke_endpoint_generates_url_from_endpoint_object(self, mock_request):
         ssl_context = ssl.create_default_context()
@@ -97,9 +97,9 @@ class HttpInvokeEndpointTest(AsyncTestCase):
             await invoke_endpoint(HttpVerb.GET, self.MockEndpoint.WITH_URL, {'url': 'http://host'})
 
             mock_create_ssl_context.assert_called_once_with()
-            mock_request.assert_called_once_with('GET', 'http://host/no/params', auth=None, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXIgUHl0aG9uIFNESyZpdD1jeWJyLXNlY3JldHNtYW5hZ2VyJml2PTAuMC1kZXYmdm49Q3liZXJBcms'}, data='',
+            mock_request.assert_called_once_with('GET', 'http://host/no/params', auth=None, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXJQeXRob24gU0RLJml0PWN5YnItc2VjcmV0c21hbmFnZXImaXY9Tm8gVmVyc2lvbiBGb3VuZCZ2bj1DeWJlckFyaw'}, data='',
                                                  ssl=ssl_context, params=None, proxy=None)
-
+    
     @patch('aiohttp.ClientSession.request')
     async def test_invoke_endpoint_attaches_api_token_header_if_present_in_params(self, mock_request):
         ssl_context = ssl.create_default_context()
@@ -109,9 +109,9 @@ class HttpInvokeEndpointTest(AsyncTestCase):
 
             mock_create_ssl_context.assert_called_once_with()
             mock_request.assert_called_once_with('GET', 'no/params', auth=None, data='', ssl=ssl_context,
-                                                 headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXIgUHl0aG9uIFNESyZpdD1jeWJyLXNlY3JldHNtYW5hZ2VyJml2PTAuMC1kZXYmdm49Q3liZXJBcms','Authorization': 'Token token="dG9rZW4="'}, params=None,
+                                                 headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXJQeXRob24gU0RLJml0PWN5YnItc2VjcmV0c21hbmFnZXImaXY9Tm8gVmVyc2lvbiBGb3VuZCZ2bj1DeWJlckFyaw','Authorization': 'Token token="dG9rZW4="'}, params=None,
                                                  proxy=None)
-
+    
     @patch('aiohttp.ClientSession.request')
     async def test_invoke_endpoint_verifies_ssl_by_default(self, mock_request):
         ssl_context = ssl.create_default_context()
@@ -120,9 +120,9 @@ class HttpInvokeEndpointTest(AsyncTestCase):
             await invoke_endpoint(HttpVerb.GET, self.MockEndpoint.NO_PARAMS, None)
 
             mock_create_ssl_context.assert_called_once_with()
-            mock_request.assert_called_once_with('GET', 'no/params', auth=None, data='', ssl=ssl_context, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXIgUHl0aG9uIFNESyZpdD1jeWJyLXNlY3JldHNtYW5hZ2VyJml2PTAuMC1kZXYmdm49Q3liZXJBcms'},
+            mock_request.assert_called_once_with('GET', 'no/params', auth=None, data='', ssl=ssl_context, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXJQeXRob24gU0RLJml0PWN5YnItc2VjcmV0c21hbmFnZXImaXY9Tm8gVmVyc2lvbiBGb3VuZCZ2bj1DeWJlckFyaw'},
                                                  params=None, proxy=None)
-
+    
     @patch('aiohttp.ClientSession.request')
     async def test_invoke_endpoint_ssl_verify_param_defaults_to_true_to_http_client(self, mock_request):
         ssl_context = ssl.create_default_context()
@@ -132,9 +132,9 @@ class HttpInvokeEndpointTest(AsyncTestCase):
                                         ssl_verification_metadata=create_ssl_verification_metadata())
 
             mock_create_ssl_context.assert_called_once_with()
-            mock_request.assert_called_once_with('GET', 'no/params', auth=None, data='', ssl=ssl_context, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXIgUHl0aG9uIFNESyZpdD1jeWJyLXNlY3JldHNtYW5hZ2VyJml2PTAuMC1kZXYmdm49Q3liZXJBcms'},
+            mock_request.assert_called_once_with('GET', 'no/params', auth=None, data='', ssl=ssl_context, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXJQeXRob24gU0RLJml0PWN5YnItc2VjcmV0c21hbmFnZXImaXY9Tm8gVmVyc2lvbiBGb3VuZCZ2bj1DeWJlckFyaw'},
                                                  params=None, proxy=None)
-
+    
     @patch('aiohttp.ClientSession.request')
     async def test_invoke_endpoint_raises_hostname_mismatch_error(self, mock_request):
         mock_request.side_effect = ClientSSLError(ConnectionKey(None, None, None, None, None, None, None),
@@ -149,9 +149,9 @@ class HttpInvokeEndpointTest(AsyncTestCase):
 
             ssl_context_calls = [call(cafile='foo')]
             mock_create_ssl_context.assert_has_calls(ssl_context_calls)
-            mock_request.assert_called_with('GET', 'no/params', auth=None, data='', ssl=ssl_context, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXIgUHl0aG9uIFNESyZpdD1jeWJyLXNlY3JldHNtYW5hZ2VyJml2PTAuMC1kZXYmdm49Q3liZXJBcms'},
+            mock_request.assert_called_with('GET', 'no/params', auth=None, data='', ssl=ssl_context, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXJQeXRob24gU0RLJml0PWN5YnItc2VjcmV0c21hbmFnZXImaXY9Tm8gVmVyc2lvbiBGb3VuZCZ2bj1DeWJlckFyaw'},
                                             params=None, proxy=None)
-
+    
     @patch('aiohttp.ClientSession.request')
     async def test_invoke_endpoint_passes_auth_param_to_http_client_if_provided(self, mock_request):
         ssl_context = ssl.create_default_context()
@@ -161,8 +161,8 @@ class HttpInvokeEndpointTest(AsyncTestCase):
 
             mock_create_ssl_context.assert_called_once_with()
             mock_request.assert_called_once_with('GET', 'no/params', auth=BasicAuth('foo', 'bar'), data='',
-                                                 ssl=ssl_context, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXIgUHl0aG9uIFNESyZpdD1jeWJyLXNlY3JldHNtYW5hZ2VyJml2PTAuMC1kZXYmdm49Q3liZXJBcms'}, params=None, proxy=None)
-
+                                                 ssl=ssl_context, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXJQeXRob24gU0RLJml0PWN5YnItc2VjcmV0c21hbmFnZXImaXY9Tm8gVmVyc2lvbiBGb3VuZCZ2bj1DeWJlckFyaw'}, params=None, proxy=None)
+    
     @patch('aiohttp.ClientSession.request')
     async def test_invoke_endpoint_passes_extra_args_to_http_client(self, mock_request):
         ssl_context = ssl.create_default_context()
@@ -172,8 +172,8 @@ class HttpInvokeEndpointTest(AsyncTestCase):
 
             mock_create_ssl_context.assert_called_once_with()
             mock_request.assert_called_once_with('GET', 'no/params', auth=None, data='ab', ssl=ssl_context,
-                                                 headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXIgUHl0aG9uIFNESyZpdD1jeWJyLXNlY3JldHNtYW5hZ2VyJml2PTAuMC1kZXYmdm49Q3liZXJBcms'}, params=None, proxy=None)
-
+                                                 headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXJQeXRob24gU0RLJml0PWN5YnItc2VjcmV0c21hbmFnZXImaXY9Tm8gVmVyc2lvbiBGb3VuZCZ2bj1DeWJlckFyaw'}, params=None, proxy=None)
+    
     @patch('aiohttp.ClientSession.request')
     async def test_invoke_endpoint_passes_query_param(self, mock_request):
         ssl_context = ssl.create_default_context()
@@ -187,8 +187,8 @@ class HttpInvokeEndpointTest(AsyncTestCase):
 
             mock_create_ssl_context.assert_called_once_with()
             mock_request.assert_called_once_with('GET', 'no/params', auth=None, data='ab', ssl=ssl_context,
-                                                 headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXIgUHl0aG9uIFNESyZpdD1jeWJyLXNlY3JldHNtYW5hZ2VyJml2PTAuMC1kZXYmdm49Q3liZXJBcms'}, params=query, proxy=None)
-
+                                                 headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXJQeXRob24gU0RLJml0PWN5YnItc2VjcmV0c21hbmFnZXImaXY9Tm8gVmVyc2lvbiBGb3VuZCZ2bj1DeWJlckFyaw'}, params=query, proxy=None)
+    
     @patch('aiohttp.ClientSession.request')
     async def test_invoke_endpoint_passes_proxy_param(self, mock_request):
         ssl_context = ssl.create_default_context()
@@ -199,8 +199,8 @@ class HttpInvokeEndpointTest(AsyncTestCase):
 
             mock_create_ssl_context.assert_called_once_with()
             mock_request.assert_called_once_with('GET', 'no/params', auth=None, data='ab', ssl=ssl_context,
-                                                 headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXIgUHl0aG9uIFNESyZpdD1jeWJyLXNlY3JldHNtYW5hZ2VyJml2PTAuMC1kZXYmdm49Q3liZXJBcms'}, params=None, proxy='proxy.com')
-
+                                                 headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXJQeXRob24gU0RLJml0PWN5YnItc2VjcmV0c21hbmFnZXImaXY9Tm8gVmVyc2lvbiBGb3VuZCZ2bj1DeWJlckFyaw'}, params=None, proxy='proxy.com')
+    
     @patch('aiohttp.ClientSession.request')
     async def test_invoke_endpoint_quotes_all_params_except_url(self, mock_request):
         ssl_context = ssl.create_default_context()
@@ -212,7 +212,7 @@ class HttpInvokeEndpointTest(AsyncTestCase):
             quoted_endpoint = '/'.join([self.UNESCAPED_PARAMS['url']] + self.ESCAPED_PARAMS)
             mock_create_ssl_context.assert_called_once_with()
             mock_request.assert_called_once_with('GET', quoted_endpoint, data='$#\\% ^%', auth=None,
-                                                 ssl=ssl_context, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXIgUHl0aG9uIFNESyZpdD1jeWJyLXNlY3JldHNtYW5hZ2VyJml2PTAuMC1kZXYmdm49Q3liZXJBcms'}, params=None, proxy=None)
+                                                 ssl=ssl_context, headers={'x-cybr-telemetry': 'aW49U2VjcmV0c01hbmFnZXJQeXRob24gU0RLJml0PWN5YnItc2VjcmV0c21hbmFnZXImaXY9Tm8gVmVyc2lvbiBGb3VuZCZ2bj1DeWJlckFyaw'}, params=None, proxy=None)
 
     @patch('aiohttp.ClientSession.request')
     async def test_invoke_endpoint_raises_error_if_bad_status_code_is_returned(self, mock_request):
