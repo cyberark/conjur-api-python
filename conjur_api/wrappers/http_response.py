@@ -54,4 +54,4 @@ class HttpResponse:
         return json.loads(self.text)
 
     def __repr__(self):
-        return f"{{'status': {self.status}, 'content length': '{len(self.content)}'}}"
+        return f"{{'status': {self.status}, 'content length': '{len(self.content) if self.content else 0}'}}"

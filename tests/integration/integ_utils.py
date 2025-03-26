@@ -1,12 +1,17 @@
 from enum import Enum
 from typing import Optional
 
-from conjur_api import Client, AuthenticationStrategyInterface
+from conjur_api import AuthenticationStrategyInterface, Client
 from conjur_api.models import CredentialsData, SslVerificationMode
-from conjur_api.models.general.conjur_connection_info import ConjurConnectionInfo
-from conjur_api.providers import SimpleCredentialsProvider, AuthnAuthenticationStrategy, LdapAuthenticationStrategy
-from conjur_api.providers.oidc_authentication_strategy import OidcAuthenticationStrategy
-from conjur_api.providers.jwt_authentication_strategy import JWTAuthenticationStrategy
+from conjur_api.models.general.conjur_connection_info import \
+    ConjurConnectionInfo
+from conjur_api.providers import (AuthnAuthenticationStrategy,
+                                  LdapAuthenticationStrategy,
+                                  SimpleCredentialsProvider)
+from conjur_api.providers.jwt_authentication_strategy import \
+    JWTAuthenticationStrategy
+from conjur_api.providers.oidc_authentication_strategy import \
+    OidcAuthenticationStrategy
 
 
 class ConjurUser:
@@ -47,4 +52,4 @@ async def create_client(username: str, password: str,
         authn_strategy = AuthnAuthenticationStrategy(credentials_provider)
 
     return Client(conjur_data, authn_strategy=authn_strategy,
-                  ssl_verification_mode=SslVerificationMode.INSECURE)
+                  ssl_verification_mode=SslVerificationMode.INSECURE, debug=True)

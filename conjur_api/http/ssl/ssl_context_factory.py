@@ -29,7 +29,7 @@ def create_ssl_context(ssl_verification_metadata: SslVerificationMetadata) -> ss
     os_type = get_current_os()
 
     if ssl_verification_metadata.mode == SslVerificationMode.TRUST_STORE:
-        logging.debug("Creating SSLContext from OS TrustStore for '%d'", os_type)
+        logging.debug("Creating SSLContext from OS TrustStore for '%s'", os_type.name)
         ssl_context = _create_ssl_context(os_type)
     else:
         ssl_context = ssl.create_default_context(cafile=ssl_verification_metadata.ca_cert_path)
