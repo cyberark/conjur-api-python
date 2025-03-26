@@ -57,7 +57,7 @@ class TestIntegrationVanila(AsyncTestCase):
         credentials = CredentialsData(username=username, password=password, machine=conjur_url)
         credentials_provider.save(credentials)
         c = Client(conjur_data, authn_strategy=authn_provider,
-                   ssl_verification_mode=SslVerificationMode.INSECURE)
+                   ssl_verification_mode=SslVerificationMode.INSECURE, debug=True)
         resources = await c.list()
         self.assertEqual(len(resources), 2)
 
