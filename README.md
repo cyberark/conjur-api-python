@@ -63,6 +63,8 @@ pip3 install .
 In order to login to conjur you need to have 5 parameters known from advance.
 
 ```python
+from conjur_api.models import  SslVerificationMode
+
 conjur_url = "https://my_conjur.com"
 account = "my_account"
 username = "user1"
@@ -75,6 +77,8 @@ ssl_verification_mode = SslVerificationMode.TRUST_STORE
 ConjurConnectionInfo is a data class containing all the non-credentials connection details.
 
 ```python
+from conjur_api.models import ConjurConnectionInfo
+
 connection_info = ConjurConnectionInfo(conjur_url=conjur_url,account=account,cert_file=None,service_id="ldap-service-id", proxy_params=None)
 ```
 
@@ -97,6 +101,9 @@ We also provide the user with a simple implementation of such provider called `S
 creating such provider + storing credentials:
 
 ```python
+from conjur_api.models import CredentialsData
+from conjur_api.providers import SimpleCredentialsProvider
+
 credentials = CredentialsData(username=username, password=password, machine=conjur_url)
 credentials_provider = SimpleCredentialsProvider()
 credentials_provider.save(credentials)
@@ -111,6 +118,8 @@ The client also uses an authentication strategy in order to authenticate to conj
 We provide the `AuthnAuthenticationStrategy` for the default Conjur authenticator. Example use:
 
 ```python
+from conjur_api.providers import AuthnAuthenticationStrategy
+
 authn_provider = AuthnAuthenticationStrategy(credentials_provider)
 ```
 
@@ -119,6 +128,8 @@ ldap, oidc, and jwt authenticators respectively.
 Example use:
 
 ```python
+from conjur_api.providers import LdapAuthenticationStrategy, OidcAuthenticationStrategy, JWTAuthenticationStrategy
+
 authn_provider = LdapAuthenticationStrategy(credentials_provider)
 authn_provider = OidcAuthenticationStrategy(credentials_provider)
 jwt_provider = JWTAuthenticationStrategy(token)
@@ -131,6 +142,8 @@ When using these strategies, make sure `connection_info` has a `service_id` spec
 Now that we have created `connection_info` and `authn_provider`, we can create our client:
 
 ```python
+from conjur_api import Client
+
 client = Client(connection_info,
                 authn_strategy=authn_provider,
                 ssl_verification_mode=ssl_verification_mode)
