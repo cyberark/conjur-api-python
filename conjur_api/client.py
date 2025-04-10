@@ -19,6 +19,8 @@ from conjur_api.interface.authentication_strategy_interface import Authenticatio
 from conjur_api.models import SslVerificationMode, CreateHostData, CreateTokenData, ListMembersOfData, \
     ListPermittedRolesData, ConjurConnectionInfo, Resource, CredentialsData
 from conjur_api.utils.decorators import allow_sync_invocation
+from conjur_api.wrappers.http_wrapper import set_telemetry_header_value
+from importlib.metadata import version, PackageNotFoundError
 
 LOGGING_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 LOGGING_FORMAT_WARNING = 'WARNING: %(message)s'
@@ -32,6 +34,30 @@ class Client:
 
     This class is used to construct a client for API interaction
     """
+    integration_name = 'SecretsManagerPython SDK'
+    try:
+        integration_version = version("conjur_api")
+    except PackageNotFoundError:
+        integration_version = 'No Version Found'
+    integration_type = 'cybr-secretsmanager'
+    vendor_name = 'CyberArk'
+    vendor_version = None
+
+    def set_telemetry_header(self):
+        """
+        Build http header
+        """
+        final_telemetry_header = ""
+
+        final_telemetry_header += "in=" + Client.integration_name
+        final_telemetry_header += "&it=" + Client.integration_type
+        final_telemetry_header += "&iv=" + Client.integration_version
+
+        final_telemetry_header += "&vn=" + Client.vendor_name
+        if Client.vendor_version is not None:
+            final_telemetry_header += "&vv=" + Client.vendor_version
+
+        set_telemetry_header_value(final_telemetry_header)
 
     # The method signature is long but we want to explicitly control
     # what parameters are allowed
@@ -70,7 +96,73 @@ class Client:
         self.debug = debug
         self._api = self._create_api(http_debug, authn_strategy)
 
+        self.set_telemetry_header()
         logging.debug("Client initialized")
+
+    def set_integration_name( self, value ):
+        """
+        Sets the integration name for the client and updates the telemetry header.
+
+        This function updates the integration name value for the client and triggers an update to the
+            telemetry header to reflect the change.
+
+        Args:
+            value (str): The integration name to be set for the client.
+        """
+        Client.integration_name = value
+        self.set_telemetry_header()
+
+    def set_integration_type( self, value ):
+        """
+        Sets the integration type for the client and updates the telemetry header.
+
+        This function updates the integration type value for the client and triggers an update to the
+        telemetry header to reflect the change.
+
+        Args:
+            value (str): The integration type to be set for the client.
+        """
+        Client.integration_type = value
+        self.set_telemetry_header()
+
+    def set_integration_version( self, value ):
+        """
+        Sets the integration version for the client and updates the telemetry header.
+
+        This function updates the integration version value for the client and triggers an update to the
+        telemetry header to reflect the change.
+
+        Args:
+            value (str): The integration version to be set for the client.
+        """
+        Client.integration_version = value
+        self.set_telemetry_header()
+
+    def set_vendor_name( self, value ):
+        """
+        Sets the vendor name for the client and updates the telemetry header.
+
+        This function updates the vendor name value for the client and triggers an update to the
+        telemetry header to reflect the change.
+
+        Args:
+            value (str): The vendor name to be set for the client.
+        """
+        Client.vendor_name = value
+        self.set_telemetry_header()
+
+    def set_vendor_version( self, value ):
+        """
+        Sets the vendor version for the client and updates the telemetry header.
+
+        This function updates the vendor version value for the client and triggers an update to the
+        telemetry header to reflect the change.
+
+        Args:
+            value (str): The vendor version to be set for the client.
+        """
+        Client.vendor_version = value
+        self.set_telemetry_header()
 
     @staticmethod
     def configure_logger(debug: bool):
