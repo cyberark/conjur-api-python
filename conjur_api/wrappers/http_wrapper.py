@@ -26,7 +26,7 @@ from conjur_api.models import SslVerificationMetadata, SslVerificationMode
 from conjur_api.models.general.proxy_params import ProxyParams
 from conjur_api.wrappers.http_response import HttpResponse
 
-REQUEST_TIMEOUT_SECONDS = 10
+REQUEST_TIMEOUT_SECONDS = 20
 
 class Header():
     """
