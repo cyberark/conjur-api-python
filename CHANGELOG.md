@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.5] - 2025-05-01
+
+### Added
+- Add support for configuring an external logger
+  [cyberark/conjur-api-python#54](https://github.com/cyberark/conjur-api-python/issues/54), CNJR-9408
+
 ## [0.1.4] - 2025-03-26
 
 ### Fixed

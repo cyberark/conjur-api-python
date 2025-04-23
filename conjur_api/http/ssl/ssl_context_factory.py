@@ -18,6 +18,7 @@ from conjur_api.errors.errors import UnknownOSError, MacCertificatesError
 from conjur_api.models.enums.os_types import OSTypes
 from conjur_api.utils.util_functions import get_current_os
 
+logger = logging.getLogger(__name__)
 
 # pylint: disable=too-few-public-methods
 def create_ssl_context(ssl_verification_metadata: SslVerificationMetadata) -> ssl.SSLContext:
@@ -29,7 +30,7 @@ def create_ssl_context(ssl_verification_metadata: SslVerificationMetadata) -> ss
     os_type = get_current_os()
 
     if ssl_verification_metadata.mode == SslVerificationMode.TRUST_STORE:
-        logging.debug("Creating SSLContext from OS TrustStore for '%s'", os_type.name)
+        logger.debug("Creating SSLContext from OS TrustStore for '%s'", os_type.name)
         ssl_context = _create_ssl_context(os_type)
     else:
         ssl_context = ssl.create_default_context(cafile=ssl_verification_metadata.ca_cert_path)
@@ -39,7 +40,7 @@ def create_ssl_context(ssl_verification_metadata: SslVerificationMetadata) -> ss
     # pylint: disable=no-member
     ssl_context.verify_flags |= ssl.OP_NO_TICKET
 
-    logging.debug("SSLContext created successfully")
+    logger.debug("SSLContext created successfully")
 
     return ssl_context
 
@@ -76,7 +77,7 @@ def _get_mac_ca_certs() -> str:
     Get Root CAs from Mac Keychain.
     @return: String containing trusted root CAs from the keychain.
     """
-    logging.debug("Get CA certs from Mac keychain")
+    logger.debug("Get CA certs from Mac keychain")
     try:
         get_ca_certs_process = subprocess.run(
             ["security", "find-certificate", "-a", "-p", "/System/Library/Keychains/SystemRootCertificates.keychain"],
