@@ -22,6 +22,7 @@ from conjur_api.models import Resource, ConjurConnectionInfo, ListPermittedRoles
 from conjur_api.wrappers.http_response import HttpResponse
 from conjur_api.wrappers.http_wrapper import HttpVerb, invoke_endpoint
 
+logger = logging.getLogger(__name__)
 
 # pylint: disable=unspecified-encoding,too-many-public-methods
 class Api:
@@ -83,11 +84,11 @@ class Api:
         @return: Conjur api_token
         """
         if not self._api_token or datetime.now() > self.api_token_expiration:
-            logging.debug("API token missing or expired. Fetching new one...")
+            logger.debug("API token missing or expired. Fetching new one...")
             self._api_token, self.api_token_expiration = await self.authenticate()
             return self._api_token
 
-        logging.debug("Using cached API token...")
+        logger.debug("Using cached API token...")
         return self._api_token
 
     async def login(self) -> str:
@@ -176,7 +177,7 @@ class Api:
                                              api_token=await self.api_token,
                                              ssl_verification_metadata=self.ssl_verification_data,
                                              proxy_params=self._connection_info.proxy_params)
-            logging.debug(str(response))
+            logger.debug(str(response))
         except HttpStatusError as err:
             if err.status == 404:
                 return False
