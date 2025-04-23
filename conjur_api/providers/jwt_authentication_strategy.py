@@ -25,6 +25,8 @@ DEFAULT_TOKEN_EXPIRATION = 8
 API_TOKEN_SAFETY_BUFFER = 3
 DEFAULT_API_TOKEN_DURATION = DEFAULT_TOKEN_EXPIRATION - API_TOKEN_SAFETY_BUFFER
 
+logger = logging.getLogger(__name__)
+
 class JWTAuthenticationStrategy(AuthenticationStrategyInterface):
     """
     JWTAuthenticationStrategy
@@ -49,7 +51,7 @@ class JWTAuthenticationStrategy(AuthenticationStrategyInterface):
         Authenticate method makes a POST request to the authentication endpoint,
         retrieves a token, and calculates the token expiration.
         """
-        logging.debug("Authenticating to %s...", connection_info.conjur_url)
+        logger.debug("Authenticating to %s...", connection_info.conjur_url)
 
         api_token = await self._send_authenticate_request(ssl_verification_data, connection_info)
 

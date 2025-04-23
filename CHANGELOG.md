@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+- Changed logging.debug commands for logger.debug to allow for better control of logging control of the library
+
 ## [0.1.4] - 2025-03-26
 
 ### Fixed

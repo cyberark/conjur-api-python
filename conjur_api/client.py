@@ -23,6 +23,7 @@ from conjur_api.utils.decorators import allow_sync_invocation
 LOGGING_FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 LOGGING_FORMAT_WARNING = 'WARNING: %(message)s'
 
+logger = logging.getLogger(__name__)
 
 @allow_sync_invocation()
 # pylint: disable=too-many-public-methods
@@ -60,17 +61,17 @@ class Client:
         self.async_mode = async_mode
         if ssl_verification_mode == SslVerificationMode.INSECURE:
             # TODO remove this is a cli user facing
-            logging.debug("Warning: Running the command with '--insecure' "
+            logger.debug("Warning: Running the command with '--insecure' "
                           "makes your system vulnerable to security attacks")
 
-        logging.debug("Initializing configuration...")
+        logger.debug("Initializing configuration...")
 
         self.ssl_verification_mode = ssl_verification_mode
         self.connection_info = connection_info
         self.debug = debug
         self._api = self._create_api(http_debug, authn_strategy)
 
-        logging.debug("Client initialized")
+        logger.debug("Client initialized")
 
     @staticmethod
     def configure_logger(debug: bool):

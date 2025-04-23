@@ -23,6 +23,7 @@ DEFAULT_TOKEN_EXPIRATION = 8
 API_TOKEN_SAFETY_BUFFER = 3
 DEFAULT_API_TOKEN_DURATION = DEFAULT_TOKEN_EXPIRATION - API_TOKEN_SAFETY_BUFFER
 
+logger = logging.getLogger(__name__)
 
 class AuthnAuthenticationStrategy(AuthenticationStrategyInterface):
     """
@@ -41,7 +42,7 @@ class AuthnAuthenticationStrategy(AuthenticationStrategyInterface):
         Login uses a username and password to fetch a long-lived conjur_api token
         """
 
-        logging.debug("Logging in to %s...", connection_info.conjur_url)
+        logger.debug("Logging in to %s...", connection_info.conjur_url)
         creds = self._retrieve_credential_data(connection_info.conjur_url)
 
         if not creds.password:
@@ -55,7 +56,7 @@ class AuthnAuthenticationStrategy(AuthenticationStrategyInterface):
         Authenticate uses the api_key (retrieved in `login()`) to fetch a short-lived conjur_api token that
         for a limited time will allow you to interact fully with the Conjur vault.
         """
-        logging.debug("Authenticating to %s...", connection_info.conjur_url)
+        logger.debug("Authenticating to %s...", connection_info.conjur_url)
         creds = self._retrieve_credential_data(connection_info.conjur_url)
 
         # If the credential provider already has a valid API token, return it
@@ -69,7 +70,7 @@ class AuthnAuthenticationStrategy(AuthenticationStrategyInterface):
 
     def _retrieve_credential_data(self, url: str) -> CredentialsData:
         credential_location = self._credentials_provider.get_store_location()
-        logging.debug("Retrieving credentials from the '%s'...", credential_location)
+        logger.debug("Retrieving credentials from the '%s'...", credential_location)
 
         return self._credentials_provider.load(url)
 
