@@ -8,6 +8,7 @@ import inspect
 import asyncio
 from conjur_api.errors.errors import SyncInvocationInsideEventLoopError
 
+logger = logging.getLogger(__name__)
 
 def allow_sync_invocation():
     """
@@ -23,7 +24,7 @@ def allow_sync_invocation():
                 return func(self, *args)
             loop = _get_event_loop()
             if loop is not None and loop.is_running():
-                logging.error(
+                logger.error(
                     "Failed to run conjur_api %s function in sync mode "
                     "because code is running inside event loop", func.__name__)
                 raise SyncInvocationInsideEventLoopError()
@@ -45,5 +46,5 @@ def _get_event_loop():
     except RuntimeError:  # No loop exist
         return None
     except Exception as err:
-        logging.error("Couldn't get event loop for unknown reason. details: %s", err)
+        logger.error("Couldn't get event loop for unknown reason. details: %s", err)
         raise
