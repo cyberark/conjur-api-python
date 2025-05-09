@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.6] - 2025-05-09
+
+### Security
+- Update python dependencies
+
 ## [0.1.5] - 2025-05-01
 
 ### Added
@@ -75,7 +80,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Store API key in `CreditentialsData` object
   [conjur-api-python#23](https://github.com/cyberark/conjur-api-python/pull/23)
 
-[Unreleased]: https://github.com/cyberark/conjur-api-python/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/cyberark/conjur-api-python/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/cyberark/conjur-api-python/compare/v0.1.5...v0.1.6
+[0.1.5]: https://github.com/cyberark/conjur-api-python/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/cyberark/conjur-api-python/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/cyberark/conjur-api-python/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/cyberark/conjur-api-python/compare/v0.1.1...v0.1.2
