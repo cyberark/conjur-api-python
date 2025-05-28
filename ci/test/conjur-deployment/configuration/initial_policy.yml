@@ -12,6 +12,11 @@
 - !policy
   id: conjur
   body: []
+
+- !policy
+  id: data
+  body: []
+
 - !policy
   id: conjur/authn-ldap/test-service
   body:

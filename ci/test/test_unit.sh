@@ -6,7 +6,7 @@ rm -rf coverage.xml
 
 if [[ "$1" == "-l" ]]; then
   shift
-  nose2 -v '!integration' --with-coverage $@
+  pytest -v -m "not integration" $@
   exit 0
 fi
 
@@ -18,4 +18,4 @@ docker run --rm \
   -e TEST_ENV=true \
   -v "$(pwd):/opt/conjur-api-python" \
   conjur-api-python-test \
-  bash -c "nose2 -v -X -A '!integration' --config ./tests/unit_test.cfg --with-coverage $@"
+  bash -c "pytest -v -m 'not integration' $@"

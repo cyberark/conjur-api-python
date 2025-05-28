@@ -39,8 +39,13 @@ pipeline {
     MODE = release.canonicalizeMode()
   }
 
+  parameters {
+    //TODO: Default value should be "false"
+    booleanParam(name: 'TEST_CLOUD', defaultValue: true, description: 'Run integration tests against a Conjur Cloud tenant')
+  }
+
   triggers {
-    cron(getDailyCronString())
+    // parameterizedCron(getDailyCronString("%TEST_CLOUD=true"))
     parameterizedCron(getWeeklyCronString("H(1-5)","%MODE=RELEASE"))
   }
 
@@ -79,11 +84,6 @@ pipeline {
 
     stage('Validate') {
       parallel {
-        stage('Changelog') {
-          steps {
-            script { infrapool.agentSh './ci/test/parse-changelog.sh' }
-          }
-        }
         stage('Linting') {
           steps {
             script { infrapool.agentSh './ci/test/test_linting.sh' }
@@ -144,7 +144,7 @@ pipeline {
       steps {
         script {
           grantIPAccess(infrapool)
-          infrapool.agentSh './ci/test/test_integration --environment ubuntu'
+          infrapool.agentSh './ci/test/test_integration'
         }
       }
 
@@ -154,6 +154,67 @@ pipeline {
             infrapool.agentStash name: 'xml-integration-tests', includes: 'ci/test/output/*.xml'
             unstash 'xml-integration-tests'
             junit 'ci/test/output/**/*.xml'
+          }
+        }
+      }
+    }
+
+    stage('Run Conjur Cloud tests') {
+      when {
+        expression { params.TEST_CLOUD }
+      }
+      stages {
+        stage('Create a Tenant') {
+          steps {
+            script {
+              TENANT = getConjurCloudTenant()
+            }
+          }
+        }
+        stage('Authenticate') {
+          steps {
+            script {
+              def id_token = getConjurCloudTenant.tokens(
+                infrapool: infrapool,
+                identity_url: "${TENANT.identity_information.idaptive_tenant_fqdn}",
+                username: "${TENANT.login_name}"
+              )
+
+              def conj_token = getConjurCloudTenant.tokens(
+                infrapool: infrapool,
+                conjur_url: "${TENANT.conjur_cloud_url}",
+                identity_token: "${id_token}"
+                )
+
+              env.identity_token = id_token
+              env.conj_token = conj_token
+            }
+          }
+        }
+        stage('Run tests against Tenant') {
+          environment {
+            INFRAPOOL_REGISTRY_URL = "registry.tld"
+            INFRAPOOL_CONJUR_APPLIANCE_URL="${TENANT.conjur_cloud_url}"
+            INFRAPOOL_CONJUR_AUTHN_LOGIN="${TENANT.login_name}"
+            INFRAPOOL_CONJUR_AUTHN_TOKEN="${env.conj_token}"
+            INFRAPOOL_IDENTITY_TOKEN="${env.identity_token}"
+            INFRAPOOL_TEST_CLOUD=true
+          }
+          steps {
+            script {
+              grantIPAccess(infrapool)
+                infrapool.agentSh './ci/test/test_integration'
+            }
+          }
+        }
+      }
+      post {
+        always {
+          script {
+            infrapool.agentStash name: 'cloud-integration-tests', includes: 'ci/test/output/*.xml'
+            unstash 'cloud-integration-tests'
+            junit 'ci/test/output/**/*.xml'
+            deleteConjurCloudTenant("${TENANT.id}")
           }
         }
       }

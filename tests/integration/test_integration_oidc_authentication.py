@@ -1,14 +1,18 @@
 import asyncio
 import os
 
+import pytest
 import requests
 from aiounittest import AsyncTestCase
 from requests.auth import HTTPBasicAuth
 
 from conjur_api.errors.errors import HttpStatusError
-from tests.integration.integ_utils import create_client, ConjurUser, AuthenticationStrategyType
+from tests.integration.integ_utils import (AuthenticationStrategyType,
+                                           ConjurUser, create_admin_client,
+                                           create_client)
 
 
+@pytest.mark.integration
 class TestOidcAuthentication(AsyncTestCase):
 
     @classmethod
@@ -32,7 +36,7 @@ class TestOidcAuthentication(AsyncTestCase):
 
     @classmethod
     async def _add_test_data(cls):
-        c = await create_client("admin", os.environ['CONJUR_AUTHN_API_KEY'])
+        c = await create_admin_client()
         await c.set('conjur/authn-oidc/test-service/provider-uri', 'https://oidc-server')
         await c.set('conjur/authn-oidc/test-service/id-token-user-property', 'sub')
 

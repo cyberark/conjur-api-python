@@ -1,4 +1,0 @@
-[allowlist]
-files = [
-  '''ldap-server.key.pem''',
-]

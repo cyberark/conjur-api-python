@@ -5,10 +5,8 @@ JWTAuthenticationStrategy module
 This module holds the JWTAuthenticationStrategy class
 """
 
-import base64
-import json
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Tuple
 
 from conjur_api.errors.errors import MissingRequiredParameterException
@@ -18,12 +16,8 @@ from conjur_api.models.general.conjur_connection_info import \
     ConjurConnectionInfo
 from conjur_api.models.ssl.ssl_verification_metadata import \
     SslVerificationMetadata
+from conjur_api.utils import util_functions
 from conjur_api.wrappers.http_wrapper import HttpVerb, invoke_endpoint
-
-# Tokens should only be reused for 5 minutes (max lifetime is 8 minutes)
-DEFAULT_TOKEN_EXPIRATION = 8
-API_TOKEN_SAFETY_BUFFER = 3
-DEFAULT_API_TOKEN_DURATION = DEFAULT_TOKEN_EXPIRATION - API_TOKEN_SAFETY_BUFFER
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +49,7 @@ class JWTAuthenticationStrategy(AuthenticationStrategyInterface):
 
         api_token = await self._send_authenticate_request(ssl_verification_data, connection_info)
 
-        return api_token, self._calculate_token_expiration(api_token)
+        return api_token, util_functions.calculate_token_expiration(api_token)
 
     async def _send_authenticate_request(self, ssl_verification_data, connection_info):
         self._validate_service_id_exists(connection_info)
@@ -79,19 +73,3 @@ class JWTAuthenticationStrategy(AuthenticationStrategyInterface):
     def _validate_service_id_exists(self, connection_info: ConjurConnectionInfo):
         if not connection_info.service_id:
             raise MissingRequiredParameterException("service_id is required for authn-jwt")
-
-    @staticmethod
-    # pylint: disable=bare-except
-    def _calculate_token_expiration(api_token: str) -> datetime:
-        """
-        Calculate the expiration of the token by decoding the payload and extracting 'exp'.
-        """
-        try:
-            # The token is in JSON format. Each field in the token is base64 encoded.
-            # Decode the payload field and extract the expiration date.
-            decoded_token_payload = base64.b64decode(json.loads(api_token)['payload'].encode('ascii'))
-            token_expiration = json.loads(decoded_token_payload)['exp']
-            return datetime.fromtimestamp(token_expiration) - timedelta(minutes=API_TOKEN_SAFETY_BUFFER)
-        except:
-            # If we can't extract the expiration from the token, fall back to the default expiration
-            return datetime.now() + timedelta(minutes=DEFAULT_API_TOKEN_DURATION)

@@ -1,7 +1,9 @@
 #!/bin/bash -ex
 
+COMPOSE_FILE_PATH="ci/test/conjur-deployment/docker-compose.yml"
+
 docker_compose_command(){
-  docker compose --file "$COMPOSE_FILE_PATH" --project-directory "${PWD}" $@
+  docker compose --file "$COMPOSE_FILE_PATH" --project-directory "${PWD}" "$@"
 }
 cleanup() {
   # docker_compose_command logs
@@ -19,11 +21,6 @@ function get_parameters() {
       DEBUG="true"
       shift # past argument
       ;;
-    -e | --environment)
-      COMPOSE_FILE_PATH="ci/test/conjur-deployment/$2_compose.yml"
-      shift
-      shift
-      ;;
     *)
       echo "Unknown option $1"
       exit 1
@@ -38,9 +35,6 @@ export REGISTRY_URL=${INFRAPOOL_REGISTRY_URL:-"docker.io"}
 
 # Ensure we are in repo root
 cd "$(git rev-parse --show-toplevel)"
-# Clone mock-jwt-server dependency
-rm -rf mock-jwt-server
-git clone https://github.com/gl-johnson/mock-jwt-server.git || true
 
 echo "Building API container..."
 docker_compose_command build test
@@ -48,42 +42,52 @@ docker_compose_command build test
 echo "Generating certificate..."
 docker_compose_command up openssl
 
-echo "Starting Conjur..."
-docker_compose_command up -d conjur-https
-docker_compose_command exec -T conjur cp /oidc/certs/oidc-server.cert.pem /etc/ssl/certs/oidc-server.cert.pem
-docker compose --file "$COMPOSE_FILE_PATH" --project-directory "${PWD}" \
-   exec -T conjur sh -c 'hash=$(openssl x509 -hash -in /etc/ssl/certs/oidc-server.cert.pem --noout) && ln -s /etc/ssl/certs/oidc-server.cert.pem /etc/ssl/certs/${hash}.0'
-docker_compose_command exec -T conjur conjurctl wait
+if [ -z "$INFRAPOOL_TEST_CLOUD" ]; then
+  echo "Starting Conjur..."
+  docker_compose_command up -d conjur-https
+  docker_compose_command exec -T conjur cp /oidc/certs/oidc-server.cert.pem /etc/ssl/certs/oidc-server.cert.pem
+  docker compose --file "$COMPOSE_FILE_PATH" --project-directory "${PWD}" \
+    exec -T conjur sh -c 'hash=$(openssl x509 -hash -in /etc/ssl/certs/oidc-server.cert.pem --noout) && ln -s /etc/ssl/certs/oidc-server.cert.pem /etc/ssl/certs/${hash}.0'
+  docker_compose_command exec -T conjur conjurctl wait
 
-echo "Configuring Conjur..."
-admin_api_key=$(docker_compose_command exec -T conjur conjurctl role retrieve-key dev:user:admin | tr -d '\r')
-export CONJUR_AUTHN_API_KEY=$admin_api_key
-export DEBUG=$DEBUG
-conjur_host_port=$(docker_compose_command port conjur 80)
-conjur_port="${conjur_host_port##*:}"
-export TEST_HOSTNAME=conjur-https
+  echo "Configuring Conjur..."
+  admin_api_key=$(docker_compose_command exec -T conjur conjurctl role retrieve-key conjur:user:admin | tr -d '\r')
+  export CONJUR_AUTHN_API_KEY=$admin_api_key
+  export DEBUG=$DEBUG
+  conjur_host_port=$(docker_compose_command port conjur 80)
+  conjur_port="${conjur_host_port##*:}"
+  export TEST_HOSTNAME=conjur-https
 
-# Docker Compose will pick this file up when starting containers
-# so we will have these variables in the container
-cat <<ENV >.env
-CONJUR_AUTHN_API_KEY=$admin_api_key
-DEBUG=$DEBUG
-ENV
+  echo "Starting test env..."
+  docker_compose_command up -d test
 
-echo "Starting test env..."
-docker_compose_command up -d test
+  # Hint: '--privileged' is added here otherwise we will get operation
+  # not permitted when attempting to do anything related to dbus
+  if [[ "$DEBUG" == "true" ]]; then
+    docker_compose_command exec test bash
+    exit
+  fi
 
-rm -rf $CURRENT_DIR/output/*
+  docker_compose_command run \
+    --rm \
+    --no-deps \
+    test \
+    bash -c "pytest -v -m 'integration' --junitxml=ci/test/output/pytest-integration-junit.xml"
+else
+  echo "Running Cloud tests..."
 
-# Hint: '--privileged' is added here otherwise we will get operation
-# not permitted when attempting to do anything related to dbus
-if [[ "$DEBUG" == "true" ]]; then
-  docker_compose_command exec test bash
-  exit
+  echo "Starting test env..."
+  docker_compose_command up -d test
+
+  docker_compose_command run \
+    --rm \
+    --no-deps \
+    -e "TEST_CLOUD=true" \
+    -e "CONJUR_APPLIANCE_URL=$INFRAPOOL_CONJUR_APPLIANCE_URL" \
+    -e "CONJUR_ACCOUNT=conjur" \
+    -e "CONJUR_AUTHN_LOGIN=$INFRAPOOL_CONJUR_AUTHN_LOGIN" \
+    -e "CONJUR_AUTHN_TOKEN=$(echo "$INFRAPOOL_CONJUR_AUTHN_TOKEN" | base64 --decode)" \
+    -e "IDENTITY_TOKEN=$INFRAPOOL_IDENTITY_TOKEN" \
+    test \
+    bash -c "pytest -v -m 'integration and cloud' --junitxml=ci/test/output/pytest-cloud-junit.xml"
 fi
-
-docker_compose_command run \
-  --rm \
-  --no-deps \
-  test \
-  bash -c "nose2 -v -X --config ./tests/integration_test.cfg  -A '!integration'"

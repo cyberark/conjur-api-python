@@ -1,51 +1,31 @@
-import datetime
 import os
 import ssl
-
-from aiounittest import AsyncTestCase
 from unittest.mock import patch
 
+import pytest
+from aiounittest import AsyncTestCase
+
 from conjur_api import Client
-from conjur_api.models import  SslVerificationMode, SslVerificationMetadata, ConjurConnectionInfo, CredentialsData
-from conjur_api.providers import AuthnAuthenticationStrategy, LdapAuthenticationStrategy, SimpleCredentialsProvider
 from conjur_api.http.ssl import ssl_context_factory
+from conjur_api.models import (ConjurConnectionInfo, CredentialsData,
+                               SslVerificationMetadata, SslVerificationMode)
+from conjur_api.providers import (AuthnAuthenticationStrategy,
+                                  LdapAuthenticationStrategy,
+                                  SimpleCredentialsProvider)
 
 
-class TestIntegrationVanila(AsyncTestCase):
-
-    async def test_integration_vanilla(self):
+@pytest.mark.integration
+class TestLdapAuthentication(AsyncTestCase):
+    async def test_integration_ldap(self):
         """
-        This is a dummy test making sure integration tests jenkins step works.
-        Once integration tests will be added this test should be removed
-        @return:
+        This is a simple happy path test making sure authn-ldap works.
         """
         conjur_url = "https://conjur-https"
         # file deepcode ignore NoHardcodedCredentials/test: This is a test file
-        username = "admin"
-        account = "dev"
-        api_key = os.environ['CONJUR_AUTHN_API_KEY']
-        conjur_data = ConjurConnectionInfo(
-            conjur_url=conjur_url,
-            account=account
-        )
-        credentials_provider = SimpleCredentialsProvider()
-        authn_provider = AuthnAuthenticationStrategy(credentials_provider)
-        credentials = CredentialsData(username=username, api_key=api_key, machine=conjur_url)
-        credentials_provider.save(credentials)
-        c = Client(conjur_data, authn_strategy=authn_provider,
-                   ssl_verification_mode=SslVerificationMode.INSECURE)
-        resources = await c.list()
-        self.assertGreater(len(resources), 6)
-
-    async def test_integration_vanilla_ldap(self):
-        """
-        This is a simple happy path test making sure authn-ldap works.
-        @return:
-        """
-        conjur_url = "https://conjur-https"
+        # file deepcode ignore NoHardcodedPasswords/test: This is a test file
         username = "alice"
         password = "alice"  # nosec
-        account = "dev"
+        account = "conjur"
         ldap_service_id = "test-service"
         conjur_data = ConjurConnectionInfo(
             conjur_url=conjur_url,

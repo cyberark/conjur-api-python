@@ -29,10 +29,10 @@ services:
 
   conjur:
     image: ${REGISTRY_URL:-docker.io}/cyberark/conjur:edge
-    command: server -a dev -f /policy/initial_policy.yml
+    command: server -a conjur -f /policy/initial_policy.yml
     environment:
       CONJUR_DATA_KEY: 'OyXV68Mip14xj33huGaQKewmmS+gKtDlp6ECZ2iATpU='
-      CONJUR_ACCOUNT: dev
+      CONJUR_ACCOUNT: conjur
       DATABASE_URL: postgres://postgres@pg/postgres
       RAILS_ENV: development
       CONJUR_AUTHENTICATORS: authn-ldap/test-service,authn-oidc/test-service,authn-jwt/test-service,authn
@@ -67,7 +67,7 @@ services:
       - conjur
 
   conjur-cli:
-    image: cyberark/conjur-cli:5
+    image: cyberark/conjur-cli:8
     entrypoint: [ "bash", "-c" ]
     command: [ "sleep 999d" ]
     depends_on:
@@ -109,11 +109,9 @@ services:
       - "9443:443"
     volumes:
       - ${PWD}/ci/test/conjur-deployment/configuration/oidc:/oidc:ro
-  
+
   jwt-server:
-    build:
-      context: ./mock-jwt-server
-      dockerfile: Dockerfile
+    image: cyberark/mock-jwt-server
     ports:
       - 8008:8080
     environment:
@@ -128,22 +126,8 @@ services:
     build:
       context: .
       dockerfile: ./ci/test/Dockerfile.test
-    command: ['sleep', '999d']
     environment:
-      CONJUR_AUTHN_API_KEY: Null
-      DEBUG: Null
-      TEST_ENV: "True"
+      CONJUR_AUTHN_API_KEY: null
+    command: ['sleep', '999d']
     volumes:
       - ${PWD}:/opt/conjur-api-python
-
-  conjur-appliance:
-    image: registry.tld/conjur-appliance:5.0-stable
-    ports:
-      - "444:443"
-    expose:
-      - "443"
-      - "444"
-      - "1999"
-      - "5432"
-    security_opt:
-        - "seccomp:unconfined"

@@ -1,15 +1,16 @@
 import asyncio
-import os
 
+import pytest
 import requests
 from aiounittest import AsyncTestCase
 from requests.auth import HTTPBasicAuth
 
 from conjur_api.errors.errors import HttpStatusError
 from tests.integration.integ_utils import (AuthenticationStrategyType,
-                                           ConjurUser, create_client)
+                                           create_admin_client, create_client)
 
 
+@pytest.mark.integration
 class TestJWTAuthentication(AsyncTestCase):
 
     @classmethod
@@ -33,7 +34,7 @@ class TestJWTAuthentication(AsyncTestCase):
 
     @classmethod
     async def _add_test_data(cls):
-        c = await create_client("admin", os.environ['CONJUR_AUTHN_API_KEY'])
+        c = await create_admin_client()
         await c.set('conjur/authn-jwt/test-service/jwks-uri', 'http://jwt-server:8080/.well-known/jwks.json')
         await c.set('conjur/authn-jwt/test-service/token-app-property', 'email')
         await c.set('conjur/authn-jwt/test-service/audience', 'conjur')
