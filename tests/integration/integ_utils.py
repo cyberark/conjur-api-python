@@ -29,15 +29,19 @@ class AuthenticationStrategyType(Enum):
     JWT  = 'JWT'
     TOKEN = 'TOKEN'
 
+def _conjur_url() -> str:
+    if os.getenv("TEST_CLOUD") != "true":
+        return "https://conjur-https" # Running in Docker Compose
+
+    return os.environ['CONJUR_APPLIANCE_URL']
 
 async def create_client(username: str, password: str,
                         authn_strategy_type: Optional[AuthenticationStrategyType] = AuthenticationStrategyType.AUTHN,
                         service_id: Optional[str] = None) -> Client:
     """
     Function to create a Conjur client with the specified authentication strategy.
-    This function only supports the Conjur instance running in Docker Compose, not Conjur Cloud.
     """
-    conjur_url = "https://conjur-https"  # When running locally change to https://0.0.0.0:443
+    conjur_url = _conjur_url()
     account = "conjur"
     conjur_data = ConjurConnectionInfo(
         conjur_url=conjur_url,
@@ -45,7 +49,11 @@ async def create_client(username: str, password: str,
         service_id=service_id
     )
     credentials_provider = SimpleCredentialsProvider()
-    credentials = CredentialsData(username=username, password=password, machine=conjur_url)
+    credentials = CredentialsData(username=username, machine=conjur_url)
+    if authn_strategy_type == AuthenticationStrategyType.TOKEN:
+        credentials.api_token = password  # For TOKEN strategy, password is the token
+    else:
+        credentials.password = password
     credentials_provider.save(credentials)
 
     authn_strategy: AuthenticationStrategyInterface
@@ -56,7 +64,7 @@ async def create_client(username: str, password: str,
     elif authn_strategy_type == AuthenticationStrategyType.LDAP:
         authn_strategy = LdapAuthenticationStrategy(credentials_provider)
     elif authn_strategy_type == AuthenticationStrategyType.TOKEN:
-        authn_strategy = TokenAuthenticationStrategy(password) # password is the Conjur access token
+        authn_strategy = TokenAuthenticationStrategy(credentials_provider)
     else:
         authn_strategy = AuthnAuthenticationStrategy(credentials_provider)
 
@@ -65,9 +73,8 @@ async def create_client(username: str, password: str,
 
 async def create_admin_client() -> Client:
     """
-    Function to create a client for either Conjur OSS or Cloud, based on environment variables.
-    This function is a placeholder and should be implemented based on the specific requirements
-    for connecting to Conjur OSS or Cloud.
+    Function to create a client authenticated as the admin user
+    for either Conjur OSS or Cloud, based on environment variables.
     """
     # Check environment variables to determine if we are connecting to Conjur OSS or Cloud
     if os.getenv("TEST_CLOUD") != "true":
@@ -77,16 +84,5 @@ async def create_admin_client() -> Client:
         return await create_client("admin", os.environ['CONJUR_AUTHN_API_KEY'])
 
     # For Conjur Cloud, use the token already retrieved by Jenkins and stored in environment variables
-    conjur_url = os.environ['CONJUR_APPLIANCE_URL']
-    username = os.environ['CONJUR_AUTHN_LOGIN']
-    account = os.environ['CONJUR_ACCOUNT']
-    authn_token = os.environ['CONJUR_AUTHN_TOKEN']
-    conjur_data = ConjurConnectionInfo(
-        conjur_url=conjur_url,
-        account=account
-    )
-    credentials_provider = SimpleCredentialsProvider()
-    authn_provider = TokenAuthenticationStrategy(credentials_provider)
-    credentials = CredentialsData(username=username, api_token=authn_token, machine=conjur_url)
-    credentials_provider.save(credentials)
-    return Client(conjur_data, authn_strategy=authn_provider, debug=True)
+    return await create_client(os.environ['CONJUR_AUTHN_LOGIN'], os.environ['CONJUR_AUTHN_TOKEN'],
+                               AuthenticationStrategyType.TOKEN)

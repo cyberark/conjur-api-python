@@ -1,3 +1,8 @@
+- !host
+  id: workload@example.com
+  annotations:
+    authn-jwt/test-service/sub: test-workload
+
 - !variable foo
 - !variable bar
 - !variable baz

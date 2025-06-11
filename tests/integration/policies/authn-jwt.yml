@@ -1,0 +1,24 @@
+- !policy
+  id: test-service
+  body:
+  - !webservice
+
+  - !webservice
+    id: status
+
+  - !variable public-keys
+  - !variable token-app-property
+  - !variable issuer
+  - !variable audience
+  - !variable identity-path
+
+  - !group authenticatable
+
+  - !permit
+    role: !group authenticatable
+    privilege: [ read, authenticate ]
+    resource: !webservice
+
+  - !grant
+    role: !group authenticatable
+    member: !host /data/workload@example.com

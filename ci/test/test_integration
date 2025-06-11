@@ -39,10 +39,12 @@ cd "$(git rev-parse --show-toplevel)"
 echo "Building API container..."
 docker_compose_command build test
 
-echo "Generating certificate..."
-docker_compose_command up openssl
+docker_compose_command up -d jwt-server
 
 if [ -z "$INFRAPOOL_TEST_CLOUD" ]; then
+  echo "Generating certificate..."
+  docker_compose_command up openssl
+
   echo "Starting Conjur..."
   docker_compose_command up -d conjur-https
   docker_compose_command exec -T conjur cp /oidc/certs/oidc-server.cert.pem /etc/ssl/certs/oidc-server.cert.pem
