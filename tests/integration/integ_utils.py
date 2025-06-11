@@ -33,7 +33,7 @@ def _conjur_url() -> str:
     if os.getenv("TEST_CLOUD") != "true":
         return "https://conjur-https" # Running in Docker Compose
 
-    return os.environ['CONJUR_APPLIANCE_URL']
+    return os.environ['CONJUR_APPLIANCE_URL'] + "/api" # Running in Conjur Cloud provisioned by Jenkins
 
 async def create_client(username: str, password: str,
                         authn_strategy_type: Optional[AuthenticationStrategyType] = AuthenticationStrategyType.AUTHN,

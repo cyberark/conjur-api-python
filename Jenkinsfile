@@ -40,13 +40,14 @@ pipeline {
   }
 
   parameters {
-    //TODO: Default value should be "false"
-    booleanParam(name: 'TEST_CLOUD', defaultValue: true, description: 'Run integration tests against a Conjur Cloud tenant')
+    booleanParam(name: 'TEST_CLOUD', defaultValue: false, description: 'Run integration tests against a Conjur Cloud tenant')
   }
 
   triggers {
-    // parameterizedCron(getDailyCronString("%TEST_CLOUD=true"))
-    parameterizedCron(getWeeklyCronString("H(1-5)","%MODE=RELEASE"))
+    parameterizedCron("""
+      ${getDailyCronString("%TEST_CLOUD=true")}
+      ${getWeeklyCronString("H(1-5)", "%MODE=RELEASE")}
+    """)
   }
 
   stages {
@@ -203,7 +204,7 @@ pipeline {
           steps {
             script {
               grantIPAccess(infrapool)
-                infrapool.agentSh './ci/test/test_integration'
+              infrapool.agentSh './ci/test/test_integration'
             }
           }
         }
