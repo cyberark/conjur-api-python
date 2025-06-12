@@ -24,13 +24,16 @@ WORKDIR $INSTALL_DIR
 ENV PYENV_ROOT="/root/.pyenv"
 ENV PATH="$PYENV_ROOT/bin:$PYENV_ROOT/shims:$PATH"
 
-COPY ./requirements.txt $INSTALL_DIR/
 RUN curl -L -s https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash \
     && eval "$(pyenv init --path)" \
     && env PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.10.1 \
     && pyenv global 3.10.1 \
-    && pip install wheel \
-    && pip install -r requirements.txt
+    && pip install wheel
+
+# By putting this COPY command after we install Python, Docker will cache the Python installation layer,
+# so that it doesn't have to be reinstalled every time we re-run during development and testing.
+COPY ./requirements.txt $INSTALL_DIR/
+RUN pip install -r requirements.txt
 
 COPY . $INSTALL_DIR
 

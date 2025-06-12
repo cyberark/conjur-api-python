@@ -89,7 +89,7 @@ To run the unit test isolated inside a container, run:
 To run integration tests run:
 
 ```
-./ci/test/test_integration -e ubuntu
+./ci/test/test_integration
 ```
 This creates a Conjur environment with an Ubuntu container running the SDK's integration tests.
 
@@ -97,7 +97,7 @@ This creates a Conjur environment with an Ubuntu container running the SDK's int
 
 To perform manual tests, run:
 ```
-./ci/test/test_integration -e ubuntu -d
+./ci/test/test_integration -d
 ```
 This creates a Conjur environment with an Ubuntu container running in interactive mode.
 You can now run Python and manually test the SDK.
@@ -105,7 +105,7 @@ You can now run Python and manually test the SDK.
 The connection parameters to Conjur are:
 - conjur_url = `https://conjur-https`
 - username = `admin`
-- account = `dev`
+- account = `conjur`
 - api_key = stored inside the `CONJUR_AUTHN_API_KEY` environment variable. You can fetch the value by running 
   `echo $CONJUR_AUTHN_API_KEY`
 

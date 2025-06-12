@@ -1,13 +1,15 @@
 import asyncio
-import os
 
+import pytest
 from aiounittest import AsyncTestCase
 
 from conjur_api.errors.errors import HttpStatusError
 from conjur_api.models import Resource
-from tests.integration.integ_utils import create_client, ConjurUser
+from tests.integration.integ_utils import (ConjurUser, create_admin_client,
+                                           create_client)
 
 
+@pytest.mark.integration
 class TestEnableDisableAuthenticators(AsyncTestCase):
 
     @classmethod
@@ -94,7 +96,7 @@ class TestEnableDisableAuthenticators(AsyncTestCase):
 
     @classmethod
     async def _add_test_data(cls):
-        c = await create_client("admin", os.environ['CONJUR_AUTHN_API_KEY'])
+        c = await create_admin_client()
         response = await c.rotate_other_api_key(Resource('user', 'test-valid-user'))
         valid_user: ConjurUser = ConjurUser(user_id='test-valid-user', secret=response)
         response = await c.rotate_other_api_key(Resource('user', 'test-invalid-user'))
