@@ -54,7 +54,7 @@ pip3 install -r requirements.txt
 
 You can now run tests and the SDK with modifiable files.
 
-To test the SDK against a locally running Conjur Server, see [Manual testing](#manual-testing)
+To test the SDK against a locally running Conjur OSS Server, see [Manual testing](#manual-testing)
 
 ### Consuming the SDK locally
 
@@ -91,7 +91,7 @@ To run integration tests run:
 ```
 ./ci/test/test_integration
 ```
-This creates a Conjur environment with an Ubuntu container running the SDK's integration tests.
+This creates a Conjur OSS environment with an Ubuntu container running the SDK's integration tests.
 
 ### Manual testing
 
@@ -99,10 +99,10 @@ To perform manual tests, run:
 ```
 ./ci/test/test_integration -d
 ```
-This creates a Conjur environment with an Ubuntu container running in interactive mode.
+This creates a Conjur OSS environment with an Ubuntu container running in interactive mode.
 You can now run Python and manually test the SDK.
 
-The connection parameters to Conjur are:
+The connection parameters to Conjur OSS are:
 - conjur_url = `https://conjur-https`
 - username = `admin`
 - account = `conjur`

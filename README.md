@@ -1,6 +1,6 @@
-# Conjur Python SDK
+# CyberArk Secrets Manager Python SDK
 
-An API client for Conjur written in python.
+An API client for CyberArk Secrets Manager written in python.
 
 Find more SDKs [from CyberArk](https://github.com/cyberark).
 
@@ -15,7 +15,7 @@ see [our community guidelines](https://github.com/cyberark/community/blob/master
 
 ## Requirements
 
-This project requires a working Conjur server
+This project requires a working CyberArk Secrets Manager or Conjur OSS server
 
 It officially requires python 3.10 and above but can run with lower versions compiled with openssl 1.1.1
 
@@ -23,13 +23,12 @@ It officially requires python 3.10 and above but can run with lower versions com
 
 ### Prerequisites
 
-It is assumed that Conjur (OSS or Enterprise) have already been installed in the environment and running in the
+It is assumed that CyberArk Secrets Manager or Conjur OSS have already been installed in the environment and running in the
 background. If you haven't done so, follow these instructions for installation of
 the [OSS](https://docs.conjur.org/Latest/en/Content/OSS/Installation/Install_methods.htm) and these for installation
-of [Enterprise](https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/HomeTilesLPs/LP-Tile2.htm).
+of [Self-Hosted](https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/HomeTilesLPs/LP-Tile2.htm).
 
-Once Conjur is running in the background, you are ready to start setting up your python app to work with our Conjur
-python API!
+Once Secrets Manager is running in the background, you are ready to start setting up your python app to work with our Secrets Manager python API!
 
 ### Installation
 
@@ -60,7 +59,7 @@ pip3 install .
 
 #### Define connection parameters
 
-In order to login to conjur you need to have 5 parameters known from advance.
+In order to login to Secrets Manager you need to have 5 parameters known from advance.
 
 ```python
 from conjur_api.models import  SslVerificationMode
@@ -82,11 +81,11 @@ from conjur_api.models import ConjurConnectionInfo
 connection_info = ConjurConnectionInfo(conjur_url=conjur_url,account=account,cert_file=None,service_id="ldap-service-id", proxy_params=None)
 ```
 
-* conjur_url - url of conjur server
+* conjur_url - url of Secrets Manager server
 * account - the account which we want to connect to
-* cert_file - a path to conjur rootCA file. we need it if we initialize the client in `SslVerificationMode.SELF_SIGN`
+* cert_file - a path to Secrets Manager rootCA file. we need it if we initialize the client in `SslVerificationMode.SELF_SIGN`
   or `SslVerificationMode.CA_BUNDLE` mode
-* service_id - a service id for the Conjur authenticator. Required when using the ldap authenticator (see below) but not when using the default `authn` authenticator.
+* service_id - a service id for the Secrets Manager authenticator. Required when using the ldap authenticator (see below) but not when using the default `authn` authenticator.
 * proxy_params - parameters for proxy connection. see `ProxyParams` class for more details - Optional
 
 #### Create credentials provider
@@ -112,10 +111,10 @@ del credentials
 
 #### Create authentication strategy
 
-The client also uses an authentication strategy in order to authenticate to conjur. This approach allows us to implement different authentication strategies
+The client also uses an authentication strategy in order to authenticate to Secrets Manager. This approach allows us to implement different authentication strategies
 (e.g. `authn`, `authn-ldap`, `authn-k8s`) and to keep the authentication logic separate from the client implementation.
 
-We provide the `AuthnAuthenticationStrategy` for the default Conjur authenticator. Example use:
+We provide the `AuthnAuthenticationStrategy` for the default Secrets Manager authenticator. Example use:
 
 ```python
 from conjur_api.providers import AuthnAuthenticationStrategy
@@ -152,7 +151,7 @@ client = Client(connection_info,
 * ssl_verification_mode = `SslVerificationMode` enum that states what is the certificate verification technique we will
   use when making the api request
 
-After creating the client we can login to conjur and start using it. Example of usage:
+After creating the client we can login to Secrets Manager and start using it. Example of usage:
 
 ```python
 client.login() # login to conjur and return the api_key
@@ -189,7 +188,7 @@ dictionary object constructed from the returned JSON data.
 
 #### `update_policy_file(policy_name, policy_file)`
 
-Modifies an existing Conjur policy. Data may be explicitly deleted using the `!delete`, `!revoke`, and `!deny`
+Modifies an existing Secrets Manager policy. Data may be explicitly deleted using the `!delete`, `!revoke`, and `!deny`
 statements. Unlike
 "replace" mode, no data is ever implicitly deleted. Result is a dictionary object constructed from the returned JSON
 data.
@@ -270,12 +269,10 @@ Rotates the personal API key of the logged-in user and returns it as a string.
 
 Updates the current, logged-in user's password with the password parameter provided.
 
-Note: the new password must meet the Conjur password complexity constraints. It must contain at least 12 characters: 2
+Note: the new password must meet the Secrets Manager password complexity constraints. It must contain at least 12 characters: 2
 uppercase, 2 lowercase, 1 digit, 1 special character.
 
 #### `whoami()`
-
-_Note: This method requires Conjur v1.9+_
 
 Returns a Python dictionary of information about the client making an API request (such as its IP address, user,
 account, token expiration date, etc).
@@ -284,14 +281,14 @@ account, token expiration date, etc).
 
 Allows enabling and disabling an authenticator.  
 
-_Note: This functionality relies on an endpoint in Conjur which is part of an early implementation of support for
-enabling Conjur authenticators via the API, and is currently available at the Community (or early alpha) level. This
+_Note: This functionality relies on an endpoint in Secrets Manager which is part of an early implementation of support for
+enabling Secrets Manager authenticators via the API, and is currently available at the Community (or early alpha) level. This
 endpoint is still subject to breaking changes in the future._ 
 
 #### `authenticate()`
 
-Performs an authentication with Conjur, based on the authentication strategy and credentials provider there were given to the client.
-This method is not required, it will also be done implicitly and automatically when session with Conjur needs to be refreshed.
+Performs an authentication with Secrets Manager, based on the authentication strategy and credentials provider there were given to the client.
+This method is not required, it will also be done implicitly and automatically when session with Secrets Manager needs to be refreshed.
 
 ## Contributing
 
