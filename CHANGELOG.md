@@ -6,7 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## [0.1.6] - 2025-05-09
+## [0.1.6] - 2025-09-08
+
+### Changed
+- Updated README.md, CONTRIBUTING.md, and SECURITY.md to align with Conjur Enterprise name change to Secrets Manager. (CNJR-10970)
 
 ### Security
 - Update python dependencies
