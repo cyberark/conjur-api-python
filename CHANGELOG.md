@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.7] - 2025-10-16
+
+### Added
+- Added `close-stale.yml` GitHub workflow
+
 ## [0.1.6] - 2025-09-08
 
 ### Changed
@@ -83,7 +88,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Store API key in `CreditentialsData` object
   [conjur-api-python#23](https://github.com/cyberark/conjur-api-python/pull/23)
 
-[Unreleased]: https://github.com/cyberark/conjur-api-python/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/cyberark/conjur-api-python/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/cyberark/conjur-api-python/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/cyberark/conjur-api-python/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/cyberark/conjur-api-python/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/cyberark/conjur-api-python/compare/v0.1.3...v0.1.4
