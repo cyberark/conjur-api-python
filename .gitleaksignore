@@ -1,0 +1,5 @@
+# Ignores for test files/examples
+f01985c225aa5d9ac815cc4c0ec8cc5327e44c4f:README.md:generic-api-key:72
+925cc7ebe3df6b63b16163c4c56a404bb7bcd874:ci/test/conjur-deployment/configuration/ldap/certs/ldap-server.key.pem:private-key:1
+925cc7ebe3df6b63b16163c4c56a404bb7bcd874:ci/test/conjur-deployment/configuration/oidc/certs/oidc-server.key.pem:private-key:1
+925cc7ebe3df6b63b16163c4c56a404bb7bcd874:ci/test/conjur-deployment/ubuntu_compose.yml:generic-api-key:35
