@@ -15,9 +15,8 @@ from enum import Enum
 from typing import Union
 from urllib.parse import quote
 
-import async_timeout
 import urllib3
-from aiohttp import BasicAuth, ClientError, ClientResponseError, ClientSSLError, ClientSession
+from aiohttp import BasicAuth, ClientError, ClientResponseError, ClientSSLError, ClientSession, ClientTimeout
 
 from conjur_api.errors.errors import CertificateHostnameMismatchException, HttpSslError, HttpError, HttpStatusError
 from conjur_api.http.endpoints import ConjurEndpoint
@@ -171,27 +170,26 @@ async def invoke_request(http_verb: HttpVerb,
     This method preforms the actual request and catches possible SSLErrors to
     perform more user-friendly messages
     """
-    async with ClientSession() as session:
-        async with async_timeout.timeout(REQUEST_TIMEOUT_SECONDS):
-            ssl_context = __create_ssl_context(ssl_verification_metadata)
-            try:
-                async with session.request(http_verb.name,
-                                           url,
-                                           data=data,
-                                           params=query,
-                                           ssl=ssl_context,
-                                           auth=BasicAuth(*auth) if auth else None,
-                                           headers=headers,
-                                           proxy=proxy_params.proxy_url if proxy_params else None) as response:
-                    return await HttpResponse.from_client_response(response)
+    async with ClientSession(timeout=ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)) as session:
+        ssl_context = __create_ssl_context(ssl_verification_metadata)
+        try:
+            async with session.request(http_verb.name,
+                                        url,
+                                        data=data,
+                                        params=query,
+                                        ssl=ssl_context,
+                                        auth=BasicAuth(*auth) if auth else None,
+                                        headers=headers,
+                                        proxy=proxy_params.proxy_url if proxy_params else None) as response:
+                return await HttpResponse.from_client_response(response)
 
-            except ClientSSLError as ssl_error:
-                host_mismatch_message = re.search("hostname '.+' doesn't match", str(ssl_error))
-                if host_mismatch_message:
-                    raise CertificateHostnameMismatchException from ssl_error
-                raise HttpSslError(message=str(ssl_error)) from ssl_error
-            except ClientError as request_error:
-                raise HttpError() from request_error
+        except ClientSSLError as ssl_error:
+            host_mismatch_message = re.search("hostname '.+' doesn't match", str(ssl_error))
+            if host_mismatch_message:
+                raise CertificateHostnameMismatchException from ssl_error
+            raise HttpSslError(message=str(ssl_error)) from ssl_error
+        except ClientError as request_error:
+            raise HttpError() from request_error
 
 
 def __create_ssl_context(ssl_verification_metadata: SslVerificationMetadata) -> Union[bool, ssl.SSLContext]:

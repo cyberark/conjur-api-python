@@ -59,13 +59,26 @@ pip3 install .
 
 #### Define connection parameters
 
-In order to login to Secrets Manager you need to have 5 parameters known from advance.
+In order to authenticate to Secrets Manager you need to have 5 parameters known in advance.  
+**NOTE:** We include example values in the sample code for simplicity, but credentials and secrets should **never** be hardcoded.
 
+As a host/workload:
 ```python
 from conjur_api.models import  SslVerificationMode
 
 conjur_url = "https://my_conjur.com"
-account = "my_account"
+account = "conjur"
+role_id = "host/data/my-host"
+api_key = "m3y70m29xt8ya2aa9p4z1nj0dskra4wpn2913vjb6s0ffw1j6gkp7"
+ssl_verification_mode = SslVerificationMode.TRUST_STORE
+```
+
+As a user (Only compatible with Secrets Manager Self-Hosted):
+```python
+from conjur_api.models import  SslVerificationMode
+
+conjur_url = "https://my_conjur.com"
+account = "conjur"
 username = "user1"
 password = "SomeStr@ngPassword!1"
 ssl_verification_mode = SslVerificationMode.TRUST_STORE
@@ -83,38 +96,49 @@ connection_info = ConjurConnectionInfo(conjur_url=conjur_url,account=account,cer
 
 * conjur_url - url of Secrets Manager server
 * account - the account which we want to connect to
-* cert_file - a path to Secrets Manager rootCA file. we need it if we initialize the client in `SslVerificationMode.SELF_SIGN`
+* cert_file - a path to Secrets Manager rootCA file. Required if initializing the client in `SslVerificationMode.SELF_SIGN`
   or `SslVerificationMode.CA_BUNDLE` mode
-* service_id - a service id for the Secrets Manager authenticator. Required when using the ldap authenticator (see below) but not when using the default `authn` authenticator.
+* service_id - a service id for the Secrets Manager authenticator. Required when using an authenticator besides the default
+  authn (see `Create Authentication Strategy`)
 * proxy_params - parameters for proxy connection. see `ProxyParams` class for more details - Optional
 
-#### Create credentials provider
+#### Create Credentials Provider
 
-The client uses credentials provider in order to get the connection credentials before making api command. This approach
-allow to keep the credentials in a safe location and provide it to the client on demand.
+The client uses a credentials provider in order to fetch connection credentials before making API calls. This allows credential
+storage in a safe location on the system.
 
-We provide the user with `CredentialsProviderInterface` which can be implemented the way the user see as best
-fit (`keyring` usage for example)
+We provide the user with `CredentialsProviderInterface` which can be implemented to create a custom credentials provider that
+best fits the use case (`keyring` for example)
 
-We also provide the user with a simple implementation of such provider called `SimpleCredentialsProvider`. Example of
-creating such provider + storing credentials:
+We also provide a simple implementation called `SimpleCredentialsProvider`. Example of
+creating a provider and storing credentials:
 
 ```python
 from conjur_api.models import CredentialsData
 from conjur_api.providers import SimpleCredentialsProvider
 
+# If using API key (most common)
+credentials = CredentialsData(username=role_id, api_key=api_key, machine=conjur_url)
+
+# If using username/password
 credentials = CredentialsData(username=username, password=password, machine=conjur_url)
+
 credentials_provider = SimpleCredentialsProvider()
 credentials_provider.save(credentials)
 del credentials
 ```
 
-#### Create authentication strategy
+#### Create Authentication Strategy
 
-The client also uses an authentication strategy in order to authenticate to Secrets Manager. This approach allows us to implement different authentication strategies
-(e.g. `authn`, `authn-ldap`, `authn-k8s`) and to keep the authentication logic separate from the client implementation.
-
-We provide the `AuthnAuthenticationStrategy` for the default Secrets Manager authenticator. Example use:
+The client uses an authentication strategy in order to authenticate to Secrets Manager. This approach allows us to implement
+different authentication strategies while keeping logic separate from the client implementation. Supported strategies are based
+on different Secrets Manager authenticators:
+  - authn (default)
+  - authn-ldap
+  - authn-oidc
+  - authn-jwt
+  
+We provide the `AuthnAuthenticationStrategy` for the default Secrets Manager authenticator. Example usage:
 
 ```python
 from conjur_api.providers import AuthnAuthenticationStrategy
@@ -124,7 +148,7 @@ authn_provider = AuthnAuthenticationStrategy(credentials_provider)
 
 We also provide the `LdapAuthenticationStrategy`, `OidcAuthenticationStrategy`, and `JWTAuthenticationStrategy` for the
 ldap, oidc, and jwt authenticators respectively.
-Example use:
+Example usage:
 
 ```python
 from conjur_api.providers import LdapAuthenticationStrategy, OidcAuthenticationStrategy, JWTAuthenticationStrategy
@@ -136,7 +160,7 @@ jwt_provider = JWTAuthenticationStrategy(token)
 
 When using these strategies, make sure `connection_info` has a `service_id` specified.
 
-#### Creating the client and use it
+#### Creating and using the client
 
 Now that we have created `connection_info` and `authn_provider`, we can create our client:
 
@@ -148,14 +172,14 @@ client = Client(connection_info,
                 ssl_verification_mode=ssl_verification_mode)
 ```
 
-* ssl_verification_mode = `SslVerificationMode` enum that states what is the certificate verification technique we will
-  use when making the api request
+* ssl_verification_mode = `SslVerificationMode` enum that states what is the certificate verification technique to be
+  used when making requests
 
 After creating the client we can login to Secrets Manager and start using it. Example of usage:
 
 ```python
-client.login() # login to conjur and return the api_key
-client.list() # get list of all conjur resources that the user authorize to read
+client.login() # NOTE: Only applicable for username/password authentication on Self-Hosted
+client.list() # List Secrets Manager resources the role is authorized to read
 ```
 
 ## Supported Client methods
@@ -287,7 +311,7 @@ endpoint is still subject to breaking changes in the future._
 
 #### `authenticate()`
 
-Performs an authentication with Secrets Manager, based on the authentication strategy and credentials provider there were given to the client.
+Performs an authentication with Secrets Manager, based on the authentication strategy and credentials provider that were given to the client.
 This method is not required, it will also be done implicitly and automatically when session with Secrets Manager needs to be refreshed.
 
 ## Contributing
@@ -297,7 +321,7 @@ development workflows, please see our [contributing guide](CONTRIBUTING.md).
 
 ## License
 
-Copyright (c) 2020 CyberArk Software Ltd. All rights reserved.
+Copyright (c) 2025 CyberArk Software Ltd. All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the
 License. You may obtain a copy of the License at
