@@ -24,6 +24,7 @@ class ConjurEndpoint(Enum):
     LOGIN = "{url}/authn/{account}/login"
     LOGIN_LDAP = "{url}/authn-ldap/{service_id}/{account}/login"
     INFO = "{url}/info"
+    ROOT = "{url}/"
     POLICIES = "{url}/policies/{account}/policy/{identifier}"
     BATCH_SECRETS = "{url}/secrets"
     SECRETS = "{url}/secrets/{account}/{kind}/{identifier}"

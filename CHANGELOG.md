@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.9] - 2025-12-31
+
+### Added
+- Support dry_run parameter for policy load methods. (CNJR-11338)
+
 ## [0.1.8] - 2025-11-07
 
 ### Changed

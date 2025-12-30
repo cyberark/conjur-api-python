@@ -17,18 +17,18 @@ def allow_sync_invocation():
     """
 
     def allow_sync_mode(func):
-        def wrapper(self, *args):
+        def wrapper(self, *args, **kwargs):
             should_run_async = getattr(self, "async_mode")
             should_run_async |= func.__name__.startswith("_")  # omit private functions
             if should_run_async:  # Function should remain async
-                return func(self, *args)
+                return func(self, *args, **kwargs)
             loop = _get_event_loop()
             if loop is not None and loop.is_running():
                 logger.error(
                     "Failed to run conjur_api %s function in sync mode "
                     "because code is running inside event loop", func.__name__)
                 raise SyncInvocationInsideEventLoopError()
-            return asyncio.run(func(self, *args))
+            return asyncio.run(func(self, *args, **kwargs))
 
         return wrapper
 
