@@ -30,6 +30,25 @@ LOGGING_FORMAT_WARNING = 'WARNING: %(message)s'
 
 logger = logging.getLogger(__name__)
 
+# List of possible Secrets Manager SaaS URL suffixes
+_CONJUR_CLOUD_SUFFIXES = [
+    ".cyberark.cloud",
+    ".integration-cyberark.cloud",
+    ".test-cyberark.cloud",
+    ".dev-cyberark.cloud",
+    ".cyberark-everest-integdev.cloud",
+    ".cyberark-everest-pre-prod.cloud",
+    ".sandbox-cyberark.cloud",
+    ".pt-cyberark.cloud",
+]
+
+# Build regex pattern: (\\.secretsmgr|-secretsmanager) followed by one of the suffixes
+_SUFFIXES_PATTERN = "|".join(re.escape(suffix) for suffix in _CONJUR_CLOUD_SUFFIXES)
+_CONJUR_CLOUD_REGEXP = re.compile(
+    rf"(\.secretsmgr|-secretsmanager)({_SUFFIXES_PATTERN})",
+    re.IGNORECASE
+)
+
 @allow_sync_invocation()
 # pylint: disable=too-many-public-methods
 class Client:
@@ -42,7 +61,8 @@ class Client:
     try:
         integration_version = version("conjur_api")
     except PackageNotFoundError:
-        integration_version = '0.0.dev'
+        # setuptools defaults to "0.0.dev0" (PEP 440), so we use a default version that adheres to that for testing purposes
+        integration_version = '0.0.dev0'
     integration_type = 'cybr-secretsmanager'
     vendor_name = 'CyberArk'
     vendor_version = None
@@ -379,24 +399,7 @@ class Client:
         if not url:
             return False
 
-        # ConjurCloudSuffixes - all possible Secrets Manager SaaS URL suffixes
-        conjur_cloud_suffixes = [
-            ".cyberark.cloud",
-            ".integration-cyberark.cloud",
-            ".test-cyberark.cloud",
-            ".dev-cyberark.cloud",
-            ".cyberark-everest-integdev.cloud",
-            ".cyberark-everest-pre-prod.cloud",
-            ".sandbox-cyberark.cloud",
-            ".pt-cyberark.cloud",
-        ]
-
-        # Build regex pattern: (\\.secretsmgr|-secretsmanager) followed by one of the suffixes
-        suffixes_pattern = "|".join(re.escape(suffix) for suffix in conjur_cloud_suffixes)
-        pattern = rf"(\.secretsmgr|-secretsmanager)({suffixes_pattern})"
-
-        conjur_cloud_regexp = re.compile(pattern, re.IGNORECASE)
-        return bool(conjur_cloud_regexp.search(url))
+        return bool(_CONJUR_CLOUD_REGEXP.search(url))
 
     async def server_version(self) -> str:
         """

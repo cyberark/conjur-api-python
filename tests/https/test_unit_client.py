@@ -503,6 +503,12 @@ class ClientTest(IsolatedAsyncioTestCase):
         self.assertTrue(self.client._is_version_less_than("1.20.1", "1.21.1"))
         self.assertTrue(self.client._is_version_less_than("1.21.1", "2.0.0"))
 
+    def test_is_version_less_than_with_suffix(self):
+        """Test version comparison with build suffixes"""
+        self.assertTrue(self.client._is_version_less_than("1.21.0-12345", "1.21.1"))
+        self.assertFalse(self.client._is_version_less_than("1.21.1-12345", "1.21.1"))
+        self.assertFalse(self.client._is_version_less_than("1.21.2-12345", "1.21.1"))
+
     def test_is_conjur_cloud_url_secretsmgr(self):
         """Test Conjur Cloud URL detection with .secretsmgr pattern"""
         self.assertTrue(self.client._is_conjur_cloud_url("https://example.secretsmgr.cyberark.cloud"))
