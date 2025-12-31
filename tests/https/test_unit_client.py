@@ -21,10 +21,19 @@ from conjur_api.providers.oidc_authentication_strategy import OidcAuthentication
 from conjur_api.providers.simple_credentials_provider import SimpleCredentialsProvider
 from conjur_api.wrappers.http_response import HttpResponse
 from tests.https.test_unit_http import MockResponse
+from unittest.mock import MagicMock
 
 
 def exists_in_args(val, args):
     return any(val in str(t) for t in args)
+
+
+def create_http_response(status: int, text: str, message: str = 'OK') -> HttpResponse:
+    """Helper function to create HttpResponse objects for testing"""
+    mock_client_response = MagicMock()
+    mock_client_response.status = status
+    mock_client_response.raise_for_status = MagicMock()
+    return HttpResponse(mock_client_response, text, text.encode('utf-8'))
 
 
 class ClientTest(IsolatedAsyncioTestCase):
@@ -475,3 +484,316 @@ class ClientTest(IsolatedAsyncioTestCase):
         self.assertTrue(exists_in_args('id_token', args))
         self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         mock_auth_invoke_endpoint.assert_called_once()
+
+    def test_is_version_less_than_equal(self):
+        """Test version comparison with equal versions"""
+        self.assertFalse(self.client._is_version_less_than("1.21.1", "1.21.1"))
+        self.assertFalse(self.client._is_version_less_than("2.0.0", "2.0.0"))
+
+    def test_is_version_less_than_greater_than(self):
+        """Test version comparison with first version greater"""
+        self.assertFalse(self.client._is_version_less_than("1.21.2", "1.21.1"))
+        self.assertFalse(self.client._is_version_less_than("1.22.0", "1.21.1"))
+        self.assertFalse(self.client._is_version_less_than("2.0.0", "1.21.1"))
+        self.assertFalse(self.client._is_version_less_than("1.21.1", "1.21.0"))
+
+    def test_is_version_less_than_less_than(self):
+        """Test version comparison with first version less"""
+        self.assertTrue(self.client._is_version_less_than("1.21.0", "1.21.1"))
+        self.assertTrue(self.client._is_version_less_than("1.20.1", "1.21.1"))
+        self.assertTrue(self.client._is_version_less_than("1.21.1", "2.0.0"))
+
+    def test_is_version_less_than_with_suffix(self):
+        """Test version comparison with build suffixes"""
+        self.assertTrue(self.client._is_version_less_than("1.21.0-12345", "1.21.1"))
+        self.assertFalse(self.client._is_version_less_than("1.21.1-12345", "1.21.1"))
+        self.assertFalse(self.client._is_version_less_than("1.21.2-12345", "1.21.1"))
+
+    def test_is_conjur_cloud_url_secretsmgr(self):
+        """Test Conjur Cloud URL detection with .secretsmgr pattern"""
+        self.assertTrue(self.client._is_conjur_cloud_url("https://example.secretsmgr.cyberark.cloud"))
+        self.assertTrue(self.client._is_conjur_cloud_url("https://example.secretsmgr.integration-cyberark.cloud"))
+        self.assertTrue(self.client._is_conjur_cloud_url("https://example.secretsmgr.test-cyberark.cloud"))
+        self.assertTrue(self.client._is_conjur_cloud_url("https://example.secretsmgr.dev-cyberark.cloud"))
+        self.assertTrue(self.client._is_conjur_cloud_url("https://example.secretsmgr.sandbox-cyberark.cloud"))
+
+    def test_is_conjur_cloud_url_secretsmanager(self):
+        """Test Conjur Cloud URL detection with -secretsmanager pattern"""
+        self.assertTrue(self.client._is_conjur_cloud_url("https://example-secretsmanager.cyberark.cloud"))
+        self.assertTrue(self.client._is_conjur_cloud_url("https://example-secretsmanager.integration-cyberark.cloud"))
+        self.assertTrue(self.client._is_conjur_cloud_url("https://example-secretsmanager.pt-cyberark.cloud"))
+
+    def test_is_conjur_cloud_url_case_insensitive(self):
+        """Test Conjur Cloud URL detection is case insensitive"""
+        self.assertTrue(self.client._is_conjur_cloud_url("https://EXAMPLE.SECRETSMGR.CYBERARK.CLOUD"))
+        self.assertTrue(self.client._is_conjur_cloud_url("https://Example.SecretsMgr.CyberArk.Cloud"))
+
+    def test_is_conjur_cloud_url_negative_cases(self):
+        """Test that non-Conjur Cloud URLs are not detected"""
+        self.assertFalse(self.client._is_conjur_cloud_url("https://conjur-https"))
+        self.assertFalse(self.client._is_conjur_cloud_url("https://example.com"))
+        self.assertFalse(self.client._is_conjur_cloud_url("https://conjur.example.com"))
+        self.assertFalse(self.client._is_conjur_cloud_url(""))
+        self.assertFalse(self.client._is_conjur_cloud_url(None))
+
+    @patch('conjur_api.http.api.invoke_endpoint')
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
+    async def test_server_version_from_enterprise_info(self, mock_api_token, mock_invoke_endpoint):
+        """Test server_version retrieves version from enterprise info endpoint"""
+        mock_api_token.return_value = 'test_token'
+        mock_invoke_endpoint.return_value = create_http_response(200, '{"services": {"possum": {"version": "1.21.1"}}}')
+        
+        version = await self.client.server_version()
+        
+        self.assertEqual(version, "1.21.1")
+        # Should call /info endpoint - check that INFO endpoint enum was used
+        args, kwargs = mock_invoke_endpoint.call_args
+        from conjur_api.http.endpoints import ConjurEndpoint
+        # invoke_endpoint signature: (http_verb, endpoint, params, ...)
+        self.assertGreaterEqual(len(args), 2, "Expected at least 2 positional arguments")
+        endpoint_arg = args[1]
+        self.assertEqual(endpoint_arg, ConjurEndpoint.INFO)
+
+    @patch('conjur_api.http.api.invoke_endpoint')
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
+    async def test_server_version_from_root_endpoint(self, mock_api_token, mock_invoke_endpoint):
+        """Test server_version falls back to root endpoint when enterprise info fails"""
+        mock_api_token.return_value = 'test_token'
+        # First call (enterprise info) fails, second call (root) succeeds
+        mock_invoke_endpoint.side_effect = [
+            HttpStatusError(status=404, message="Not Found", url="", response=""),
+            create_http_response(200, '1.21.1')
+        ]
+        
+        version = await self.client.server_version()
+        
+        self.assertEqual(version, "1.21.1")
+        self.assertEqual(mock_invoke_endpoint.call_count, 2)
+
+    @patch('conjur_api.http.api.invoke_endpoint')
+    async def test_server_version_raises_error_for_conjur_cloud(self, mock_invoke_endpoint):
+        """Test server_version raises error for Conjur Cloud URLs"""
+        cloud_client = Client(
+            ConjurConnectionInfo(conjur_url='https://example.secretsmgr.cyberark.cloud', account='test'),
+            authn_strategy=self.authn_provider,
+            ssl_verification_mode=self.ssl_verification_mode
+        )
+        
+        with self.assertRaises(Exception) as context:
+            await cloud_client.server_version()
+        
+        self.assertIn("not supported in Secrets Manager SaaS", str(context.exception))
+
+    @patch('conjur_api.http.api.invoke_endpoint')
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
+    async def test_server_version_raises_error_when_both_fail(self, mock_api_token, mock_invoke_endpoint):
+        """Test server_version raises error when both endpoints fail"""
+        mock_api_token.return_value = 'test_token'
+        mock_invoke_endpoint.side_effect = [
+            HttpStatusError(status=404, message="Not Found", url="", response=""),
+            HttpStatusError(status=500, message="Internal Error", url="", response="")
+        ]
+        
+        with self.assertRaises(Exception) as context:
+            await self.client.server_version()
+        
+        self.assertIn("failed to retrieve server version", str(context.exception))
+
+    @patch('conjur_api.http.api.invoke_endpoint')
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
+    async def test_validate_dry_run_support_success(self, mock_api_token, mock_invoke_endpoint):
+        """Test _validate_dry_run_support succeeds with valid version"""
+        mock_api_token.return_value = 'test_token'
+        mock_invoke_endpoint.return_value = create_http_response(200, '{"services": {"possum": {"version": "1.21.1"}}}')
+        
+        # Should not raise an exception
+        await self.client._validate_dry_run_support()
+
+    @patch('conjur_api.http.api.invoke_endpoint')
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
+    async def test_validate_dry_run_support_version_too_old(self, mock_api_token, mock_invoke_endpoint):
+        """Test _validate_dry_run_support raises error for version < 1.21.1"""
+        mock_api_token.return_value = 'test_token'
+        mock_invoke_endpoint.return_value = create_http_response(200, '{"services": {"possum": {"version": "1.21.0"}}}')
+        
+        with self.assertRaises(Exception) as context:
+            await self.client._validate_dry_run_support()
+        
+        self.assertIn("dry_run requires Conjur server version 1.21.1", str(context.exception))
+        self.assertIn("1.21.0", str(context.exception))
+
+    @patch('conjur_api.http.api.invoke_endpoint')
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
+    async def test_validate_dry_run_support_version_exact_match(self, mock_api_token, mock_invoke_endpoint):
+        """Test _validate_dry_run_support succeeds with exact minimum version"""
+        mock_api_token.return_value = 'test_token'
+        mock_invoke_endpoint.return_value = create_http_response(200, '{"services": {"possum": {"version": "1.21.1"}}}')
+        
+        # Should not raise an exception
+        await self.client._validate_dry_run_support()
+
+    @patch('conjur_api.http.api.invoke_endpoint')
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
+    async def test_validate_dry_run_support_version_newer(self, mock_api_token, mock_invoke_endpoint):
+        """Test _validate_dry_run_support succeeds with version > 1.21.1"""
+        mock_api_token.return_value = 'test_token'
+        mock_invoke_endpoint.return_value = create_http_response(200, '{"services": {"possum": {"version": "1.22.0"}}}')
+        
+        # Should not raise an exception
+        await self.client._validate_dry_run_support()
+
+    async def test_validate_dry_run_support_conjur_cloud(self):
+        """Test _validate_dry_run_support raises error for Conjur Cloud"""
+        cloud_client = Client(
+            ConjurConnectionInfo(conjur_url='https://example.secretsmgr.cyberark.cloud', account='test'),
+            authn_strategy=self.authn_provider,
+            ssl_verification_mode=self.ssl_verification_mode
+        )
+        
+        with self.assertRaises(Exception) as context:
+            await cloud_client._validate_dry_run_support()
+        
+        self.assertIn("dry_run is not supported in Secrets Manager SaaS", str(context.exception))
+
+    @patch('conjur_api.http.api.invoke_endpoint')
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
+    async def test_load_policy_file_with_dry_run_validates(self, mock_api_token, mock_invoke_endpoint):
+        """Test load_policy_file validates dry_run support when dry_run=True"""
+        mock_api_token.return_value = 'test_token'
+        # Mock version check
+        mock_invoke_endpoint.side_effect = [
+            create_http_response(200, '{"services": {"possum": {"version": "1.21.1"}}}'),  # Version check
+            create_http_response(200, '{"created_roles": []}')  # Policy load
+        ]
+        
+        with patch('builtins.open', mock_open(read_data='!variable dummy-var')):
+            await self.client.load_policy_file('test', 'my-policy.yml', dry_run=True)
+        
+        # Should be called twice: once for version check, once for policy load
+        self.assertEqual(mock_invoke_endpoint.call_count, 2)
+
+    @patch('conjur_api.http.api.invoke_endpoint')
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
+    async def test_load_policy_file_with_dry_run_old_version_fails(self, mock_api_token, mock_invoke_endpoint):
+        """Test load_policy_file with dry_run fails for old server version"""
+        mock_api_token.return_value = 'test_token'
+        mock_invoke_endpoint.return_value = create_http_response(200, '{"services": {"possum": {"version": "1.20.0"}}}')
+        
+        with patch('builtins.open', mock_open(read_data='!variable dummy-var')):
+            with self.assertRaises(Exception) as context:
+                await self.client.load_policy_file('test', 'my-policy.yml', dry_run=True)
+        
+        self.assertIn("dry_run requires Conjur server version 1.21.1", str(context.exception))
+        # Should only call version check, not policy load
+        self.assertEqual(mock_invoke_endpoint.call_count, 1)
+
+    @patch('conjur_api.http.api.invoke_endpoint')
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
+    async def test_replace_policy_file_with_dry_run_validates(self, mock_api_token, mock_invoke_endpoint):
+        """Test replace_policy_file validates dry_run support when dry_run=True"""
+        mock_api_token.return_value = 'test_token'
+        mock_invoke_endpoint.side_effect = [
+            create_http_response(200, '{"services": {"possum": {"version": "1.21.1"}}}'),
+            create_http_response(200, '{"created_roles": []}')
+        ]
+        
+        with patch('builtins.open', mock_open(read_data='!variable dummy-var')):
+            await self.client.replace_policy_file('test', 'my-policy.yml', dry_run=True)
+        
+        self.assertEqual(mock_invoke_endpoint.call_count, 2)
+
+    @patch('conjur_api.http.api.invoke_endpoint')
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
+    async def test_update_policy_file_with_dry_run_validates(self, mock_api_token, mock_invoke_endpoint):
+        """Test update_policy_file validates dry_run support when dry_run=True"""
+        mock_api_token.return_value = 'test_token'
+        mock_invoke_endpoint.side_effect = [
+            create_http_response(200, '{"services": {"possum": {"version": "1.21.1"}}}'),
+            create_http_response(200, '{"created_roles": []}')
+        ]
+        
+        with patch('builtins.open', mock_open(read_data='!variable dummy-var')):
+            await self.client.update_policy_file('test', 'my-policy.yml', dry_run=True)
+        
+        self.assertEqual(mock_invoke_endpoint.call_count, 2)
+
+    @patch('conjur_api.http.api.invoke_endpoint')
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
+    async def test_load_policy_file_without_dry_run_no_validation(self, mock_api_token, mock_invoke_endpoint):
+        """Test load_policy_file does not validate when dry_run=False"""
+        mock_api_token.return_value = 'test_token'
+        mock_invoke_endpoint.return_value = create_http_response(200, '{"created_roles": []}')
+        
+        with patch('builtins.open', mock_open(read_data='!variable dummy-var')):
+            await self.client.load_policy_file('test', 'my-policy.yml', dry_run=False)
+        
+        # Should only call policy load, not version check
+        self.assertEqual(mock_invoke_endpoint.call_count, 1)
+
+    @patch('conjur_api.http.api.invoke_endpoint')
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
+    async def test_replace_policy_file_without_dry_run_no_validation(self, mock_api_token, mock_invoke_endpoint):
+        """Test replace_policy_file does not validate when dry_run=False"""
+        mock_api_token.return_value = 'test_token'
+        mock_invoke_endpoint.return_value = create_http_response(200, '{"created_roles": []}')
+        
+        with patch('builtins.open', mock_open(read_data='!variable dummy-var')):
+            await self.client.replace_policy_file('test', 'my-policy.yml', dry_run=False)
+        
+        # Should only call policy load, not version check
+        self.assertEqual(mock_invoke_endpoint.call_count, 1)
+
+    @patch('conjur_api.http.api.invoke_endpoint')
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
+    async def test_update_policy_file_without_dry_run_no_validation(self, mock_api_token, mock_invoke_endpoint):
+        """Test update_policy_file does not validate when dry_run=False"""
+        mock_api_token.return_value = 'test_token'
+        mock_invoke_endpoint.return_value = create_http_response(200, '{"created_roles": []}')
+        
+        with patch('builtins.open', mock_open(read_data='!variable dummy-var')):
+            await self.client.update_policy_file('test', 'my-policy.yml', dry_run=False)
+        
+        # Should only call policy load, not version check
+        self.assertEqual(mock_invoke_endpoint.call_count, 1)
+
+    @patch('conjur_api.http.api.invoke_endpoint')
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
+    async def test_server_version_root_endpoint_called(self, mock_api_token, mock_invoke_endpoint):
+        """Test server_version calls root endpoint with correct parameters"""
+        mock_api_token.return_value = 'test_token'
+        mock_invoke_endpoint.side_effect = [
+            HttpStatusError(status=404, message="Not Found", url="", response=""),
+            create_http_response(200, '1.21.1')
+        ]
+        
+        version = await self.client.server_version()
+        
+        self.assertEqual(version, "1.21.1")
+        # Check that root endpoint was called
+        args, kwargs = mock_invoke_endpoint.call_args_list[1]
+        self.assertTrue(exists_in_args('/', args) or exists_in_args('root', str(args).lower()))
+
+    @patch('conjur_api.http.api.invoke_endpoint')
+    @patch.object(Api, '_api_token', new_callable=PropertyMock)
+    async def test_server_version_caching(self, mock_api_token, mock_invoke_endpoint):
+        """Test that server_version caches the result and only makes one request"""
+        mock_api_token.return_value = 'test_token'
+        mock_invoke_endpoint.return_value = create_http_response(200, '{"services": {"possum": {"version": "1.21.1"}}}')
+        
+        # First call should retrieve version
+        version1 = await self.client.server_version()
+        self.assertEqual(version1, "1.21.1")
+        self.assertEqual(self.client.conjur_version, "1.21.1")
+        first_call_count = mock_invoke_endpoint.call_count
+        
+        # Second call should use cached version
+        version2 = await self.client.server_version()
+        self.assertEqual(version2, "1.21.1")
+        self.assertEqual(self.client.conjur_version, "1.21.1")
+        # Should not have made additional calls
+        self.assertEqual(mock_invoke_endpoint.call_count, first_call_count)
+        
+        # Third call should also use cached version
+        version3 = await self.client.server_version()
+        self.assertEqual(version3, "1.21.1")
+        self.assertEqual(mock_invoke_endpoint.call_count, first_call_count)

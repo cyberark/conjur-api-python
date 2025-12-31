@@ -7,6 +7,7 @@ Provides high-level interface for programmatic API interactions
 """
 # Builtins
 import logging
+import re
 from datetime import datetime
 from typing import Optional, Tuple
 from urllib import parse
@@ -488,7 +489,7 @@ class Api:
 
     async def _load_policy_file(
             self, policy_id: str, policy_file: str,
-            http_verb: HttpVerb) -> dict:
+            http_verb: HttpVerb, dry_run: bool) -> dict:
         """
         This method is used to load, replace or update a file-based policy into the desired
         name.
@@ -505,32 +506,37 @@ class Api:
         if api_token is None:
             raise MissingApiTokenException()
 
+        query = {}
+        if dry_run:
+            query = { 'dryRun': 'true' }
+
         response = await invoke_endpoint(http_verb, ConjurEndpoint.POLICIES, params,
                                          policy_data, api_token=api_token,
                                          ssl_verification_metadata=self.ssl_verification_data,
+                                         query=query,
                                          proxy_params=self._connection_info.proxy_params)
         return response.json
 
-    async def load_policy_file(self, policy_id: str, policy_file: str) -> dict:
+    async def load_policy_file(self, policy_id: str, policy_file: str, dry_run: bool) -> dict:
         """
         This method is used to load a file-based policy into the desired
         name.
         """
-        return await self._load_policy_file(policy_id, policy_file, HttpVerb.POST)
+        return await self._load_policy_file(policy_id, policy_file, HttpVerb.POST, dry_run)
 
-    async def replace_policy_file(self, policy_id: str, policy_file: str) -> dict:
+    async def replace_policy_file(self, policy_id: str, policy_file: str, dry_run: bool) -> dict:
         """
         This method is used to replace a file-based policy into the desired
         policy ID.
         """
-        return await self._load_policy_file(policy_id, policy_file, HttpVerb.PUT)
+        return await self._load_policy_file(policy_id, policy_file, HttpVerb.PUT, dry_run)
 
-    async def update_policy_file(self, policy_id: str, policy_file: str) -> dict:
+    async def update_policy_file(self, policy_id: str, policy_file: str, dry_run: bool) -> dict:
         """
         This method is used to update a file-based policy into the desired
         policy ID.
         """
-        return await self._load_policy_file(policy_id, policy_file, HttpVerb.PATCH)
+        return await self._load_policy_file(policy_id, policy_file, HttpVerb.PATCH, dry_run)
 
     async def rotate_other_api_key(self, resource: Resource) -> str:
         """
@@ -619,6 +625,35 @@ class Api:
                                      params,
                                      ssl_verification_metadata=self.ssl_verification_data,
                                      proxy_params=self._connection_info.proxy_params)
+
+    async def get_server_version_from_root(self) -> str:
+        """
+        Retrieves the Conjur server version from the root endpoint (Conjur OSS).
+        The root endpoint returns HTML, so we parse it to extract the version.
+        @return: Server version string
+        """
+        params = {
+            'url': self._url
+        }
+        response = await invoke_endpoint(HttpVerb.GET,
+                                         ConjurEndpoint.ROOT,
+                                         params,
+                                         ssl_verification_metadata=self.ssl_verification_data,
+                                         proxy_params=self._connection_info.proxy_params)
+        # The root endpoint returns HTML with version in format: "Version X.Y.Z" or "Version X.Y.Z-build"
+        # Extract version using regex pattern
+        html_text = response.text
+        # Pattern matches: Version followed by space and version number (e.g., "Version 1.24.0-1049")
+        version_pattern = r'Version\s+(\d+\.\d+\.\d+(?:-\d+)?)'
+        match = re.search(version_pattern, html_text, re.IGNORECASE)
+        if match:
+            return match.group(1)
+        # Fallback: try to find any semver pattern in the HTML
+        semver_pattern = r'(\d+\.\d+\.\d+(?:-\d+)?)'
+        match = re.search(semver_pattern, html_text)
+        if match:
+            return match.group(1)
+        raise Exception("Unable to extract version from root endpoint HTML response")
 
     async def whoami(self) -> dict:
         """

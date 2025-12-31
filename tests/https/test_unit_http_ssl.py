@@ -50,7 +50,7 @@ valid_badssl_endpoints = [
     # These are temporarily broken, see https://github.com/chromium/badssl.com/issues/501
     # "https://sha384.badssl.com",
     # "https://sha512.badssl.com",
-    "https://tls-v1-2.badssl.com",
+    # "https://tls-v1-2.badssl.com",
     "https://cbc.badssl.com"
 ]
 

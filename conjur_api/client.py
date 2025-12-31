@@ -10,7 +10,10 @@ the Conjur server
 # Builtins
 import json
 import logging
+import re
 from typing import Optional, Tuple
+
+from packaging.version import Version
 
 from conjur_api.errors.errors import ResourceNotFoundException, MissingRequiredParameterException, HttpStatusError
 from conjur_api.http.api import Api
@@ -27,6 +30,25 @@ LOGGING_FORMAT_WARNING = 'WARNING: %(message)s'
 
 logger = logging.getLogger(__name__)
 
+# List of possible Secrets Manager SaaS URL suffixes
+_CONJUR_CLOUD_SUFFIXES = [
+    ".cyberark.cloud",
+    ".integration-cyberark.cloud",
+    ".test-cyberark.cloud",
+    ".dev-cyberark.cloud",
+    ".cyberark-everest-integdev.cloud",
+    ".cyberark-everest-pre-prod.cloud",
+    ".sandbox-cyberark.cloud",
+    ".pt-cyberark.cloud",
+]
+
+# Build regex pattern: (\\.secretsmgr|-secretsmanager) followed by one of the suffixes
+_SUFFIXES_PATTERN = "|".join(re.escape(suffix) for suffix in _CONJUR_CLOUD_SUFFIXES)
+_CONJUR_CLOUD_REGEXP = re.compile(
+    rf"(\.secretsmgr|-secretsmanager)({_SUFFIXES_PATTERN})",
+    re.IGNORECASE
+)
+
 @allow_sync_invocation()
 # pylint: disable=too-many-public-methods
 class Client:
@@ -39,7 +61,8 @@ class Client:
     try:
         integration_version = version("conjur_api")
     except PackageNotFoundError:
-        integration_version = 'No Version Found'
+        # setuptools defaults to "0.0.dev0" (PEP 440), so we use a default version that adheres to that for testing purposes
+        integration_version = '0.0.dev0'
     integration_type = 'cybr-secretsmanager'
     vendor_name = 'CyberArk'
     vendor_version = None
@@ -95,6 +118,7 @@ class Client:
         self.ssl_verification_mode = ssl_verification_mode
         self.connection_info = connection_info
         self.debug = debug
+        self.conjur_version = None  # Cache for server version
         self._api = self._create_api(http_debug, authn_strategy)
 
         self.set_telemetry_header()
@@ -293,23 +317,29 @@ class Client:
         """
         await self._api.set_variable(variable_id, value)
 
-    async def load_policy_file(self, policy_name: str, policy_file: str) -> dict:
+    async def load_policy_file(self, policy_name: str, policy_file: str, dry_run: bool = False) -> dict:
         """
         Applies a file-based policy to the Conjur instance
         """
-        return await self._api.load_policy_file(policy_name, policy_file)
+        if dry_run:
+            await self._validate_dry_run_support()
+        return await self._api.load_policy_file(policy_name, policy_file, dry_run)
 
-    async def replace_policy_file(self, policy_name: str, policy_file: str) -> dict:
+    async def replace_policy_file(self, policy_name: str, policy_file: str, dry_run: bool = False) -> dict:
         """
         Replaces a file-based policy defined in the Conjur instance
         """
-        return await self._api.replace_policy_file(policy_name, policy_file)
+        if dry_run:
+            await self._validate_dry_run_support()
+        return await self._api.replace_policy_file(policy_name, policy_file, dry_run)
 
-    async def update_policy_file(self, policy_name: str, policy_file: str) -> dict:
+    async def update_policy_file(self, policy_name: str, policy_file: str, dry_run: bool = False) -> dict:
         """
         Replaces a file-based policy defined in the Conjur instance
         """
-        return await self._api.update_policy_file(policy_name, policy_file)
+        if dry_run:
+            await self._validate_dry_run_support()
+        return await self._api.update_policy_file(policy_name, policy_file, dry_run)
 
     async def rotate_other_api_key(self, resource: Resource) -> str:
         """
@@ -349,6 +379,108 @@ class Client:
                 raise ResourceNotFoundException(exception_details) from err
             else:
                 raise
+
+    def _is_version_less_than(self, version1: str, version2: str) -> bool:
+        """
+        Checks if version1 is less than version2.
+        @param version1: First version string (e.g., "1.21.1", "1.21.1-beta", "1.24.0-1049")
+        @param version2: Second version string (e.g., "1.21.1")
+        @return: True if version1 < version2, False otherwise
+        """
+        return Version(version1) < Version(version2)
+
+    def _is_conjur_cloud_url(self, url: str) -> bool:
+        """
+        Checks if the URL is a Conjur Cloud (Secrets Manager SaaS) URL.
+        Matches the Go regex pattern: (\\.secretsmgr|-secretsmanager) followed by one of the cloud suffixes.
+        @param url: The Conjur URL to check
+        @return: True if the URL is a Conjur Cloud URL, False otherwise
+        """
+        if not url:
+            return False
+
+        return bool(_CONJUR_CLOUD_REGEXP.search(url))
+
+    async def server_version(self) -> str:
+        """
+        Retrieves the Conjur server version, either from the '/info' endpoint in Secrets Manager Self-Hosted,
+        or from the root endpoint in Conjur OSS. The version returned corresponds to the Conjur OSS version,
+        which in Conjur Enterprise is the version of the 'possum' service.
+        
+        The version is cached after the first retrieval to avoid making multiple requests.
+
+        @return: Server version string
+        @raises: Exception if unable to retrieve server version or if running against Conjur Cloud
+        """
+        # Return cached version if available
+        if self.conjur_version is not None:
+            return self.conjur_version
+
+        url = self.connection_info.conjur_url
+
+        if self._is_conjur_cloud_url(url):
+            raise Exception("Unable to retrieve server version: not supported in Secrets Manager SaaS")
+
+        # Try to get enterprise server info first
+        enterprise_error = None
+        try:
+            info = await self.get_server_info()
+            # Return the version of the 'possum' service, which corresponds to the Conjur OSS version
+            if isinstance(info, dict) and 'services' in info:
+                services = info.get('services', {})
+                if 'possum' in services:
+                    possum_service = services.get('possum', {})
+                    if isinstance(possum_service, dict) and 'version' in possum_service:
+                        self.conjur_version = possum_service['version']
+                        return self.conjur_version
+        except Exception as err:
+            # If enterprise info fails, try root endpoint
+            enterprise_error = err
+
+        # Try to get version from root endpoint (Conjur OSS)
+        try:
+            version = await self._api.get_server_version_from_root()
+            if version:
+                self.conjur_version = version
+                return self.conjur_version
+        except Exception as root_err:
+            # Both methods failed, raise an error with details
+            error_msg = "failed to retrieve server version"
+            if enterprise_error:
+                error_msg += f": enterprise info error - {enterprise_error}"
+            if root_err:
+                error_msg += f", root endpoint error - {root_err}"
+            raise Exception(error_msg) from root_err
+
+        raise Exception("failed to retrieve server version: both enterprise info and root endpoint failed")
+
+    async def _validate_dry_run_support(self):
+        """
+        Validates that dry_run is supported by checking:
+        1. The server is not Conjur Cloud (SaaS)
+        2. The server version is >= 1.21.1
+        
+        @raises: Exception if dry_run is not supported
+        """
+        url = self.connection_info.conjur_url
+
+        # Check if it's Conjur Cloud
+        if self._is_conjur_cloud_url(url):
+            raise Exception("dry_run is not supported in Secrets Manager SaaS")
+
+        # Check server version
+        try:
+            server_version = await self.server_version()
+            min_version = "1.21.1"
+
+            if self._is_version_less_than(server_version, min_version):
+                raise Exception(f"dry_run requires Conjur server version {min_version} or higher, but server version is {server_version}")
+        except Exception as err:
+            # If we can't get the version, we should still raise an error
+            # but include the original error message
+            error_msg = str(err)
+            raise Exception(f"Unable to validate dry_run support: {error_msg}") from err
+
 
     async def change_personal_password(
             self, logged_in_user: str, current_password: str,

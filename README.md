@@ -200,22 +200,24 @@ Sets a variable to a specific value based on its ID.
 
 Note: Policy to create the variable must have already been loaded, otherwise you will get a 404 error during invocation.
 
-#### `load_policy_file(policy_name, policy_file)`
+#### `load_policy_file(policy_name, policy_file, dry_run=False)`
 
 Applies a file-based YAML to a named policy. This method only supports additive changes. Result is a dictionary object
-constructed from the returned JSON data.
+constructed from the returned JSON data. If `dry_run` is set to `True`, the policy will not be applied and the result will
+be a dictionary representing the changes that would be applied.
 
-#### `replace_policy_file(policy_name, policy_file)`
+#### `replace_policy_file(policy_name, policy_file, dry_run=False)`
 
 Replaces a named policy with one from the provided file. This is usually a destructive invocation. Result is a
-dictionary object constructed from the returned JSON data.
+dictionary object constructed from the returned JSON data. If `dry_run` is set to `True`, the policy will not be applied
+and the result will be a dictionary representing the changes that would be applied.
 
-#### `update_policy_file(policy_name, policy_file)`
+#### `update_policy_file(policy_name, policy_file, dry_run=False)`
 
 Modifies an existing Secrets Manager policy. Data may be explicitly deleted using the `!delete`, `!revoke`, and `!deny`
-statements. Unlike
-"replace" mode, no data is ever implicitly deleted. Result is a dictionary object constructed from the returned JSON
-data.
+statements. Unlike "replace" mode, no data is ever implicitly deleted. Result is a dictionary object constructed from the
+returned JSON data. If `dry_run` is set to `True`, the policy will not be applied and the result will be a dictionary
+representing the changes that would be applied.
 
 #### `list(list_constraints)`
 

@@ -20,14 +20,15 @@ RUN apt-get update && \
 RUN mkdir -p $INSTALL_DIR
 WORKDIR $INSTALL_DIR
 
-# Install Python 3.10.1 using pyenv, wheel and required libs
+# Install Python 3.14.x
+ENV PYTHON_VERSION=3.14
 ENV PYENV_ROOT="/root/.pyenv"
 ENV PATH="$PYENV_ROOT/bin:$PYENV_ROOT/shims:$PATH"
 
 RUN curl -L -s https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash \
     && eval "$(pyenv init --path)" \
-    && env PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.10.1 \
-    && pyenv global 3.10.1 \
+    && env PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install $PYTHON_VERSION \
+    && pyenv global $PYTHON_VERSION \
     && pip install wheel
 
 # By putting this COPY command after we install Python, Docker will cache the Python installation layer,
