@@ -2,7 +2,7 @@
 pytest>=8.4.0
 pytest-cov>=6.1.1
 pylint>=3.3.1
-cryptography~=44.0.3
+cryptography~=46.0.5
 keyring>=25.5.0
 pyopenssl>=24.2.1
 PyInstaller>=6.11.0
@@ -14,6 +14,7 @@ twine>=5.1.1
 build>=1.2.2
 # https://nvd.nist.gov/vuln/detail/CVE-2020-26137
 urllib3>=2.2.2
+packaging>=26.0
 
 aiounittest~=1.4.2
 requests>=2.32.2 # not directly required, pinned by Snyk to avoid a vulnerability
