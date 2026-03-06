@@ -117,20 +117,15 @@ pipeline {
             unstash 'coverage'
             sh 'find . -iname "*.xml" || true'
             junit 'ci/test/output/**/*.xml'
-            cobertura(
-              coberturaReportFile: "coverage.xml",
-              onlyStable: false,
-              failNoReports: true,
-              failUnhealthy: true,
-              failUnstable: false,
-              autoUpdateHealth: false,
-              autoUpdateStability: false,
-              zoomCoverageChart: true,
-              maxNumberOfBuilds: 0,
-              lineCoverageTargets: '40, 40, 40',
-              conditionalCoverageTargets: '80, 80, 80',
-              classCoverageTargets: '80, 80, 80',
-              fileCoverageTargets: '80, 80, 80',
+            recordCoverage(
+              tools: [[parser: 'COBERTURA', pattern: 'coverage.xml']],
+              sourceCodeEncoding: 'ASCII',
+              qualityGates: [
+                  [threshold: 40.0, metric: 'LINE', baseline: 'PROJECT', unstable: true],
+                  [threshold: 80.0, metric: 'BRANCH', baseline: 'PROJECT', unstable: true],
+                  [threshold: 80.0, metric: 'METHOD', baseline: 'PROJECT', unstable: true]
+              ],
+              skipPublishingChecks: false
             )
             codacy action: 'reportCoverage', filePath: "coverage.xml"
           }
@@ -241,6 +236,24 @@ pipeline {
     always {
       removeIPAccess(infrapool)
       releaseInfraPoolAgent(".infrapool/release_agents")
+
+      script {
+        // Resolve ownership issue before running infra post hook
+        sh 'git config --global --add safe.directory ${PWD}'
+
+        // TODO: Remove try-catch once the Slack plugin is fixed on the Jenkins
+        // controller. The Slack plugin currently crashes with:
+        //   java.lang.ClassNotFoundException: net.sf.json.groovy.JsonSlurper
+        // because it depends on json-lib which is no longer on the classpath
+        // after a recent plugin upgrade. Wrapping here prevents the Slack
+        // plugin bug from masking real build failures.
+        // See: CNJR-13102
+        try {
+          infraPostHook()
+        } catch (Throwable err) {
+          echo "WARNING: infraPostHook() failed — likely a Slack plugin issue: ${err}"
+        }
+      }
     }
   }
 }
