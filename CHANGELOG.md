@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replace disabled OIDC v1 (`id_token`) authentication flow with OIDC v2
   (authorization code + PKCE). (CNJR-14274)
 
+### Security
+- Bump `cryptography` constraint to `~=48.0` to allow `cryptography>=48.0.1`
+  (CVE-2026-34180 / SNYK-PYTHON-CRYPTOGRAPHY-17344551), unblocking downstream
+  consumers capped by the previous `~=46.0.5` pin.
+
 ## [0.1.10] - 2026-03-24
 
 ### Security
