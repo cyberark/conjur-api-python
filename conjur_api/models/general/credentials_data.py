@@ -13,6 +13,23 @@ from datetime import datetime
 EXPIRATION_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
+class OidcCodeDetail:
+    """
+    Used for storing OIDC authorization code details
+    """
+
+    def __init__(self, code: str, code_verifier: str, nonce: str):
+        self.code = code
+        self.code_verifier = code_verifier
+        self.nonce = nonce
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, OidcCodeDetail):
+            return False
+        return self.code == other.code and self.code_verifier == other.code_verifier \
+            and self.nonce == other.nonce
+
+
 class CredentialsData:
     """
     Used for setting user input data to login to Conjur
@@ -20,13 +37,14 @@ class CredentialsData:
 
     # pylint: disable=too-many-arguments
     def __init__(self, machine: str = None, username: str = None, password: str = None, api_key: str = None,
-                 api_token: str = None, api_token_expiration: str = None):
+                 api_token: str = None, api_token_expiration: str = None, oidc_code_detail: OidcCodeDetail = None):
         self.machine = machine
         self.username = username
         self.password = password
         self.api_key = api_key
         self.api_token = api_token
         self.api_token_expiration = api_token_expiration
+        self.oidc_code_detail = oidc_code_detail
 
     @classmethod
     def convert_dict_to_obj(cls, dic: dict):
@@ -44,7 +62,7 @@ class CredentialsData:
         Method for comparing resources by their values and not by reference
         """
         return self.machine == other.machine and self.username == other.username and self.password == \
-               other.password and self.api_key == other.api_key
+               other.password and self.api_key == other.api_key and self.oidc_code_detail == other.oidc_code_detail
 
     def api_token_expiration_datetime(self) -> datetime:
         """

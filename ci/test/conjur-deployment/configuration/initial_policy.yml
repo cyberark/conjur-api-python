@@ -60,7 +60,10 @@
     id: status
 
   - !variable provider-uri
-  - !variable id-token-user-property
+  - !variable client-id
+  - !variable client-secret
+  - !variable claim-mapping
+  - !variable redirect-uri
 
   - !group users
 

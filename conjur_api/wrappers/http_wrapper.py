@@ -93,8 +93,8 @@ async def invoke_endpoint(http_verb: HttpVerb,
     logging.debug(f"Invoke endpoint. Verb: '{http_verb.name}', Endpoint: '{endpoint.name}', Params: '{params}', "
                   f"Data length: '{len(data)}', Check errors: '{check_errors}', SSL verification metadata: "
                   f"'{ssl_verification_metadata}', Basic auth user: '{auth[0] if auth else ''}', using API token: "
-                  f"'{api_token is not None}', Query params: '{query}', Headers: '{headers}', Decode token: "
-                  f"'{decode_token}'")
+                  f"'{api_token is not None}', Query param keys: '{list(query.keys()) if query else query}', "
+                  f"Headers: '{headers}', Decode token: '{decode_token}'")
     start = time.monotonic()
 
     if headers is None:
