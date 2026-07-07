@@ -2,7 +2,7 @@
 pytest>=9.0.2
 pytest-cov>=7.1.0
 pylint>=4.0.5
-cryptography~=46.0.5
+cryptography>=48.0.1
 keyring>=25.7.0
 pyopenssl>=26.0.0
 PyInstaller>=6.19.0
