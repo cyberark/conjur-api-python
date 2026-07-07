@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.11] - 2026-07-02
+
+### Changed
+- Replace disabled OIDC v1 (`id_token`) authentication flow with OIDC v2
+  (authorization code + PKCE). (CNJR-14274)
+
 ## [0.1.10] - 2026-03-24
 
 ### Security

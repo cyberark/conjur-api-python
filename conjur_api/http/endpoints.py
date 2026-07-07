@@ -19,6 +19,7 @@ class ConjurEndpoint(Enum):
     AUTHENTICATE = "{url}/authn/{account}/{login}/authenticate"
     AUTHENTICATE_LDAP = "{url}/authn-ldap/{service_id}/{account}/{login}/authenticate"
     AUTHENTICATE_OIDC = "{url}/authn-oidc/{service_id}/{account}/authenticate"
+    OIDC_PROVIDERS = "{url}/authn-oidc/{account}/providers"
     AUTHENTICATE_JWT = "{url}/authn-jwt/{service_id}/{account}/authenticate"
     # deepcode ignore NoHardcodedCredentials: False positive - this is a URL, not a credential
     LOGIN = "{url}/authn/{account}/login"

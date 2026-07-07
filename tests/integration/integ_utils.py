@@ -6,6 +6,7 @@ from conjur_api import AuthenticationStrategyInterface, Client
 from conjur_api.models import CredentialsData, SslVerificationMode
 from conjur_api.models.general.conjur_connection_info import \
     ConjurConnectionInfo
+from conjur_api.models.general.credentials_data import OidcCodeDetail
 from conjur_api.providers import (AuthnAuthenticationStrategy,
                                   LdapAuthenticationStrategy,
                                   SimpleCredentialsProvider,
@@ -37,7 +38,8 @@ def _conjur_url() -> str:
 
 async def create_client(username: str, password: str,
                         authn_strategy_type: Optional[AuthenticationStrategyType] = AuthenticationStrategyType.AUTHN,
-                        service_id: Optional[str] = None) -> Client:
+                        service_id: Optional[str] = None,
+                        oidc_code_detail: Optional[OidcCodeDetail] = None) -> Client:
     """
     Function to create a Conjur client with the specified authentication strategy.
     """
@@ -49,11 +51,16 @@ async def create_client(username: str, password: str,
         service_id=service_id
     )
     credentials_provider = SimpleCredentialsProvider()
-    credentials = CredentialsData(username=username, machine=conjur_url)
-    if authn_strategy_type == AuthenticationStrategyType.TOKEN:
-        credentials.api_token = password  # For TOKEN strategy, password is the token
+
+    if authn_strategy_type == AuthenticationStrategyType.OIDC:
+        credentials = CredentialsData(machine=conjur_url, oidc_code_detail=oidc_code_detail)
+    elif authn_strategy_type == AuthenticationStrategyType.TOKEN:
+        credentials = CredentialsData(username=username, machine=conjur_url)
+        credentials.api_token = password
     else:
+        credentials = CredentialsData(username=username, machine=conjur_url)
         credentials.password = password
+
     credentials_provider.save(credentials)
 
     authn_strategy: AuthenticationStrategyInterface
