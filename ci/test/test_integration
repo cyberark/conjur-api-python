@@ -33,6 +33,23 @@ cleanup
 
 export REGISTRY_URL=${INFRAPOOL_REGISTRY_URL:-"docker.io"}
 
+if [[ "${RUN_AZURE_TESTS:-false}" == "true" ]]; then
+  : "${AZURE_SUBSCRIPTION_ID:?AZURE_SUBSCRIPTION_ID is required for Azure tests}"
+  : "${AZURE_RESOURCE_GROUP:?AZURE_RESOURCE_GROUP is required for Azure tests}"
+  : "${USER_ASSIGNED_IDENTITY:?USER_ASSIGNED_IDENTITY is required for Azure tests}"
+  : "${USER_ASSIGNED_IDENTITY_CLIENT_ID:?USER_ASSIGNED_IDENTITY_CLIENT_ID is required for Azure tests}"
+fi
+
+if [[ "${RUN_AWS_TESTS:-false}" == "true" ]]; then
+  : "${AWS_ACCOUNT_ID:?AWS_ACCOUNT_ID is required for AWS tests}"
+  : "${AWS_ROLE_NAME:?AWS_ROLE_NAME is required for AWS tests}"
+fi
+
+if [[ "${RUN_GCP_TESTS:-false}" == "true" ]]; then
+  : "${GCP_ID_TOKEN:?GCP_ID_TOKEN is required for GCP tests}"
+  : "${GCP_PROJECT_ID:?GCP_PROJECT_ID is required for GCP tests}"
+fi
+
 # Ensure we are in repo root
 cd "$(git rev-parse --show-toplevel)"
 
@@ -47,9 +64,18 @@ if [ -z "$INFRAPOOL_TEST_CLOUD" ]; then
 
   echo "Starting Conjur..."
   docker_compose_command up -d conjur-https
-  docker_compose_command exec -T conjur cp /oidc/certs/oidc-server.cert.pem /etc/ssl/certs/oidc-server.cert.pem
-  docker compose --file "$COMPOSE_FILE_PATH" --project-directory "${PWD}" \
-    exec -T conjur sh -c 'hash=$(openssl x509 -hash -in /etc/ssl/certs/oidc-server.cert.pem --noout) && ln -s /etc/ssl/certs/oidc-server.cert.pem /etc/ssl/certs/${hash}.0'
+
+  echo "Trusting mock OIDC server certificate..."
+  docker_compose_command exec -T conjur sh -c '
+    for i in $(seq 1 30); do
+      [ -s /oidc-certs/oidc-server.cert.pem ] && break
+      sleep 1
+    done
+    cp /oidc-certs/oidc-server.cert.pem /etc/ssl/certs/oidc-server.cert.pem
+    hash=$(openssl x509 -hash -in /etc/ssl/certs/oidc-server.cert.pem --noout) && \
+      ln -s /etc/ssl/certs/oidc-server.cert.pem /etc/ssl/certs/${hash}.0
+  '
+
   docker_compose_command exec -T conjur conjurctl wait
 
   echo "Configuring Conjur..."
@@ -73,8 +99,19 @@ if [ -z "$INFRAPOOL_TEST_CLOUD" ]; then
   docker_compose_command run \
     --rm \
     --no-deps \
+    -e RUN_AZURE_TESTS \
+    -e AZURE_SUBSCRIPTION_ID \
+    -e AZURE_RESOURCE_GROUP \
+    -e USER_ASSIGNED_IDENTITY \
+    -e USER_ASSIGNED_IDENTITY_CLIENT_ID \
+    -e RUN_AWS_TESTS \
+    -e AWS_ACCOUNT_ID \
+    -e AWS_ROLE_NAME \
+    -e RUN_GCP_TESTS \
+    -e GCP_ID_TOKEN \
+    -e GCP_PROJECT_ID \
     test \
-    bash -c "pytest -v -m 'integration' --junitxml=ci/test/output/pytest-integration-junit.xml"
+    bash -c "pytest -v -m 'integration' --junitxml=${PYTEST_JUNIT_OUTPUT:-ci/test/output/pytest-integration-junit.xml}"
 else
   echo "Running Cloud tests..."
 

@@ -222,6 +222,12 @@ class Client:
         """
         return await self._api.whoami()
 
+    async def list_oidc_providers(self) -> list:
+        """
+        Returns list of configured OIDC providers with nonce and code_verifier for v2 auth.
+        """
+        return await self._api.list_oidc_providers()
+
     # Constraints remain an optional parameter for backwards compatibility in the SDK
     async def list(self, list_constraints: dict = None) -> dict:
         """

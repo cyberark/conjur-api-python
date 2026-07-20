@@ -41,6 +41,9 @@ pipeline {
 
   parameters {
     booleanParam(name: 'TEST_CLOUD', defaultValue: false, description: 'Run integration tests against a Conjur Cloud tenant')
+    booleanParam(name: 'RUN_AZURE_TESTS', defaultValue: false, description: 'Run Azure managed identity integration tests on an AzureExecutorV2 agent')
+    booleanParam(name: 'RUN_AWS_TESTS', defaultValue: false, description: 'Run AWS IAM integration tests on an ExecutorV2 agent')
+    booleanParam(name: 'RUN_GCP_TESTS', defaultValue: false, description: 'Run GCP integration tests on a GcpExecutorV2 agent')
   }
 
   triggers {
@@ -79,6 +82,18 @@ pipeline {
         script {
           // Request ExecutorV2 agents for 1 hour(s)
           infrapool = getInfraPoolAgent.connected(type: "ExecutorV2", quantity: 1, duration: 1)[0]
+
+          if (params.RUN_AZURE_TESTS) {
+            INFRAPOOL_AZURE_EXECUTORV2_AGENTS = getInfraPoolAgent(type: "AzureExecutorV2", quantity: 1, duration: 1)
+            INFRAPOOL_AZURE_EXECUTORV2_AGENT_0 = INFRAPOOL_AZURE_EXECUTORV2_AGENTS[0]
+            azureInfrapool = infraPoolConnect(INFRAPOOL_AZURE_EXECUTORV2_AGENT_0, {})
+          }
+
+          if (params.RUN_GCP_TESTS) {
+            INFRAPOOL_GCP_EXECUTORV2_AGENTS = getInfraPoolAgent(type: "GcpExecutorV2", quantity: 1, duration: 1)
+            INFRAPOOL_GCP_EXECUTORV2_AGENT_0 = INFRAPOOL_GCP_EXECUTORV2_AGENTS[0]
+            gcpInfrapool = infraPoolConnect(INFRAPOOL_GCP_EXECUTORV2_AGENT_0, {})
+          }
         }
       }
     }
@@ -150,6 +165,105 @@ pipeline {
             infrapool.agentStash name: 'xml-integration-tests', includes: 'ci/test/output/*.xml'
             unstash 'xml-integration-tests'
             junit 'ci/test/output/**/*.xml'
+          }
+        }
+      }
+    }
+
+    stage('Run Azure tests') {
+      when {
+        expression { params.RUN_AZURE_TESTS }
+      }
+      steps {
+        script {
+          azureInfrapool.agentSh '''
+            set +e
+            export RUN_AZURE_TESTS=true
+            export PYTEST_JUNIT_OUTPUT=ci/test/output/pytest-integration-junit-azure.xml
+            summon -e azure ./ci/test/test_integration
+            rc=$?
+            exit $rc
+          '''
+        }
+      }
+      post {
+        always {
+          script {
+            azureInfrapool.agentStash name: 'xml-azure-tests', includes: 'ci/test/output/pytest-integration-junit-azure.xml'
+            unstash 'xml-azure-tests'
+            junit 'ci/test/output/pytest-integration-junit-azure.xml'
+          }
+        }
+      }
+    }
+
+    stage('Run AWS tests') {
+      when {
+        expression { params.RUN_AWS_TESTS }
+      }
+      steps {
+        script {
+          def awsInfrapool = getInfraPoolAgent.connected(type: "ExecutorV2", quantity: 1, duration: 1)[0]
+          def callerIdentityJson = awsInfrapool.agentSh(script: 'aws sts get-caller-identity', returnStdout: true).trim()
+          def awsAccountId = (callerIdentityJson =~ /"Account"\s*:\s*"([^"]+)"/)[0][1]
+          def awsArn       = (callerIdentityJson =~ /"Arn"\s*:\s*"([^"]+)"/)[0][1]
+          def awsRoleName  = awsArn.tokenize('/')[1]
+
+          awsInfrapool.agentSh """
+            set +e
+            export RUN_AWS_TESTS=true
+            export AWS_ACCOUNT_ID="${awsAccountId}"
+            export AWS_ROLE_NAME="${awsRoleName}"
+            export PYTEST_JUNIT_OUTPUT=ci/test/output/pytest-integration-junit-aws.xml
+            ./ci/test/test_integration
+            rc=\$?
+            exit \$rc
+          """
+          awsInfrapool.agentStash name: 'xml-aws-tests', includes: 'ci/test/output/pytest-integration-junit-aws.xml'
+        }
+      }
+      post {
+        always {
+          script {
+            unstash 'xml-aws-tests'
+            junit 'ci/test/output/pytest-integration-junit-aws.xml'
+          }
+        }
+      }
+    }
+
+    stage('Run GCP tests') {
+      when {
+        expression { params.RUN_GCP_TESTS }
+      }
+      steps {
+        script {
+          // Fetch token on the GCP agent (has metadata server access), stash the
+          // output files, then transfer them to infrapool (which has Docker) so the
+          // token value is never interpolated into a Groovy string or visible in logs.
+          gcpInfrapool.agentSh './ci/get_gcp_token.sh "data/test/gcp-apps/test-app" "conjur" gcp-ctx'
+          gcpInfrapool.agentStash name: 'gcp-ctx', includes: 'gcp-ctx/**'
+          infrapool.agentUnstash name: 'gcp-ctx'
+
+          infrapool.agentSh '''
+            set +e
+            export RUN_GCP_TESTS=true
+            export GCP_ID_TOKEN="$(cat gcp-ctx/token)"
+            export GCP_PROJECT_ID="$(cat gcp-ctx/project-id)"
+            export PYTEST_JUNIT_OUTPUT=ci/test/output/pytest-integration-junit-gcp.xml
+            ./ci/test/test_integration
+            rc=$?
+            rm -rf gcp-ctx
+            exit $rc
+          '''
+          infrapool.agentStash name: 'xml-gcp-tests', includes: 'ci/test/output/pytest-integration-junit-gcp.xml'
+        }
+      }
+      post {
+        always {
+          script {
+            unstash 'xml-gcp-tests'
+            junit 'ci/test/output/pytest-integration-junit-gcp.xml'
           }
         }
       }

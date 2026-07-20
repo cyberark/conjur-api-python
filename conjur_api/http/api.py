@@ -671,6 +671,20 @@ class Api:
 
         return response.json
 
+    async def list_oidc_providers(self) -> list:
+        """
+        Returns list of configured OIDC providers with nonce and code_verifier for v2 auth.
+        This is an unauthenticated endpoint.
+        """
+        response = await invoke_endpoint(
+            HttpVerb.GET,
+            ConjurEndpoint.OIDC_PROVIDERS,
+            self._default_params,
+            ssl_verification_metadata=self.ssl_verification_data,
+            proxy_params=self._connection_info.proxy_params,
+        )
+        return response.json
+
     async def list_members_of_role(self, parameters: ListMembersOfData = None) -> list:
         """
         List all members of a role, both direct and indirect

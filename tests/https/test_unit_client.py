@@ -7,7 +7,8 @@ from conjur_api.errors.errors import HttpError, HttpStatusError
 
 from conjur_api.client import Client
 from conjur_api.http.api import Api
-from conjur_api.models import SslVerificationMode, CredentialsData
+from conjur_api.http.endpoints import ConjurEndpoint
+from conjur_api.models import SslVerificationMode, CredentialsData, OidcCodeDetail
 from conjur_api.models.general.conjur_connection_info import ConjurConnectionInfo
 from conjur_api.models.general.proxy_params import ProxyParams
 from conjur_api.models.general.resource import Resource
@@ -54,7 +55,13 @@ class ClientTest(IsolatedAsyncioTestCase):
         credential_provider = SimpleCredentialsProvider()
         credential_provider.save(CredentialsData(self.conjur_data.conjur_url, 'username', 'password', 'api_key'))
         self.authn_provider = AuthnAuthenticationStrategy(credential_provider)
-        self.oidc_provider = OidcAuthenticationStrategy(credential_provider)
+
+        oidc_credential_provider = SimpleCredentialsProvider()
+        oidc_credential_provider.save(CredentialsData(
+            self.conjur_oidc_data.conjur_url,
+            oidc_code_detail=OidcCodeDetail(code='code', code_verifier='verifier', nonce='nonce')
+        ))
+        self.oidc_provider = OidcAuthenticationStrategy(oidc_credential_provider)
 
         self.ssl_verification_mode = SslVerificationMode.INSECURE
         self.ssl_verification_metadata = SslVerificationMetadata(self.ssl_verification_mode, None)
@@ -478,10 +485,14 @@ class ClientTest(IsolatedAsyncioTestCase):
         await self.oidc_client.authenticate()
 
         args, kwargs = mock_auth_invoke_endpoint.call_args
-        self.assertTrue(exists_in_args('url', args))
-        self.assertTrue(exists_in_args('service_id', args))
-        self.assertTrue(exists_in_args('account', args))
-        self.assertTrue(exists_in_args('id_token', args))
+        # Check params dict (args[2])
+        self.assertEqual(args[2]['url'], 'https://conjur-https')
+        self.assertEqual(args[2]['service_id'], 'test-service')
+        self.assertEqual(args[2]['account'], 'test')
+        # Check query params
+        self.assertEqual(kwargs['query'].get('code'), 'code')
+        self.assertEqual(kwargs['query'].get('code_verifier'), 'verifier')
+        self.assertEqual(kwargs['query'].get('nonce'), 'nonce')
         self.assertEqual('proxy.com', kwargs.get('proxy_params').proxy_url)
         mock_auth_invoke_endpoint.assert_called_once()
 
@@ -797,3 +808,18 @@ class ClientTest(IsolatedAsyncioTestCase):
         version3 = await self.client.server_version()
         self.assertEqual(version3, "1.21.1")
         self.assertEqual(mock_invoke_endpoint.call_count, first_call_count)
+
+    @patch('conjur_api.http.api.invoke_endpoint')
+    async def test_list_oidc_providers_calls_endpoint(self, mock_invoke_endpoint):
+        mock_response = MagicMock()
+        mock_response.json = [
+            {'service_id': 'test-service', 'nonce': 'abc', 'code_verifier': 'xyz', 'redirect_uri': 'https://conjur/callback'}
+        ]
+        mock_invoke_endpoint.return_value = mock_response
+
+        result = await self.client.list_oidc_providers()
+
+        args, kwargs = mock_invoke_endpoint.call_args
+        self.assertIn(ConjurEndpoint.OIDC_PROVIDERS, args)
+        self.assertEqual(result, mock_response.json)
+        mock_invoke_endpoint.assert_called_once()

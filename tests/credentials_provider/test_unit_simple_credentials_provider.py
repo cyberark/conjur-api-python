@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from conjur_api.providers import SimpleCredentialsProvider
-from conjur_api.models import CredentialsData
+from conjur_api.models import CredentialsData, OidcCodeDetail
 
 
 def create_credentials(machine: str = "machine", username: str = "some_username", password: str = "some_password", api_key: str = "some_api_key") -> CredentialsData:
@@ -78,3 +78,20 @@ class SimpleCredentialsProviderTest(TestCase):
     def test_get_store_location(self):
         provider = SimpleCredentialsProvider()
         self.assertEqual("SimpleCredentialsProvider",provider.get_store_location())
+
+    def test_oidc_code_detail_stores_fields(self):
+        detail = OidcCodeDetail(code='mycode', code_verifier='myverifier', nonce='mynonce')
+        self.assertEqual(detail.code, 'mycode')
+        self.assertEqual(detail.code_verifier, 'myverifier')
+        self.assertEqual(detail.nonce, 'mynonce')
+
+    def test_credentials_data_accepts_oidc_code_detail(self):
+        detail = OidcCodeDetail(code='c', code_verifier='cv', nonce='n')
+        creds = CredentialsData(machine='https://conjur', oidc_code_detail=detail)
+        self.assertIs(creds.oidc_code_detail, detail)
+        self.assertIsNone(creds.username)
+        self.assertIsNone(creds.password)
+
+    def test_credentials_data_oidc_code_detail_defaults_none(self):
+        creds = CredentialsData(machine='https://conjur', username='user', password='pass')
+        self.assertIsNone(creds.oidc_code_detail)

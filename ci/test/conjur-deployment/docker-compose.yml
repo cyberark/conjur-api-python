@@ -35,7 +35,10 @@ services:
       CONJUR_ACCOUNT: conjur
       DATABASE_URL: postgres://postgres@pg/postgres
       RAILS_ENV: development
-      CONJUR_AUTHENTICATORS: authn-ldap/test-service,authn-oidc/test-service,authn-jwt/test-service,authn
+      CONJUR_AUTHENTICATORS: authn-ldap/test-service,authn-oidc/test-service,authn-jwt/test-service,authn-azure/prod,authn-iam/prod,authn-jwt/gcp,authn
+      # Required by test_integration_oidc_authentication.py — enables the v1 POST id_token= endpoint
+      # which the mock OIDC server supports. The v2 auth-code+PKCE flow is not testable without a browser.
+      CONJUR_FEATURE_OIDC_AUTHENTICATOR_V1_ENABLED: "true"
       LDAP_URI: ldap://ldap-server:389
       LDAP_BASE: dc=conjur,dc=net
       LDAP_BINDDN: cn=admin,dc=conjur,dc=net
@@ -45,7 +48,7 @@ services:
       - 80
     volumes:
       - ${PWD}/ci/test/conjur-deployment/configuration:/policy:ro
-      - ${PWD}/ci/test/conjur-deployment/configuration/oidc:/oidc:ro
+      - oidc-certs:/oidc-certs:ro
     depends_on:
       - pg
       - ldap-server
@@ -94,21 +97,23 @@ services:
       - ${PWD}/ci/test/conjur-deployment/configuration/ldap/certs:/container/service/slapd/assets/certs:ro
 
   oidc-server:
-    image: ghcr.io/soluto/oidc-server-mock:0.7.0
+    build:
+      context: ./ci/test/mock-oidc-server
     hostname: oidc-server
     environment:
-      ASPNETCORE_ENVIRONMENT: development
-      ASPNETCORE_URLS: https://+:443;http://+:80
-      ASPNETCORE_Kestrel__Certificates__Default__Path: /oidc/certs/oidc-server.pfx
-      ASPNETCORE_Kestrel__Certificates__Default__Password: a123456
-      CLIENTS_CONFIGURATION_PATH: /oidc/oidc-clients-config.json
-      USERS_CONFIGURATION_PATH: /oidc/oidc-users-config.json
-      API_RESOURCES_PATH: /oidc/oidc-api-resources-config.yaml
+      LISTEN_ADDR: ":443"
+      # No port here: this becomes the OIDC issuer ("https://oidc-server/oidc"),
+      # which must match the authn-oidc "provider-uri" variable exactly (JWT
+      # issuer validation is a string comparison), and provider-uri is set to
+      # the port-less form.
+      PUBLIC_ADDR: "oidc-server"
+      CLIENT_ID: "conjur-client"
+      CLIENT_SECRET: "conjur-client-secret"
+      CERT_PATH: "/certs/oidc-server.cert.pem"
     ports:
-      - "9000:80"
       - "9443:443"
     volumes:
-      - ${PWD}/ci/test/conjur-deployment/configuration/oidc:/oidc:ro
+      - oidc-certs:/certs
 
   jwt-server:
     image: cyberark/mock-jwt-server
@@ -128,6 +133,23 @@ services:
       dockerfile: ./ci/test/Dockerfile.test
     environment:
       CONJUR_AUTHN_API_KEY: null
+      RUN_AZURE_TESTS: "${RUN_AZURE_TESTS:-}"
+      AZURE_SUBSCRIPTION_ID: "${AZURE_SUBSCRIPTION_ID:-}"
+      AZURE_RESOURCE_GROUP: "${AZURE_RESOURCE_GROUP:-}"
+      USER_ASSIGNED_IDENTITY: "${USER_ASSIGNED_IDENTITY:-}"
+      USER_ASSIGNED_IDENTITY_CLIENT_ID: "${USER_ASSIGNED_IDENTITY_CLIENT_ID:-}"
+      RUN_AWS_TESTS: "${RUN_AWS_TESTS:-}"
+      AWS_ACCOUNT_ID: "${AWS_ACCOUNT_ID:-}"
+      AWS_ROLE_NAME: "${AWS_ROLE_NAME:-}"
+      RUN_GCP_TESTS: "${RUN_GCP_TESTS:-}"
+      GCP_ID_TOKEN: "${GCP_ID_TOKEN:-}"
+      GCP_PROJECT_ID: "${GCP_PROJECT_ID:-}"
+      NO_PROXY: "169.254.169.254,localhost,127.0.0.1,conjur-https,conjur"
+      no_proxy: "169.254.169.254,localhost,127.0.0.1,conjur-https,conjur"
     command: ['sleep', '999d']
     volumes:
       - ${PWD}:/opt/conjur-api-python
+      - oidc-certs:/oidc-certs:ro
+
+volumes:
+  oidc-certs:

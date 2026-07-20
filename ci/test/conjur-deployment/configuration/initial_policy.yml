@@ -15,7 +15,15 @@
   body: []
 
 - !policy
+  id: conjur/authn-azure
+  body: []
+
+- !policy
   id: data
+  body: []
+
+- !policy
+  id: data/test
   body: []
 
 - !policy
@@ -41,6 +49,10 @@
       privilege: [ update ]
       resource: !webservice
 - !policy
+  id: conjur/authn-iam
+  body: []
+
+- !policy
   id: conjur/authn-iam/test
   body:
     - !webservice
@@ -60,7 +72,10 @@
     id: status
 
   - !variable provider-uri
-  - !variable id-token-user-property
+  - !variable client-id
+  - !variable client-secret
+  - !variable claim-mapping
+  - !variable redirect-uri
 
   - !group users
 
