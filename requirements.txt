@@ -8,6 +8,7 @@ pyopenssl>=26.0.0
 PyInstaller>=6.19.0
 PyYAML>=6.0.3
 aiohttp>=3.13.3
+boto3>=1.35.0
 asynctest>=0.13.0
 setuptools>=82.0.1
 twine>=6.2.0

@@ -15,7 +15,15 @@
   body: []
 
 - !policy
+  id: conjur/authn-azure
+  body: []
+
+- !policy
   id: data
+  body: []
+
+- !policy
+  id: data/test
   body: []
 
 - !policy
@@ -40,6 +48,10 @@
       role: !user /test-valid-user
       privilege: [ update ]
       resource: !webservice
+- !policy
+  id: conjur/authn-iam
+  body: []
+
 - !policy
   id: conjur/authn-iam/test
   body:
