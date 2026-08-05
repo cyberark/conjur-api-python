@@ -9,6 +9,8 @@ from conjur_api.providers.aws_iam_authentication_strategy import \
     AWSIAMAuthenticationStrategy
 from conjur_api.providers.azure_authentication_strategy import \
     AzureAuthenticationStrategy
+from conjur_api.providers.cert_authentication_strategy import \
+    CertAuthenticationStrategy
 from conjur_api.providers.gcp_authentication_strategy import \
     GCPAuthenticationStrategy
 from conjur_api.providers.jwt_authentication_strategy import \

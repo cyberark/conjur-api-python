@@ -40,6 +40,12 @@ def create_ssl_context(ssl_verification_metadata: SslVerificationMetadata) -> ss
     # pylint: disable=no-member
     ssl_context.verify_flags |= ssl.OP_NO_TICKET
 
+    if ssl_verification_metadata.client_cert_file:
+        ssl_context.load_cert_chain(
+            certfile=ssl_verification_metadata.client_cert_file,
+            keyfile=ssl_verification_metadata.client_key_file
+        )
+
     logger.debug("SSLContext created successfully")
 
     return ssl_context

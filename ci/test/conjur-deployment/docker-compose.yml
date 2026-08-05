@@ -1,3 +1,7 @@
+# kics-scan ignore
+# This is a CI-only test deployment. All services are ephemeral throwaway
+# containers used for integration tests and are never deployed, so hardcoded
+# test credentials and the privileged test runner are expected here.
 services:
   openssl:
     image: svagi/openssl:latest

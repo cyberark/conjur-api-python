@@ -1,0 +1,9 @@
+# .aegisignore.yml
+# Suppress supply-chain findings in the CI-only test image.
+paths:
+  - path: ci/test/Dockerfile.test
+    reason: >
+      Test-only image used to run the test suite in CI. It is never shipped
+      or deployed to production. Uses unpinned/unhashed pip installs (LF-005,
+      PY-001, PY-006) intentionally so the test environment picks up the latest
+      compatible dependencies from requirements.txt.
