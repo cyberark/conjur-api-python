@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-05
+
+### Added
+- `AWSIAMAuthenticationStrategy` for authenticating via `authn-iam`, signing an
+  AWS STS `GetCallerIdentity` request with SigV4. (CNJR-14083)
+- `AzureAuthenticationStrategy` for authenticating via `authn-azure` using a
+  Managed Identity token from the Azure Instance Metadata Service, supporting
+  both system-assigned and user-assigned identities. (CNJR-14083)
+- `GCPAuthenticationStrategy` for authenticating via `authn-jwt/gcp` using a GCP
+  instance metadata identity token, with an optional pre-obtained JWT to bypass
+  the metadata service. (CNJR-14083)
+- `CertAuthenticationStrategy` for certificate-based (mTLS) authentication via
+  `authn-cert`, supporting both request mode (explicit `host_id`) and SPIFFE mode
+  (host derived from the certificate's SPIFFE SAN URI). Adds client-certificate
+  support to the SSL context factory. (CNJR-14082)
+
 ### Fixed
 - Set `CONJUR_AUTHN_ALLOWED_IP_RANGES` in the integration test environment so
   Conjur's new SSRF guard does not block the authn-oidc `provider-uri` fetch to
