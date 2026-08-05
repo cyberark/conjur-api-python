@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+- Set `CONJUR_AUTHN_ALLOWED_IP_RANGES` in the integration test environment so
+  Conjur's new SSRF guard does not block the authn-oidc `provider-uri` fetch to
+  the compose-local mock OIDC server. (CNJR-13786)
+
 ## [0.1.11] - 2026-07-02
 
 ### Changed
