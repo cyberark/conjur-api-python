@@ -39,6 +39,10 @@ services:
       # Required by test_integration_oidc_authentication.py — enables the v1 POST id_token= endpoint
       # which the mock OIDC server supports. The v2 auth-code+PKCE flow is not testable without a browser.
       CONJUR_FEATURE_OIDC_AUTHENTICATOR_V1_ENABLED: "true"
+      # Conjur's SSRF guard blocks authenticator fetches (authn-oidc provider-uri here) that resolve
+      # to loopback/RFC1918 ranges. Compose service names resolve inside the bridge network's private
+      # subnet, so the guard must be opted out of for this test env. Mirrors conjur's own ci/docker-compose.yml.
+      CONJUR_AUTHN_ALLOWED_IP_RANGES: ${CONJUR_AUTHN_ALLOWED_IP_RANGES:-0.0.0.0/0,::/0}
       LDAP_URI: ldap://ldap-server:389
       LDAP_BASE: dc=conjur,dc=net
       LDAP_BINDDN: cn=admin,dc=conjur,dc=net
