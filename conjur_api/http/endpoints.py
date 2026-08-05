@@ -21,6 +21,8 @@ class ConjurEndpoint(Enum):
     AUTHENTICATE_OIDC = "{url}/authn-oidc/{service_id}/{account}/authenticate"
     OIDC_PROVIDERS = "{url}/authn-oidc/{account}/providers"
     AUTHENTICATE_JWT = "{url}/authn-jwt/{service_id}/{account}/authenticate"
+    AUTHENTICATE_CERT = "{url}/authn-cert/{service_id}/{account}/{login}/authenticate"
+    AUTHENTICATE_CERT_SPIFFE = "{url}/authn-cert/{service_id}/{account}/authenticate"
     AUTHENTICATE_AZURE = "{url}/authn-azure/{service_id}/{account}/{login}/authenticate"
     AUTHENTICATE_IAM = "{url}/authn-iam/{service_id}/{account}/{login}/authenticate"
     # GCP uses authn-jwt but requires {login} in the URL (host identity); kept separate from AUTHENTICATE_JWT intentionally.

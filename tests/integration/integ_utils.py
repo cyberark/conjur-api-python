@@ -11,6 +11,8 @@ from conjur_api.providers import (AuthnAuthenticationStrategy,
                                   LdapAuthenticationStrategy,
                                   SimpleCredentialsProvider,
                                   TokenAuthenticationStrategy)
+from conjur_api.providers.cert_authentication_strategy import \
+    CertAuthenticationStrategy
 from conjur_api.providers.jwt_authentication_strategy import \
     JWTAuthenticationStrategy
 from conjur_api.providers.oidc_authentication_strategy import \
@@ -25,6 +27,7 @@ class ConjurUser:
 
 class AuthenticationStrategyType(Enum):
     AUTHN = 'AUTHN'
+    CERT = 'CERT'
     LDAP = 'LDAP'
     OIDC = 'OIDC'
     JWT  = 'JWT'

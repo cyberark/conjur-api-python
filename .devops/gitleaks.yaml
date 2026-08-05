@@ -1,0 +1,4 @@
+config:
+  exclusions:
+    - "tests/authentication_strategy/test_unit_cert_authentication_provider.py"
+    - "ci/test/conjur-deployment/configuration/oidc/certs/"

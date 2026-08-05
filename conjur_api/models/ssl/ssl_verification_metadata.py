@@ -13,9 +13,12 @@ class SslVerificationMetadata:
     A data class that is used by http_wrapper to preform TLS operations
     """
 
-    def __init__(self, mode: SslVerificationMode, ca_cert_path: str = None):
+    def __init__(self, mode: SslVerificationMode, ca_cert_path: str = None,
+                 client_cert_file: str = None, client_key_file: str = None):
         self.mode = mode
         self.ca_cert_path = ca_cert_path
+        self.client_cert_file = client_cert_file
+        self.client_key_file = client_key_file
         self._validate_input()
 
     @property
@@ -42,7 +45,9 @@ class SslVerificationMetadata:
                 f"mode: {self.mode} and ca_cert_path: {self.ca_cert_path}")
 
     def __eq__(self, other):
-        return self.mode == other.mode and self.ca_cert_path == other.ca_cert_path
+        return (self.mode == other.mode and self.ca_cert_path == other.ca_cert_path
+                and self.client_cert_file == other.client_cert_file
+                and self.client_key_file == other.client_key_file)
 
     def __repr__(self):
         return str(self.__dict__)
